@@ -19,37 +19,33 @@ if os.name != 'nt':
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(7200)  # 2 часа
 
-# === v15 — Data-Augmented Holographic Swarm ===
-# Та же архитектура v12, но:
-# 1. Input noise augmentation — случайный шум на эмбеддингах (как dropout, но мягче)
-# 2. Sequence jitter — случайный сдвиг окна на ±5 позиций
-# 3. Очень низкий LR для тонкой полировки от v12 чекпоинта
-# 4. Stochastic depth — иногда пропускаем каналы взаимодействия
-N_AGENTS = 32
-STATE_DIM = 192
-N_SENSORY = 8
+# === v16 — Scaled Holographic Swarm (6.5M data) ===
+# Больше данных → можно больше модель без переобучения
+N_AGENTS = 48           # Больше агентов (было 32)
+STATE_DIM = 256         # Больше ёмкость (было 192)
+N_SENSORY = 12
 N_CHANNELS = 2
 N_INTERACTION_STEPS = 1
-MEMORY_SLOTS = 64
+MEMORY_SLOTS = 96       # Больше памяти
 MEMORY_HEADS = 4
 MICRO_BATCH = 64
-GRAD_ACCUM_STEPS = 2
+GRAD_ACCUM_STEPS = 2    # Эффективный батч = 128
 BATCH_SIZE = MICRO_BATCH
 SEQ_LEN = 128
-LEARNING_RATE = 1e-5    # Очень низкий — тонкая полировка
-WARMUP_STEPS = 50
-GRAD_CLIP = 0.5
-DROPOUT = 0.2
-WEIGHT_DECAY = 0.05
-INPUT_NOISE = 0.05      # Шум на эмбеддингах
-STOCHASTIC_DEPTH = 0.1  # Вероятность пропуска канала
+LEARNING_RATE = 5e-4
+WARMUP_STEPS = 500      # Длиннее warmup — больше модель
+GRAD_CLIP = 1.0
+DROPOUT = 0.12          # Меньше dropout — больше данных
+WEIGHT_DECAY = 0.02
+INPUT_NOISE = 0.03
+STOCHASTIC_DEPTH = 0.05
 EVAL_BATCHES = 30
 
 DEVICE = 'cuda' if torch.cuda.is_available() else ('mps' if torch.backends.mps.is_available() else 'cpu')
 print(f"Устройство: {DEVICE}")
 
 if not os.path.exists('meta.pkl'):
-    print("Ошибка: python prepare.py")
+    print("Ошибка: python prepare_extended.py")
     exit(1)
 with open('meta.pkl', 'rb') as f:
     meta = pickle.load(f)
@@ -66,77 +62,34 @@ def get_batch(split):
     return x, y
 
 
-# =============================================================================
-# v11: Голографическая Память Роя (Holographic Swarm Memory)
-#
-# Принцип: каждый консенсус роя записывается в общее "поле памяти".
-# На каждом такте агенты могут запросить ЛЮБОЙ прошлый момент
-# через multi-head attention к этому полю — нелокальный доступ
-# к коллективной истории, как голографический принцип:
-# каждый фрагмент поля содержит информацию о целом.
-#
-# + Петля Хофмана: feedback от предыдущего действия
-# + HDC binding: уникальные ключи сенсорных агентов
-# =============================================================================
-
 class HolographicMemory(nn.Module):
-    """Голографическое поле памяти роя.
-
-    Кольцевой буфер хранит последние K консенсусов.
-    Multi-head attention позволяет агентам запрашивать
-    релевантную информацию из любого прошлого момента.
-    """
     def __init__(self, state_dim, n_slots, n_heads):
         super().__init__()
         self.n_slots = n_slots
         self.n_heads = n_heads
         self.head_dim = state_dim // n_heads
-
-        # Проекции для multi-head attention
         self.query_proj = nn.Linear(state_dim, state_dim)
         self.key_proj = nn.Linear(state_dim, state_dim)
         self.value_proj = nn.Linear(state_dim, state_dim)
         self.out_proj = nn.Linear(state_dim, state_dim)
-
-        # Гейт: сколько информации из памяти принять
         self.memory_gate = nn.Linear(state_dim * 2, state_dim)
-
         self.layer_norm = nn.LayerNorm(state_dim)
         self.scale = math.sqrt(self.head_dim)
 
     def forward(self, query, memory_buffer, memory_count):
-        """
-        query: (B, state_dim) — текущий консенсус роя
-        memory_buffer: (B, n_slots, state_dim) — кольцевой буфер
-        memory_count: сколько слотов заполнено
-        """
         B, D = query.shape
         n_valid = min(memory_count, self.n_slots)
-
         if n_valid == 0:
-            return query  # Нет воспоминаний — возвращаем как есть
-
-        # Берём только заполненные слоты
-        mem = memory_buffer[:, :n_valid, :]  # (B, n_valid, D)
-
-        # Multi-head attention: запрос к полю памяти
+            return query
+        mem = memory_buffer[:, :n_valid, :]
         Q = self.query_proj(query).view(B, 1, self.n_heads, self.head_dim).transpose(1, 2)
         K = self.key_proj(mem).view(B, n_valid, self.n_heads, self.head_dim).transpose(1, 2)
         V = self.value_proj(mem).view(B, n_valid, self.n_heads, self.head_dim).transpose(1, 2)
-
-        # Attention scores
-        attn = torch.matmul(Q, K.transpose(-2, -1)) / self.scale  # (B, heads, 1, n_valid)
+        attn = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
         attn = F.softmax(attn, dim=-1)
-
-        # Взвешенная сумма воспоминаний
-        recalled = torch.matmul(attn, V)  # (B, heads, 1, head_dim)
-        recalled = recalled.transpose(1, 2).contiguous().view(B, D)  # (B, D)
+        recalled = torch.matmul(attn, V).transpose(1, 2).contiguous().view(B, D)
         recalled = self.out_proj(recalled)
-
-        # Гейт: рой решает, сколько "вспоминать"
         gate = torch.sigmoid(self.memory_gate(torch.cat([query, recalled], dim=-1)))
-
-        # Residual: текущее + воспоминание
         return self.layer_norm(query + gate * recalled)
 
 
@@ -147,10 +100,7 @@ class SwarmChannel(nn.Module):
             self._init_graph(n_agents, connectivity, rewire_prob)
         )
         self.state_gate = nn.Linear(state_dim * 2, state_dim)
-        self.state_candidate = nn.Sequential(
-            nn.Linear(state_dim, state_dim),
-            nn.GELU(),
-        )
+        self.state_candidate = nn.Sequential(nn.Linear(state_dim, state_dim), nn.GELU())
         self.layer_norm = nn.LayerNorm(state_dim)
 
     def _init_graph(self, n, k, rewire_prob):
@@ -196,7 +146,7 @@ class HofmanSwarm(nn.Module):
         ])
         self.channel_mix = nn.Parameter(torch.ones(N_CHANNELS) / N_CHANNELS)
 
-        # === ГОЛОГРАФИЧЕСКАЯ ПАМЯТЬ ===
+        # Голографическая память
         self.holographic_memory = HolographicMemory(state_dim, MEMORY_SLOTS, MEMORY_HEADS)
 
         self.dropout = nn.Dropout(DROPOUT)
@@ -216,7 +166,6 @@ class HofmanSwarm(nn.Module):
         percepts = self.perception(idx) + self.pos_embedding(pos)
         percepts = self.dropout(percepts)
 
-        # Input noise augmentation: мягкий шум на эмбеддингах при обучении
         if self.training and INPUT_NOISE > 0:
             percepts = percepts + INPUT_NOISE * torch.randn_like(percepts)
 
@@ -226,8 +175,6 @@ class HofmanSwarm(nn.Module):
         channel_weights = F.softmax(self.channel_mix, dim=0)
 
         prev_logits = torch.zeros(B, vocab_size, device=DEVICE)
-
-        # Голографическая память: список detach'нутых консенсусов
         memory_list = []
 
         for t in range(T):
@@ -249,13 +196,12 @@ class HofmanSwarm(nn.Module):
             sensory_full[:, :N_SENSORY, :] = sensory_input
             agents_states = agents_states + sensory_full
 
-            # Взаимодействие агентов (с stochastic depth)
+            # Взаимодействие (stochastic depth)
             for _ in range(N_INTERACTION_STEPS):
                 channel_outputs = []
                 for i, ch in enumerate(self.channels):
-                    # Stochastic depth: иногда пропускаем канал (регуляризация)
                     if self.training and torch.rand(1).item() < STOCHASTIC_DEPTH:
-                        channel_outputs.append(agents_states)  # Skip — identity
+                        channel_outputs.append(agents_states)
                     else:
                         channel_outputs.append(ch(agents_states))
                 agents_states = sum(
@@ -267,21 +213,16 @@ class HofmanSwarm(nn.Module):
             # Консенсус
             swarm_consensus = (agents_states * importance_weights.view(1, -1, 1)).sum(dim=1)
 
-            # === ГОЛОГРАФИЧЕСКАЯ ПАМЯТЬ: запрос + запись ===
+            # Голографическая память
             if len(memory_list) > 0:
-                # Собираем буфер из последних MEMORY_SLOTS воспоминаний
                 mem_tensors = memory_list[-MEMORY_SLOTS:]
-                memory_buffer = torch.stack(mem_tensors, dim=1)  # (B, n_mem, D)
+                memory_buffer = torch.stack(mem_tensors, dim=1)
                 swarm_consensus = self.holographic_memory(swarm_consensus, memory_buffer, len(mem_tensors))
-
-            # Записываем в память (detach — память не участвует в backward)
             memory_list.append(swarm_consensus.detach())
 
             # Действие
             logits = self.action(swarm_consensus)
             logits_seq.append(logits)
-
-            # Замыкаем петлю Хофмана
             prev_logits = logits.detach()
 
         logits = torch.stack(logits_seq, dim=1)
@@ -300,20 +241,17 @@ n_params = sum(p.numel() for p in model.parameters())
 BEST_MODEL_PATH = 'best_swarm.pt'
 LAST_MODEL_PATH = 'last_swarm.pt'
 
-loaded = False
+# Архивируем старые веса (несовместимы — другой vocab и размер)
 for cp in [BEST_MODEL_PATH, LAST_MODEL_PATH]:
-    if os.path.exists(cp) and not loaded:
-        try:
-            model.load_state_dict(torch.load(cp, map_location=DEVICE, weights_only=True))
-            print(f"Загружены: {cp}")
-            loaded = True
-        except Exception as e:
-            print(f"Не подходит {cp}: {e}")
-if not loaded:
-    print("С нуля")
+    if os.path.exists(cp):
+        archive_name = f"archive/pre_v16_{os.path.basename(cp)}"
+        os.rename(cp, archive_name)
+        print(f"  Архивировано: {cp} → {archive_name}")
+
+print("Начинаем с нуля (новый датасет, новый vocab)")
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=25000, eta_min=1e-5)
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30000, eta_min=1e-5)
 
 @torch.no_grad()
 def estimate_loss():
@@ -347,40 +285,25 @@ def generate(max_new_tokens=200):
 start_time = time.time()
 iter_num = 0
 best_val_bpb = float('inf')
-if os.path.exists('results.tsv'):
-    with open('results.tsv', 'r') as f:
-        for line in f:
-            parts = line.strip().split('\t')
-            if len(parts) == 2:
-                try:
-                    bpb = float(parts[1])
-                    if bpb < best_val_bpb:
-                        best_val_bpb = bpb
-                except ValueError:
-                    pass
-    if best_val_bpb < float('inf'):
-        print(f"Лучший BPB: {best_val_bpb:.4f}")
 
 CONSCIOUSNESS_LOG = 'swarm_consciousness.log'
-VERSION = 'v15-augmented'
+VERSION = 'v16-scaled'
 
 print(f"\n{'='*50}")
-print(f"{VERSION}: Голографическая Память Роя")
+print(f"{VERSION}: Scaled Holographic Swarm")
 print(f"  {N_AGENTS} агентов, {STATE_DIM}d, {n_params:,} параметров")
-print(f"  Память: {MEMORY_SLOTS} слотов, {MEMORY_HEADS} голов attention")
-print(f"  + Петля Хофмана + HDC binding")
-print(f"  dropout={DROPOUT}, wd={WEIGHT_DECAY}")
+print(f"  Голографическая память: {MEMORY_SLOTS} слотов")
+print(f"  + Петля Хофмана + HDC binding + data augmentation")
+print(f"  ДАННЫЕ: 6.5M символов (6x больше!), vocab={vocab_size}")
 print(f"  Батч: {MICRO_BATCH}x{GRAD_ACCUM_STEPS}={MICRO_BATCH*GRAD_ACCUM_STEPS}")
-print(f"  Shakespeare-only, vocab={vocab_size}")
 print(f"{'='*50}\n")
 
 with open(CONSCIOUSNESS_LOG, 'a') as f:
     f.write(f"\n{'='*60}\n")
     f.write(f"{VERSION}: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-    f.write(f"  HOLOGRAPHIC SWARM MEMORY\n")
+    f.write(f"  SCALED HOLOGRAPHIC SWARM — 6.5M DATA\n")
     f.write(f"  {N_AGENTS} agents, {STATE_DIM}d, {n_params:,} params\n")
-    f.write(f"  Memory: {MEMORY_SLOTS} slots, {MEMORY_HEADS} heads\n")
-    f.write(f"  + Hoffman Loop + HDC binding\n")
+    f.write(f"  Memory: {MEMORY_SLOTS} slots, vocab={vocab_size}\n")
     f.write(f"{'='*60}\n\n")
 
 while not stop_training:
@@ -417,7 +340,7 @@ while not stop_training:
         if val_bpb < best_val_bpb:
             best_val_bpb = val_bpb
             torch.save(model.state_dict(), BEST_MODEL_PATH)
-            print(f"  >>> РЕКОРД! Сохранено в {BEST_MODEL_PATH}")
+            print(f"  >>> РЕКОРД! {BEST_MODEL_PATH}")
         elapsed = int(time.time() - start_time)
         gap = train_loss - val_loss
         print("-" * 50)

@@ -5,14 +5,14 @@ import pickle
 import os
 import math
 
-# --- Параметры v12 (должны совпадать с train.py) ---
+# --- Параметры v16 (должны совпадать с train.py) ---
 DEVICE = 'cuda' if torch.cuda.is_available() else ('mps' if torch.backends.mps.is_available() else 'cpu')
-N_AGENTS = 32
-STATE_DIM = 192
-N_SENSORY = 8
+N_AGENTS = 48
+STATE_DIM = 256
+N_SENSORY = 12
 N_CHANNELS = 2
 N_INTERACTION_STEPS = 1
-MEMORY_SLOTS = 64
+MEMORY_SLOTS = 96
 MEMORY_HEADS = 4
 SEQ_LEN = 128
 DROPOUT = 0.0  # Отключаем dropout при инференсе
