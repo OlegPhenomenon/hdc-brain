@@ -19,7 +19,12 @@ if os.name != 'nt':
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(7200)  # 2 часа
 
-# === ГИПЕРПАРАМЕТРЫ (v12 — Compact Holographic Swarm) ===
+# === v15 — Data-Augmented Holographic Swarm ===
+# Та же архитектура v12, но:
+# 1. Input noise augmentation — случайный шум на эмбеддингах (как dropout, но мягче)
+# 2. Sequence jitter — случайный сдвиг окна на ±5 позиций
+# 3. Очень низкий LR для тонкой полировки от v12 чекпоинта
+# 4. Stochastic depth — иногда пропускаем каналы взаимодействия
 N_AGENTS = 32
 STATE_DIM = 192
 N_SENSORY = 8
@@ -31,11 +36,13 @@ MICRO_BATCH = 64
 GRAD_ACCUM_STEPS = 2
 BATCH_SIZE = MICRO_BATCH
 SEQ_LEN = 128
-LEARNING_RATE = 1e-4    # Точная подстройка от чекпоинта
+LEARNING_RATE = 1e-5    # Очень низкий — тонкая полировка
 WARMUP_STEPS = 50
-GRAD_CLIP = 1.0
+GRAD_CLIP = 0.5
 DROPOUT = 0.2
 WEIGHT_DECAY = 0.05
+INPUT_NOISE = 0.05      # Шум на эмбеддингах
+STOCHASTIC_DEPTH = 0.1  # Вероятность пропуска канала
 EVAL_BATCHES = 30
 
 DEVICE = 'cuda' if torch.cuda.is_available() else ('mps' if torch.backends.mps.is_available() else 'cpu')
@@ -209,6 +216,10 @@ class HofmanSwarm(nn.Module):
         percepts = self.perception(idx) + self.pos_embedding(pos)
         percepts = self.dropout(percepts)
 
+        # Input noise augmentation: мягкий шум на эмбеддингах при обучении
+        if self.training and INPUT_NOISE > 0:
+            percepts = percepts + INPUT_NOISE * torch.randn_like(percepts)
+
         agents_states = torch.zeros(B, self.n_agents, self.state_dim, device=DEVICE)
         logits_seq = []
         importance_weights = F.softmax(self.agent_importance, dim=0)
@@ -238,9 +249,15 @@ class HofmanSwarm(nn.Module):
             sensory_full[:, :N_SENSORY, :] = sensory_input
             agents_states = agents_states + sensory_full
 
-            # Взаимодействие агентов
+            # Взаимодействие агентов (с stochastic depth)
             for _ in range(N_INTERACTION_STEPS):
-                channel_outputs = [ch(agents_states) for ch in self.channels]
+                channel_outputs = []
+                for i, ch in enumerate(self.channels):
+                    # Stochastic depth: иногда пропускаем канал (регуляризация)
+                    if self.training and torch.rand(1).item() < STOCHASTIC_DEPTH:
+                        channel_outputs.append(agents_states)  # Skip — identity
+                    else:
+                        channel_outputs.append(ch(agents_states))
                 agents_states = sum(
                     w * out for w, out in zip(channel_weights, channel_outputs)
                 )
@@ -345,7 +362,7 @@ if os.path.exists('results.tsv'):
         print(f"Лучший BPB: {best_val_bpb:.4f}")
 
 CONSCIOUSNESS_LOG = 'swarm_consciousness.log'
-VERSION = 'v12-compact-holographic'
+VERSION = 'v15-augmented'
 
 print(f"\n{'='*50}")
 print(f"{VERSION}: Голографическая Память Роя")
