@@ -19,26 +19,26 @@ if os.name != 'nt':
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(7200)  # 2 часа
 
-# === v16 — Scaled Holographic Swarm (6.5M data) ===
-# Больше данных → можно больше модель без переобучения
-N_AGENTS = 64           # Больше агентов (было 32)
-STATE_DIM = 288         # Больше ёмкость (было 192)
-N_SENSORY = 16
+# === v17-optimized — torch.compile + fp16 ===
+N_AGENTS = 80
+STATE_DIM = 320
+N_SENSORY = 20
 N_CHANNELS = 2
 N_INTERACTION_STEPS = 1
-MEMORY_SLOTS = 128       # Больше памяти
+MEMORY_SLOTS = 128
 MEMORY_HEADS = 4
-MICRO_BATCH = 48
-GRAD_ACCUM_STEPS = 3    # Эффективный батч = 128
+MICRO_BATCH = 64        # Обратно 64 — память свободна
+GRAD_ACCUM_STEPS = 2    # Эффективный батч = 128
 BATCH_SIZE = MICRO_BATCH
 SEQ_LEN = 128
-LEARNING_RATE = 5e-4
-WARMUP_STEPS = 600      # Длиннее warmup — больше модель
+LEARNING_RATE = 5e-4    # Дообучение от чекпоинта
+WARMUP_STEPS = 500
 GRAD_CLIP = 1.0
-DROPOUT = 0.12          # Меньше dropout — больше данных
+DROPOUT = 0.12
 WEIGHT_DECAY = 0.02
 INPUT_NOISE = 0.03
 STOCHASTIC_DEPTH = 0.05
+USE_AMP = True          # Mixed precision (float16)
 EVAL_BATCHES = 30
 
 DEVICE = 'cuda' if torch.cuda.is_available() else ('mps' if torch.backends.mps.is_available() else 'cpu')
@@ -196,17 +196,16 @@ class HofmanSwarm(nn.Module):
             sensory_full[:, :N_SENSORY, :] = sensory_input
             agents_states = agents_states + sensory_full
 
-            # Взаимодействие (stochastic depth)
+            # Взаимодействие (stochastic depth через dropout-style маску)
             for _ in range(N_INTERACTION_STEPS):
-                channel_outputs = []
-                for i, ch in enumerate(self.channels):
-                    if self.training and torch.rand(1).item() < STOCHASTIC_DEPTH:
-                        channel_outputs.append(agents_states)
-                    else:
-                        channel_outputs.append(ch(agents_states))
+                channel_outputs = [ch(agents_states) for ch in self.channels]
                 agents_states = sum(
                     w * out for w, out in zip(channel_weights, channel_outputs)
                 )
+                # Stochastic depth как dropout на выходе каналов
+                if self.training:
+                    mask = torch.bernoulli(torch.full((B, 1, 1), 1 - STOCHASTIC_DEPTH, device=DEVICE))
+                    agents_states = agents_states * mask / (1 - STOCHASTIC_DEPTH)
 
             agents_states = self.dropout(agents_states)
 
@@ -242,16 +241,34 @@ BEST_MODEL_PATH = 'best_swarm.pt'
 LAST_MODEL_PATH = 'last_swarm.pt'
 
 loaded = False
+def clean_state_dict(sd):
+    """Убирает _orig_mod. префикс от torch.compile при загрузке"""
+    return {k.replace('_orig_mod.', ''): v for k, v in sd.items()}
+
+def save_clean(model, path):
+    """Сохраняет веса без _orig_mod. префикса"""
+    sd = model.state_dict()
+    torch.save(clean_state_dict(sd), path)
+
 for cp in [BEST_MODEL_PATH, LAST_MODEL_PATH]:
     if os.path.exists(cp) and not loaded:
         try:
-            model.load_state_dict(torch.load(cp, map_location=DEVICE, weights_only=True))
+            sd = torch.load(cp, map_location=DEVICE, weights_only=True)
+            model.load_state_dict(clean_state_dict(sd))
             print(f"Загружены: {cp}")
             loaded = True
         except Exception as e:
             print(f"Не подходит {cp}: {e}")
 if not loaded:
     print("С нуля")
+
+# torch.compile — JIT-компиляция ядер для ускорения
+if DEVICE == 'cuda':
+    model = torch.compile(model)
+    print("torch.compile() активирован")
+
+# Mixed precision scaler
+scaler = torch.amp.GradScaler('cuda', enabled=USE_AMP)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30000, eta_min=1e-5)
@@ -290,7 +307,7 @@ iter_num = 0
 best_val_bpb = float('inf')
 
 CONSCIOUSNESS_LOG = 'swarm_consciousness.log'
-VERSION = 'v17-expanded'
+VERSION = 'v18-massive'
 
 print(f"\n{'='*50}")
 print(f"{VERSION}: Scaled Holographic Swarm")
@@ -321,13 +338,16 @@ while not stop_training:
     accum_loss = 0.0
     for _ in range(GRAD_ACCUM_STEPS):
         X, Y = get_batch('train')
-        logits, loss = model(X, Y)
-        loss = loss / GRAD_ACCUM_STEPS
-        loss.backward()
+        with torch.amp.autocast('cuda', enabled=USE_AMP):
+            logits, loss = model(X, Y)
+            loss = loss / GRAD_ACCUM_STEPS
+        scaler.scale(loss).backward()
         accum_loss += loss.item()
 
+    scaler.unscale_(optimizer)
     torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
-    optimizer.step()
+    scaler.step(optimizer)
+    scaler.update()
     if iter_num >= WARMUP_STEPS:
         scheduler.step()
 
@@ -342,7 +362,7 @@ while not stop_training:
         sample = generate(200)
         if val_bpb < best_val_bpb:
             best_val_bpb = val_bpb
-            torch.save(model.state_dict(), BEST_MODEL_PATH)
+            save_clean(model, BEST_MODEL_PATH)
             print(f"  >>> РЕКОРД! {BEST_MODEL_PATH}")
         elapsed = int(time.time() - start_time)
         gap = train_loss - val_loss
@@ -362,9 +382,9 @@ final_sample = generate(300)
 
 if val_bpb < best_val_bpb:
     best_val_bpb = val_bpb
-    torch.save(model.state_dict(), BEST_MODEL_PATH)
+    save_clean(model, BEST_MODEL_PATH)
 
-torch.save(model.state_dict(), LAST_MODEL_PATH)
+save_clean(model, LAST_MODEL_PATH)
 
 print(f"\n{'='*50}")
 print(f"ФИНАЛ {VERSION}: {(time.time()-start_time)/60:.1f}мин, {iter_num} iter")
