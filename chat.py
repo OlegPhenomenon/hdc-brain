@@ -153,7 +153,7 @@ def chat():
         return
 
     model.eval()
-    print("Архитектура: v12 — Compact Holographic Swarm")
+    print("Архитектура: v17 — Expanded Holographic Swarm (BPB 1.603)")
     print(f"  {N_AGENTS} агентов, {STATE_DIM}d, голографическая память ({MEMORY_SLOTS} слотов)")
     print(f"  + Петля Хофмана + HDC binding")
     print("Введите текст для продолжения роем. 'exit' для выхода.\n")
