@@ -21,19 +21,19 @@ if os.name != 'nt':
 
 # === v16 — Scaled Holographic Swarm (6.5M data) ===
 # Больше данных → можно больше модель без переобучения
-N_AGENTS = 48           # Больше агентов (было 32)
-STATE_DIM = 256         # Больше ёмкость (было 192)
-N_SENSORY = 12
+N_AGENTS = 64           # Больше агентов (было 32)
+STATE_DIM = 288         # Больше ёмкость (было 192)
+N_SENSORY = 16
 N_CHANNELS = 2
 N_INTERACTION_STEPS = 1
-MEMORY_SLOTS = 96       # Больше памяти
+MEMORY_SLOTS = 128       # Больше памяти
 MEMORY_HEADS = 4
-MICRO_BATCH = 64
-GRAD_ACCUM_STEPS = 2    # Эффективный батч = 128
+MICRO_BATCH = 48
+GRAD_ACCUM_STEPS = 3    # Эффективный батч = 128
 BATCH_SIZE = MICRO_BATCH
 SEQ_LEN = 128
 LEARNING_RATE = 5e-4
-WARMUP_STEPS = 500      # Длиннее warmup — больше модель
+WARMUP_STEPS = 600      # Длиннее warmup — больше модель
 GRAD_CLIP = 1.0
 DROPOUT = 0.12          # Меньше dropout — больше данных
 WEIGHT_DECAY = 0.02
@@ -241,14 +241,17 @@ n_params = sum(p.numel() for p in model.parameters())
 BEST_MODEL_PATH = 'best_swarm.pt'
 LAST_MODEL_PATH = 'last_swarm.pt'
 
-# Архивируем старые веса (несовместимы — другой vocab и размер)
+loaded = False
 for cp in [BEST_MODEL_PATH, LAST_MODEL_PATH]:
-    if os.path.exists(cp):
-        archive_name = f"archive/pre_v16_{os.path.basename(cp)}"
-        os.rename(cp, archive_name)
-        print(f"  Архивировано: {cp} → {archive_name}")
-
-print("Начинаем с нуля (новый датасет, новый vocab)")
+    if os.path.exists(cp) and not loaded:
+        try:
+            model.load_state_dict(torch.load(cp, map_location=DEVICE, weights_only=True))
+            print(f"Загружены: {cp}")
+            loaded = True
+        except Exception as e:
+            print(f"Не подходит {cp}: {e}")
+if not loaded:
+    print("С нуля")
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30000, eta_min=1e-5)
@@ -287,7 +290,7 @@ iter_num = 0
 best_val_bpb = float('inf')
 
 CONSCIOUSNESS_LOG = 'swarm_consciousness.log'
-VERSION = 'v16-scaled'
+VERSION = 'v17-expanded'
 
 print(f"\n{'='*50}")
 print(f"{VERSION}: Scaled Holographic Swarm")
