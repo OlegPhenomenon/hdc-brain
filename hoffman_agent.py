@@ -26,49 +26,77 @@ import re
 
 
 # ============================================================================
-# HDC WORD-LEVEL TOKENIZER
+# BPE-LIKE SUBWORD TOKENIZER
 # ============================================================================
 
-class HDCTokenizer:
-    """Word-level токенизатор для Hoffman Swarm."""
-    def __init__(self, text, min_freq=2, max_vocab=8000):
-        words = re.findall(r"[A-Za-z']+|[^A-Za-z'\s]|\n", text)
-        word_counts = {}
-        for w in words:
-            word_counts[w] = word_counts.get(w, 0) + 1
-        vocab_words = ['<unk>', '<pad>', ' ']
-        for w, c in sorted(word_counts.items(), key=lambda x: -x[1]):
-            if c >= min_freq and len(vocab_words) < max_vocab:
-                vocab_words.append(w)
-        self.stoi = {w: i for i, w in enumerate(vocab_words)}
-        self.itos = {i: w for i, w in enumerate(vocab_words)}
-        self.vocab_size = len(vocab_words)
-        self.unk_id = 0
+class SubwordTokenizer:
+    """Субсловный токенизатор (BPE-подобный).
+
+    Вместо целых слов использует частотные подстроки (2-6 символов).
+    Преимущества перед word-level:
+    - Обрабатывает опечатки (разбивает на известные куски)
+    - Может генерировать новые слова
+    - Меньший vocab при том же покрытии
+    - Триграммы/биграммы несут морфологическую информацию
+    """
+    def __init__(self, text, max_vocab=4000):
+        # Базовый vocab: все ASCII символы
+        chars = sorted(set(text))
+        self.char_vocab = {c: i for i, c in enumerate(chars)}
+
+        # Считаем частоту n-грамм (2-6 символов)
+        ngram_counts = {}
+        for n in range(2, 7):
+            for i in range(len(text) - n):
+                ng = text[i:i+n]
+                if '\n' not in ng[1:]:  # Не ломаем строки
+                    ngram_counts[ng] = ngram_counts.get(ng, 0) + 1
+
+        # Берём самые частые n-граммы
+        sorted_ngrams = sorted(ngram_counts.items(), key=lambda x: -x[1])
+
+        # Строим vocab: символы + частые n-граммы
+        vocab = list(chars)
+        for ng, count in sorted_ngrams:
+            if len(vocab) >= max_vocab:
+                break
+            if count >= 10:  # Минимальная частота
+                vocab.append(ng)
+
+        self.stoi = {s: i for i, s in enumerate(vocab)}
+        self.itos = {i: s for i, s in enumerate(vocab)}
+        self.vocab_size = len(vocab)
+        # Сортируем токены по длине (длинные сначала для greedy matching)
+        self.tokens_by_length = sorted(
+            [(s, i) for s, i in self.stoi.items()],
+            key=lambda x: -len(x[0])
+        )
 
     def encode(self, text):
-        tokens = []
+        """Greedy longest-match tokenization"""
+        result = []
         i = 0
         while i < len(text):
-            if text[i] == ' ':
-                tokens.append(self.stoi.get(' ', self.unk_id))
+            matched = False
+            # Пробуем самый длинный токен
+            for max_len in range(min(6, len(text) - i), 0, -1):
+                substr = text[i:i+max_len]
+                if substr in self.stoi:
+                    result.append(self.stoi[substr])
+                    i += max_len
+                    matched = True
+                    break
+            if not matched:
+                result.append(0)  # unknown char
                 i += 1
-            elif text[i] == '\n':
-                tokens.append(self.stoi.get('\n', self.unk_id))
-                i += 1
-            elif text[i].isalpha() or text[i] == "'":
-                j = i
-                while j < len(text) and (text[j].isalpha() or text[j] == "'"):
-                    j += 1
-                word = text[i:j]
-                tokens.append(self.stoi.get(word, self.unk_id))
-                i = j
-            else:
-                tokens.append(self.stoi.get(text[i], self.unk_id))
-                i += 1
-        return tokens
+        return result
 
     def decode(self, ids):
         return ''.join(self.itos.get(i, '?') for i in ids)
+
+
+# Сохраняем обратную совместимость
+HDCTokenizer = SubwordTokenizer
 
 
 # ============================================================================
@@ -288,11 +316,20 @@ class SharedConsciousAgent(nn.Module):
         self.from_hdc_proj = nn.Linear(hdc_dim, state_dim)
 
         # === ИНДИВИДУАЛЬНОСТЬ каждого агента ===
-        # Каждый агент имеет свой "характер" — вектор модулирующий ядра
+        # Врождённый характер (обучается через backprop)
         self.agent_personality = nn.Parameter(torch.randn(n_agents, state_dim) * 0.1)
 
-        # Индивидуальные HDC кодовые книги (каждый агент "видит" мир по-своему)
+        # Приобретённый характер (формируется из опыта, НЕ через backprop)
+        # EMA решений агента — какие решения он обычно принимает
+        # Это "менталитет" — устойчивый паттерн поведения
+        self.register_buffer('agent_character', torch.zeros(n_agents, state_dim))
+
+        # Индивидуальные HDC ключи
         self.agent_hdc_key = nn.Parameter(torch.sign(torch.randn(n_agents, hdc_dim)))
+
+        # === ЖУРНАЛ МЫСЛЕЙ (для интроспекции) ===
+        # Не участвует в обучении — только для наблюдения
+        self.thought_log = []  # Список записей: {step, agent_energies, decision_entropy, ...}
 
         self.layer_norm = nn.LayerNorm(state_dim)
 
@@ -314,9 +351,11 @@ class SharedConsciousAgent(nn.Module):
         """
         B, N, D = incoming_signal.shape
 
-        # Индивидуальность модулирует сигнал для каждого агента
-        personality = self.agent_personality  # (N, D)
-        modulated_signal = incoming_signal * (1 + 0.1 * personality.unsqueeze(0))
+        # Индивидуальность = врождённый характер + приобретённый менталитет
+        personality = self.agent_personality  # (N, D) — врождённый
+        character = self.agent_character      # (N, D) — приобретённый
+        full_personality = personality + 0.3 * character  # Менталитет влияет на 30%
+        modulated_signal = incoming_signal * (1 + 0.1 * full_personality.unsqueeze(0))
 
         # 1. PERCEIVE — все агенты параллельно
         # Reshape: (B, N, D) → (B*N, D) для прохода через shared linear
@@ -361,6 +400,25 @@ class SharedConsciousAgent(nn.Module):
 
         # 4. ACT
         actions = self.action_kernel(new_states)  # (BN, D)
+
+        # === ФОРМИРОВАНИЕ ХАРАКТЕРА ===
+        # Менталитет = EMA решений. Агент запоминает свой стиль.
+        with torch.no_grad():
+            # Среднее решение по батчу для каждого агента
+            decision_pattern = decision.view(B, N, D).mean(dim=0)  # (N, D)
+            self.agent_character.mul_(0.99).add_(0.01 * decision_pattern)
+
+        # === ЖУРНАЛ МЫСЛЕЙ (только при eval, не тормозим обучение) ===
+        if not self.training and len(self.thought_log) < 200:
+            with torch.no_grad():
+                energies = new_states.view(B, N, D).norm(dim=-1).mean(dim=0)  # (N,)
+                gate_mean = gate.view(B, N, D).mean(dim=(0, 2))  # (N,) — насколько каждый агент обновился
+                self.thought_log.append({
+                    'step': step,
+                    'agent_energies': energies.cpu().numpy(),
+                    'gate_openness': gate_mean.cpu().numpy(),
+                    'decision_norm': decision_pattern.norm(dim=-1).cpu().numpy(),
+                })
 
         # 5. STORE (без gradient — HDC память не backprop'ится)
         with torch.no_grad():

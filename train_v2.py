@@ -26,19 +26,19 @@ if os.name != 'nt':
     signal.signal(signal.SIGALRM, handler)
     signal.alarm(7200)  # 2 часа
 
-# === КОНФИГУРАЦИЯ ===
+# === КОНФИГУРАЦИЯ (для RTX 3060 12GB) ===
 CONFIG = {
     'n_agents': 32,
     'state_dim': 192,
-    'hdc_dim': 512,
+    'hdc_dim': 128,       # Уменьшено для 12GB GPU
     'n_sensory': 8,
     'memory_slots': 64,
-    'seq_len': 128,
+    'seq_len': 64,        # Короткий контекст для экономии памяти
     'dropout': 0.1,
 }
 
-MICRO_BATCH = 256       # Максимум — загружаем GPU полностью
-GRAD_ACCUM_STEPS = 1    # Не нужен — batch и так большой
+MICRO_BATCH = 48
+GRAD_ACCUM_STEPS = 2
 BATCH_SIZE = MICRO_BATCH
 LEARNING_RATE = 5e-4
 WARMUP_STEPS = 500
@@ -64,7 +64,7 @@ if os.path.exists('input.txt'):
     with open('input.txt', 'r') as fh:
         all_text += fh.read()
 
-tokenizer = HDCTokenizer(all_text, min_freq=3, max_vocab=VOCAB_SIZE)
+tokenizer = HDCTokenizer(all_text, max_vocab=VOCAB_SIZE)
 vocab_size = tokenizer.vocab_size
 print(f"  Vocab: {vocab_size} слов")
 

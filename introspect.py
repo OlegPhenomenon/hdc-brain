@@ -68,11 +68,34 @@ def introspect(model, context_ids, tokenizer_itos, device='cuda', max_steps=10):
 
             context = torch.cat([context, idx_next], dim=1)
 
-    # Итоговый сгенерированный текст
+    # Итоговый текст
     generated_ids = context[0, len(context_ids):].tolist()
     generated = ''.join(tokenizer_itos.get(i, '?') for i in generated_ids)
     print(f"\n{'='*70}")
     print(f"СГЕНЕРИРОВАНО: {generated}")
+
+    # === ЖУРНАЛ МЫСЛЕЙ АГЕНТОВ ===
+    if hasattr(model, 'agents') and hasattr(model.agents, 'thought_log') and model.agents.thought_log:
+        log = model.agents.thought_log
+        print(f"\n--- ЖУРНАЛ МЫСЛЕЙ ({len(log)} записей) ---")
+        for entry in log[-5:]:  # Последние 5
+            energies = entry['agent_energies']
+            gates = entry['gate_openness']
+            top_agents = energies.argsort()[-3:][::-1]
+            print(f"  Шаг {entry['step']}:")
+            print(f"    Самые активные агенты: {list(top_agents)} (энергия: {energies[top_agents].round(2)})")
+            print(f"    Средняя открытость гейта: {gates.mean():.3f} (1.0=полное обновление)")
+
+        # Характер агентов
+        if hasattr(model.agents, 'agent_character'):
+            char = model.agents.agent_character
+            char_norms = char.norm(dim=-1).cpu().numpy()
+            top_char = char_norms.argsort()[-5:][::-1]
+            print(f"\n  Самый выраженный характер: агенты {list(top_char)}")
+            print(f"    Сила характера: {char_norms[top_char].round(3)}")
+
+        model.agents.thought_log.clear()
+
     print(f"{'='*70}\n")
     return generated
 
