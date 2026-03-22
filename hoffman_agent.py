@@ -374,6 +374,51 @@ class DynamicGraph(nn.Module):
 
 
 # ============================================================================
+# AGENT COMBINATION (N) — порождение мета-агентов
+# ============================================================================
+
+class AgentCombination(nn.Module):
+    """Simplified Combination: агенты с похожими действиями усиливают друг друга.
+
+    По Хофману, два сознательных агента могут объединиться в
+    мета-агента. Полная реализация (создание/удаление агентов)
+    несовместима с фиксированным batch training.
+
+    Компромисс: soft combination — агенты с высокой корреляцией
+    формируют "коалиции", внутри которых состояния усредняются.
+    Это мягкая версия composition: не удаляем агентов, но создаём
+    эмерджентные группы.
+    """
+    def __init__(self, n_agents, state_dim, coalition_threshold=0.7):
+        super().__init__()
+        self.threshold = coalition_threshold
+        self.coalition_proj = nn.Linear(state_dim, state_dim // 4)
+
+    def forward(self, agent_states, agent_actions):
+        """
+        Мягкая коалиция: агенты с похожими действиями обмениваются состояниями.
+        """
+        B, N, D = agent_states.shape
+
+        # Compute similarity между действиями агентов
+        proj = self.coalition_proj(agent_actions)  # (B, N, D//4)
+        proj_norm = F.normalize(proj, dim=-1)
+        sim = torch.matmul(proj_norm, proj_norm.transpose(-2, -1))  # (B, N, N)
+
+        # Мягкая коалиция: high similarity → обмен состояниями
+        # Используем sim как mixing weights (только выше порога)
+        coalition_mask = (sim > self.threshold).float()
+        # Нормализуем: каждый агент усредняет состояния своей коалиции
+        coalition_weights = coalition_mask / (coalition_mask.sum(dim=-1, keepdim=True) + 1e-8)
+
+        # Обмен: состояние = среднее по коалиции
+        combined_states = torch.matmul(coalition_weights, agent_states)
+
+        # Мягкий blend: 80% своё, 20% коалиция
+        return 0.8 * agent_states + 0.2 * combined_states
+
+
+# ============================================================================
 # HOFFMAN SWARM v2.0 — Полная модель
 # ============================================================================
 
@@ -434,6 +479,9 @@ class HoffmanSwarmV2(nn.Module):
 
         # === ДИНАМИЧЕСКИЙ ГРАФ ===
         self.dynamic_graph = DynamicGraph(state_dim, top_k_neighbors=min(8, n_agents))
+
+        # === COMPOSITION (N): мягкое объединение агентов ===
+        self.agent_combination = AgentCombination(n_agents, state_dim)
 
         # === ДОЛГОСРОЧНАЯ ПАМЯТЬ (Hopfield для консенсуса) ===
         self.consensus_memory_q = nn.Linear(state_dim, state_dim)
@@ -538,6 +586,10 @@ class HoffmanSwarmV2(nn.Module):
                 0.995 * crystallized_memories.detach() +
                 0.005 * experiences.detach()
             )
+
+            # === COMPOSITION: мягкие коалиции (каждые 8 шагов) ===
+            if t % 8 == 0 and t > 0:
+                agent_states = self.agent_combination(agent_states, agent_actions)
 
             agent_states = self.dropout(agent_states)
 
