@@ -294,11 +294,16 @@ class SharedConsciousAgent(nn.Module):
         memory_recall = self.from_hdc_proj(ep_flat + cr_flat) * memory_strength  # (BN, D)
 
         # 3. DECIDE — все агенты параллельно
+        # По Хофману: decision kernel = марковское ядро P(action|perception)
+        # Добавляем стохастичность при обучении (exploration)
         decision_input = torch.cat([perception, memory_recall], dim=-1)  # (BN, 2D)
         decision = self.decision_kernel(decision_input)  # (BN, D)
         # Модуляция личностью
         personality_flat = personality.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
         decision = decision * (1 + 0.1 * personality_flat)
+        # Стохастическое ядро: добавляем шум при обучении (exploration/exploitation)
+        if self.training:
+            decision = decision + 0.02 * torch.randn_like(decision)
 
         # GRU update
         prev_flat = prev_states.view(BN, D)
@@ -404,6 +409,16 @@ class HoffmanSwarmV2(nn.Module):
         self.word_embedding = nn.Embedding(vocab_size, state_dim)
         self.pos_embedding = nn.Embedding(seq_len, state_dim)
 
+        # === INTERFACE THEORY (Хофман): восприятие ≠ реальность ===
+        # Интерфейсный слой сжимает и фильтрует "реальность" (embedding)
+        # в полезное представление для агентов. Агенты видят не слово,
+        # а его "иконку" — упрощённое но полезное для выживания представление.
+        self.perception_interface = nn.Sequential(
+            nn.Linear(state_dim, state_dim),
+            nn.GELU(),
+            nn.LayerNorm(state_dim),
+        )
+
         # Сенсорная проекция: вход → N_SENSORY агентов (каждый видит по-своему)
         self.sensory_proj = nn.Linear(state_dim, n_sensory * state_dim)
         # HDC binding keys для сенсорных агентов
@@ -455,9 +470,10 @@ class HoffmanSwarmV2(nn.Module):
     def forward(self, idx, targets=None):
         B, T = idx.shape
 
-        # Embedding
+        # Embedding → Interface (Хофман: восприятие как интерфейс)
         pos = torch.arange(T, device=idx.device)
-        percepts = self.word_embedding(idx) + self.pos_embedding(pos)
+        raw_percepts = self.word_embedding(idx) + self.pos_embedding(pos)
+        percepts = self.perception_interface(raw_percepts)  # "иконки" вместо "реальности"
         percepts = self.dropout(percepts)
 
         # Инициализация состояний агентов
@@ -494,7 +510,9 @@ class HoffmanSwarmV2(nn.Module):
             agent_input[:, :self.n_sensory, :] = sensory_input
 
             # === ДИНАМИЧЕСКИЙ ГРАФ: кто с кем общается ===
-            adjacency = self.dynamic_graph.compute_graph(agent_actions)  # (B, N, N)
+            # Оптимизация: пересчитываем граф каждые 4 шага (граф меняется медленно)
+            if t % 4 == 0 or t == 0:
+                adjacency = self.dynamic_graph.compute_graph(agent_actions)  # (B, N, N)
             # Входящие действия для каждого агента: взвешенная сумма действий соседей
             incoming_actions = torch.matmul(adjacency, agent_actions)  # (B, N, D)
 
