@@ -424,8 +424,9 @@ class HoffmanSwarmV2(nn.Module):
         # HDC binding keys для сенсорных агентов
         self.binding_keys = nn.Parameter(torch.randn(n_sensory, state_dim) * 0.02)
 
-        # Петля Хофмана: feedback от предыдущего действия
-        self.feedback_proj = nn.Linear(vocab_size, state_dim)
+        # Петля Хофмана: feedback через weight tying (экономия 1.5M параметров!)
+        # Вместо отдельного Linear(vocab_size, state_dim) используем embedding.weight.T
+        # logits → softmax → взвешенная сумма embedding = "смысл" предыдущего действия
         self.feedback_gate = nn.Linear(state_dim * 2, state_dim)
 
         # === АГЕНТЫ с shared kernels ===
@@ -444,14 +445,16 @@ class HoffmanSwarmV2(nn.Module):
         # Консенсус: важность каждого агента (обучаемая)
         self.agent_importance = nn.Parameter(torch.zeros(n_agents))
 
-        # Выход
+        # Выход: проекция в state_dim → dot product с embedding (weight tying)
+        # Экономит 3M параметров!
         self.dropout = nn.Dropout(dropout)
-        self.action_head = nn.Sequential(
-            nn.Linear(state_dim, state_dim * 2),
+        self.pre_action = nn.Sequential(
+            nn.Linear(state_dim, state_dim),
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(state_dim * 2, vocab_size),
         )
+        # Bias для выходного слоя
+        self.output_bias = nn.Parameter(torch.zeros(vocab_size))
 
     def consensus_recall(self, query, memory_list):
         """Hopfield-подобный запрос к памяти консенсусов"""
@@ -486,15 +489,18 @@ class HoffmanSwarmV2(nn.Module):
         crystallized_memories = torch.zeros(B, self.n_agents, self.hdc_dim, device=idx.device)
 
         logits_seq = []
-        prev_logits = torch.zeros(B, self.action_head[-1].out_features, device=idx.device)
+        vocab = self.word_embedding.weight.shape[0]
+        prev_logits = torch.zeros(B, vocab, device=idx.device)
         consensus_memory_list = []
         importance = F.softmax(self.agent_importance, dim=0)
 
         for t in range(T):
             current_percept = percepts[:, t, :]
 
-            # === ПЕТЛЯ ХОФМАНА: feedback ===
-            feedback = self.feedback_proj(prev_logits)
+            # === ПЕТЛЯ ХОФМАНА: feedback через weight tying ===
+            # Softmax(logits) @ embedding.weight = "средний смысл" предыдущего предсказания
+            feedback_probs = F.softmax(prev_logits, dim=-1)  # (B, vocab)
+            feedback = feedback_probs @ self.word_embedding.weight  # (B, state_dim)
             fg = torch.sigmoid(self.feedback_gate(
                 torch.cat([feedback, current_percept], dim=-1)
             ))
@@ -550,7 +556,9 @@ class HoffmanSwarmV2(nn.Module):
             consensus_memory_list.append(swarm_consensus.detach())
 
             # === ДЕЙСТВИЕ ===
-            logits = self.action_head(swarm_consensus)
+            # Weight-tied output: project → dot product с embedding
+            projected = self.pre_action(swarm_consensus)  # (B, state_dim)
+            logits = F.linear(projected, self.word_embedding.weight, self.output_bias)  # (B, vocab)
             logits_seq.append(logits)
             prev_logits = logits.detach()
 
