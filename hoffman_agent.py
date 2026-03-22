@@ -327,18 +327,18 @@ class SharedConsciousAgent(nn.Module):
         ], dim=-1)  # (BN, 2D)
         perception = self.perception_kernel(perception_input)  # (BN, D)
 
-        # 2. REMEMBER (HDC) — батчированно
-        hdc_query = hdc_engine.to_hdc(self.to_hdc_proj(perception))  # (BN, hdc_dim)
-        # Персонализация: каждый агент имеет уникальный ключ
-        agent_keys = self.agent_hdc_key.unsqueeze(0).expand(B, -1, -1).reshape(BN, -1)  # (BN, hdc_dim)
-        personal_query = hdc_engine.bind(hdc_query, agent_keys)
-
-        ep_flat = episodic_mem.view(BN, -1)
-        cr_flat = crystallized_mem.view(BN, -1)
-        episodic_sim = hdc_engine.read(ep_flat, personal_query)  # (BN,)
-        crystal_sim = hdc_engine.read(cr_flat, personal_query)   # (BN,)
-        memory_strength = torch.sigmoid(episodic_sim + crystal_sim).unsqueeze(-1)  # (BN, 1)
-        memory_recall = self.from_hdc_proj(ep_flat + cr_flat) * memory_strength  # (BN, D)
+        # 2. REMEMBER (HDC) — без gradient (HDC = быстрая память, не backprop)
+        with torch.no_grad():
+            hdc_query = hdc_engine.to_hdc(self.to_hdc_proj(perception.detach()))
+            agent_keys = self.agent_hdc_key.unsqueeze(0).expand(B, -1, -1).reshape(BN, -1)
+            personal_query = hdc_engine.bind(hdc_query, agent_keys)
+            ep_flat = episodic_mem.view(BN, -1)
+            cr_flat = crystallized_mem.view(BN, -1)
+            episodic_sim = hdc_engine.read(ep_flat, personal_query)
+            crystal_sim = hdc_engine.read(cr_flat, personal_query)
+            memory_strength = torch.sigmoid(episodic_sim + crystal_sim).unsqueeze(-1)
+        # from_hdc_proj остаётся с gradient — это "мост" между HDC и float миром
+        memory_recall = self.from_hdc_proj((ep_flat + cr_flat).detach()) * memory_strength
 
         # 3. DECIDE — все агенты параллельно
         # По Хофману: decision kernel = марковское ядро P(action|perception)
@@ -362,10 +362,11 @@ class SharedConsciousAgent(nn.Module):
         # 4. ACT
         actions = self.action_kernel(new_states)  # (BN, D)
 
-        # 5. STORE
-        experience_hdc = hdc_engine.to_hdc(self.to_hdc_proj(new_states))  # (BN, hdc_dim)
-        personal_exp = hdc_engine.bind(experience_hdc, agent_keys)
-        new_episodics = hdc_engine.write(ep_flat, personal_exp, step)  # (BN, hdc_dim)
+        # 5. STORE (без gradient — HDC память не backprop'ится)
+        with torch.no_grad():
+            experience_hdc = hdc_engine.to_hdc(self.to_hdc_proj(new_states.detach()))
+            personal_exp = hdc_engine.bind(experience_hdc, agent_keys)
+            new_episodics = hdc_engine.write(ep_flat, personal_exp, step)
 
         # Reshape обратно: (BN, ...) → (B, N, ...)
         return (
