@@ -37,8 +37,8 @@ CONFIG = {
     'dropout': 0.1,
 }
 
-MICRO_BATCH = 64
-GRAD_ACCUM_STEPS = 2
+MICRO_BATCH = 256       # Максимум — загружаем GPU полностью
+GRAD_ACCUM_STEPS = 1    # Не нужен — batch и так большой
 BATCH_SIZE = MICRO_BATCH
 LEARNING_RATE = 5e-4
 WARMUP_STEPS = 500
