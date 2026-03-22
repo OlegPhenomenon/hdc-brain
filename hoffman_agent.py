@@ -617,22 +617,34 @@ class HoffmanSwarmV2(nn.Module):
             # Входящие действия для каждого агента: взвешенная сумма действий соседей
             incoming_actions = torch.matmul(adjacency, agent_actions)  # (B, N, D)
 
-            # === ВСЕ АГЕНТЫ ПАРАЛЛЕЛЬНО (батчированно) ===
-            agent_actions, agent_states, episodic_memories, experiences = self.agents.forward_all(
-                incoming_signal=agent_input,
-                incoming_actions=incoming_actions,
-                episodic_mem=episodic_memories,
-                crystallized_mem=crystallized_memories,
-                prev_states=agent_states,
-                hdc_engine=self.hdc,
-                step=t,
-            )
+            # === ВНУТРЕННИЙ ДИАЛОГ: 3 раунда обсуждения ===
+            # Агенты "обсуждают" перед тем как дать ответ.
+            # Раунд 1: каждый агент реагирует на вход
+            # Раунд 2-3: агенты реагируют на ДЕЙСТВИЯ друг друга
+            # Это chain-of-thought на уровне архитектуры.
+            for discussion_round in range(3):
+                if discussion_round > 0:
+                    # В раундах 2-3 входной сигнал = 0, только actions соседей
+                    agent_input = torch.zeros_like(agent_states)
+                    incoming_actions = torch.matmul(adjacency, agent_actions)
 
-            # Crystallized memory: медленное хеббовское обновление
-            crystallized_memories = (
-                0.995 * crystallized_memories.detach() +
-                0.005 * experiences.detach()
-            )
+                agent_actions, agent_states, episodic_memories, experiences = self.agents.forward_all(
+                    incoming_signal=agent_input,
+                    incoming_actions=incoming_actions,
+                    episodic_mem=episodic_memories,
+                    crystallized_mem=crystallized_memories,
+                    prev_states=agent_states,
+                    hdc_engine=self.hdc,
+                    step=t,
+                )
+
+            # Crystallized memory: HDC bundling вместо EMA
+            # Flatten (B, N, hdc_dim) → (B*N, hdc_dim) для HDC write, потом обратно
+            BN_hdc = crystallized_memories.shape[0] * crystallized_memories.shape[1]
+            cm_flat = crystallized_memories.detach().view(BN_hdc, -1)
+            exp_flat = experiences.detach().view(BN_hdc, -1)
+            cm_updated = self.hdc.write(cm_flat, exp_flat, t)
+            crystallized_memories = cm_updated.view_as(crystallized_memories)
 
             # === COMPOSITION: мягкие коалиции (каждые 8 шагов) ===
             if t % 8 == 0 and t > 0:
