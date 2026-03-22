@@ -70,11 +70,12 @@ class HDCMemory(nn.Module):
         return self.position_codes[position % self.position_codes.shape[0]]
 
     def write(self, memory, item, position):
-        """Записать item в позицию position (bind + bundle)"""
+        """Записать item в позицию position (bind + bundle с decay)"""
         pos_code = self.encode_position(position)
         bound = self.bind(item, pos_code)
-        # Bundle: мягкое добавление (не hard sign, чтобы backprop работал)
-        return memory + bound
+        # Bundle с exponential decay: старые воспоминания затухают
+        # Без этого вектор растёт неограниченно
+        return 0.95 * memory + 0.05 * bound
 
     def read(self, memory, query):
         """Прочитать из памяти по запросу (cosine similarity)"""
@@ -83,11 +84,14 @@ class HDCMemory(nn.Module):
         return sim
 
     def to_hdc(self, float_vector):
-        """Конвертация float вектора в bipolar HDC"""
-        return torch.sign(float_vector + 1e-8)
+        """Конвертация float вектора в bipolar HDC.
+        Используем tanh (мягкий sign) чтобы сохранить gradient flow.
+        При инференсе можно заменить на hard sign для скорости.
+        """
+        return torch.tanh(float_vector * 3.0)  # Мягкий sign: ≈±1 но дифференцируемый
 
     def from_hdc(self, hdc_vector):
-        """HDC → float (уже bipolar ±1, используем как есть)"""
+        """HDC → float"""
         return hdc_vector
 
 
@@ -507,14 +511,21 @@ class HoffmanSwarmV2(nn.Module):
 
             # Crystallized memory: медленное хеббовское обновление
             crystallized_memories = (
-                0.999 * crystallized_memories.detach() +
-                0.001 * experiences.detach()
+                0.995 * crystallized_memories.detach() +
+                0.005 * experiences.detach()
             )
 
             agent_states = self.dropout(agent_states)
 
+            # === FITNESS-BASED SELECTION (Хофман: Fitness Beats Truth) ===
+            # Агенты с высокой "энергией" (norm) вносят больше в консенсус
+            # Это создаёт естественный отбор: полезные агенты усиливаются
+            agent_energy = agent_states.norm(dim=-1, keepdim=True)  # (B, N, 1)
+            fitness = torch.sigmoid(agent_energy - agent_energy.mean(dim=1, keepdim=True))
+            agent_states_weighted = agent_states * fitness
+
             # === КОНСЕНСУС ===
-            swarm_consensus = (agent_states * importance.view(1, -1, 1)).sum(dim=1)
+            swarm_consensus = (agent_states_weighted * importance.view(1, -1, 1)).sum(dim=1)
 
             # Consensus memory recall
             swarm_consensus = self.consensus_recall(swarm_consensus, consensus_memory_list)
@@ -544,7 +555,7 @@ def create_hoffman_swarm(vocab_size, config=None):
         config = {
             'n_agents': 32,
             'state_dim': 192,
-            'hdc_dim': 1024,      # Размерность HDC векторов
+            'hdc_dim': 512,       # Размерность HDC векторов (512 бит достаточно)
             'n_sensory': 8,
             'memory_slots': 64,
             'seq_len': 128,
