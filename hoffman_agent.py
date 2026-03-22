@@ -22,6 +22,53 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+import re
+
+
+# ============================================================================
+# HDC WORD-LEVEL TOKENIZER
+# ============================================================================
+
+class HDCTokenizer:
+    """Word-level токенизатор для Hoffman Swarm."""
+    def __init__(self, text, min_freq=2, max_vocab=8000):
+        words = re.findall(r"[A-Za-z']+|[^A-Za-z'\s]|\n", text)
+        word_counts = {}
+        for w in words:
+            word_counts[w] = word_counts.get(w, 0) + 1
+        vocab_words = ['<unk>', '<pad>', ' ']
+        for w, c in sorted(word_counts.items(), key=lambda x: -x[1]):
+            if c >= min_freq and len(vocab_words) < max_vocab:
+                vocab_words.append(w)
+        self.stoi = {w: i for i, w in enumerate(vocab_words)}
+        self.itos = {i: w for i, w in enumerate(vocab_words)}
+        self.vocab_size = len(vocab_words)
+        self.unk_id = 0
+
+    def encode(self, text):
+        tokens = []
+        i = 0
+        while i < len(text):
+            if text[i] == ' ':
+                tokens.append(self.stoi.get(' ', self.unk_id))
+                i += 1
+            elif text[i] == '\n':
+                tokens.append(self.stoi.get('\n', self.unk_id))
+                i += 1
+            elif text[i].isalpha() or text[i] == "'":
+                j = i
+                while j < len(text) and (text[j].isalpha() or text[j] == "'"):
+                    j += 1
+                word = text[i:j]
+                tokens.append(self.stoi.get(word, self.unk_id))
+                i = j
+            else:
+                tokens.append(self.stoi.get(text[i], self.unk_id))
+                i += 1
+        return tokens
+
+    def decode(self, ids):
+        return ''.join(self.itos.get(i, '?') for i in ids)
 
 
 # ============================================================================
