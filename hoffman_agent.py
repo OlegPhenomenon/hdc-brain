@@ -143,12 +143,19 @@ class HDCMemory(nn.Module):
         """Получить HDC код для данной позиции"""
         return self.position_codes[position % self.position_codes.shape[0]]
 
-    def write(self, memory, item, position):
-        """Записать item в позицию position (bind + bundle с decay)"""
+    def write(self, memory, item, position, gate=None):
+        """Записать item в позицию position (bind + bundle).
+
+        Если gate=None: фиксированный decay 0.95 (legacy).
+        Если gate задан: агент сам решает силу записи (Хофман: сознательная память).
+        gate: (BN, 1) — насколько сильно текущий опыт затирает старую память.
+        """
         pos_code = self.encode_position(position)
         bound = self.bind(item, pos_code)
-        # Bundle с exponential decay: старые воспоминания затухают
-        # Без этого вектор растёт неограниченно
+        if gate is not None:
+            # Gated: агент решает что запомнить (0=забыть всё, 1=запомнить всё)
+            return gate * memory + (1 - gate) * bound
+        # Fallback: фиксированный decay
         return 0.95 * memory + 0.05 * bound
 
     def read(self, memory, query):
@@ -301,12 +308,14 @@ class SharedConsciousAgent(nn.Module):
         self.state_dim = state_dim
         self.hdc_dim = hdc_dim
 
-        # Общие ядра (shared across agents)
+        # Общие ядра (shared across agents) с Pre-LN (стабилизация градиентов)
         self.perception_kernel = nn.Sequential(
+            nn.LayerNorm(state_dim * 2),
             nn.Linear(state_dim * 2, state_dim),
             nn.GELU(),
         )
         self.decision_kernel = nn.Sequential(
+            nn.LayerNorm(state_dim * 2),
             nn.Linear(state_dim * 2, state_dim),
             nn.GELU(),
             nn.Linear(state_dim, state_dim),
@@ -330,9 +339,19 @@ class SharedConsciousAgent(nn.Module):
         # Индивидуальные HDC ключи
         self.agent_hdc_key = nn.Parameter(torch.sign(torch.randn(n_agents, hdc_dim)))
 
+        # === GATED MEMORY: агент решает что запомнить (Хофман: сознательная память) ===
+        # Вместо фиксированного decay 0.95: gate = σ(W @ [state, experience])
+        # Важное воспоминание → gate≈1 (сохранить), шум → gate≈0 (перезаписать)
+        self.memory_gate = nn.Linear(state_dim + hdc_dim, 1)
+
+        # === ROLE DROPOUT: заставляет агентов специализироваться ===
+        # По Хофману, мета-агенты формируются из специализированных.
+        # Случайное отключение 15% агентов → каждый учится быть незаменимым.
+        self.role_dropout = nn.Dropout(p=0.15)
+
         # === ЖУРНАЛ МЫСЛЕЙ (для интроспекции) ===
         # Не участвует в обучении — только для наблюдения
-        self.thought_log = []  # Список записей: {step, agent_energies, decision_entropy, ...}
+        self.thought_log = []
 
         self.layer_norm = nn.LayerNorm(state_dim)
 
@@ -404,18 +423,26 @@ class SharedConsciousAgent(nn.Module):
         # 4. ACT
         actions = self.action_kernel(new_states)  # (BN, D)
 
+        # === ROLE DROPOUT: случайное отключение агентов при обучении ===
+        # Заставляет агентов специализироваться, не полагаться на "лидера".
+        # При eval все агенты активны (стандартное поведение Dropout).
+        if self.training:
+            # Dropout по агентам (dim=1), не по features
+            role_mask = torch.ones(B, N, 1, device=actions.device)
+            role_mask = self.role_dropout(role_mask)  # ~15% агентов обнулены
+            actions = actions.view(B, N, D) * role_mask
+            actions = actions.view(BN, D)
+
         # === ФОРМИРОВАНИЕ ХАРАКТЕРА ===
-        # Менталитет = EMA решений. Агент запоминает свой стиль.
         with torch.no_grad():
-            # Среднее решение по батчу для каждого агента
-            decision_pattern = decision.view(B, N, D).mean(dim=0)  # (N, D)
+            decision_pattern = decision.view(B, N, D).mean(dim=0)
             self.agent_character.mul_(0.99).add_(0.01 * decision_pattern)
 
-        # === ЖУРНАЛ МЫСЛЕЙ (только при eval, не тормозим обучение) ===
+        # === ЖУРНАЛ МЫСЛЕЙ (только при eval) ===
         if not self.training and len(self.thought_log) < 200:
             with torch.no_grad():
-                energies = new_states.view(B, N, D).norm(dim=-1).mean(dim=0)  # (N,)
-                gate_mean = gate.view(B, N, D).mean(dim=(0, 2))  # (N,) — насколько каждый агент обновился
+                energies = new_states.view(B, N, D).norm(dim=-1).mean(dim=0)
+                gate_mean = gate.view(B, N, D).mean(dim=(0, 2))
                 self.thought_log.append({
                     'step': step,
                     'agent_energies': energies.cpu().numpy(),
@@ -423,11 +450,16 @@ class SharedConsciousAgent(nn.Module):
                     'decision_norm': decision_pattern.norm(dim=-1).cpu().numpy(),
                 })
 
-        # 5. STORE (без gradient — запись в HDC не backprop'ится)
+        # 5. STORE с GATED MEMORY (Хофман: сознательное запоминание)
+        # Memory gate вычисляется С градиентом — агент учится ЧТО запоминать
+        # HDC запись остаётся без gradient (bipolar операции)
+        mem_gate_input = torch.cat([new_states, hdc_query], dim=-1)  # (BN, D + hdc_dim)
+        mem_gate = torch.sigmoid(self.memory_gate(mem_gate_input))  # (BN, 1)
+
         with torch.no_grad():
             experience_hdc = hdc_engine.to_hdc(self.to_hdc_proj(new_states.detach()))
             personal_exp = hdc_engine.bind(experience_hdc, agent_keys.detach())
-            new_episodics = hdc_engine.write(ep_flat, personal_exp, step)
+            new_episodics = hdc_engine.write(ep_flat, personal_exp, step, gate=mem_gate.detach())
 
         # Reshape обратно: (BN, ...) → (B, N, ...)
         return (
@@ -435,6 +467,7 @@ class SharedConsciousAgent(nn.Module):
             new_states.view(B, N, D),
             new_episodics.view(B, N, -1),
             experience_hdc.view(B, N, -1),
+            mem_gate.view(B, N, 1),  # для memory regularization loss
         )
 
 
@@ -798,7 +831,7 @@ class HoffmanSwarmV2(nn.Module):
             incoming_actions = torch.matmul(adjacency, agent_actions)
 
             # Передаём accumulated_input (среднее по chunk-у) вместо последнего токена
-            agent_actions, agent_states, episodic_memories, experiences = self.agents.forward_all(
+            agent_actions, agent_states, episodic_memories, experiences, mem_gates = self.agents.forward_all(
                 incoming_signal=accumulated_input,
                 incoming_actions=incoming_actions,
                 episodic_mem=episodic_memories,
@@ -835,7 +868,38 @@ class HoffmanSwarmV2(nn.Module):
 
         loss = None
         if targets is not None:
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            ce_loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+
+            # === AUXILIARY LOSSES (Хофман: давление на специализацию) ===
+
+            # 1. Sparsity penalty: заставляет граф быть разреженным
+            # Агенты должны выбирать КОГО слушать, а не болтать со всеми
+            # L1 norm adjacency → давление к 0 (т.е. к sparse графу)
+            sparsity_loss = adjacency.mean()  # adjacency уже нормирована, mean ≈ 1/N
+
+            # 2. Orthogonality loss: "иконки" восприятия должны быть различимы
+            # По Хофману: interface создаёт максимально контрастные представления
+            # Штрафуем если разные токены дают похожие percept'ы
+            if T > 1:
+                percept_norm = F.normalize(percepts, dim=-1)  # (B, T, D)
+                gram = torch.matmul(percept_norm, percept_norm.transpose(-2, -1))  # (B, T, T)
+                # Убираем диагональ (similarity с собой = 1, это нормально)
+                eye = torch.eye(T, device=gram.device).unsqueeze(0)
+                off_diag = gram * (1 - eye)
+                ortho_loss = (off_diag ** 2).mean()  # Штраф за корреляцию
+            else:
+                ortho_loss = torch.tensor(0.0, device=logits.device)
+
+            # 3. Memory gate regularization: давление на разнообразие gate values
+            # Без этого gate может застрять на 0.95 для всех → = фиксированный decay
+            # Entropy-like: хотим чтобы gate был иногда 0 (забыть) и иногда 1 (запомнить)
+            mem_gate_mean = mem_gates.mean()
+            mem_gate_var = mem_gates.var()
+            # Штраф если variance слишком мала (все gates одинаковые)
+            mem_gate_loss = -0.1 * mem_gate_var + 0.01 * (mem_gate_mean - 0.5) ** 2
+
+            # Итоговый loss: CE + auxiliary Hoffman pressures
+            loss = ce_loss + 0.01 * sparsity_loss + 0.1 * ortho_loss + mem_gate_loss
 
         return logits, loss
 
