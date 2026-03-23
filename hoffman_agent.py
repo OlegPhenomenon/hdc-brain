@@ -22,7 +22,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-import re
 
 
 # ============================================================================
@@ -469,8 +468,10 @@ class DynamicGraph(nn.Module):
         # Attention-подобные scores
         scores = torch.matmul(Q, K.transpose(-2, -1)) / self.scale  # (B, N, N)
 
-        # Sparse: каждый агент общается только с top-k соседями
-        if self.top_k < action_states.shape[1]:
+        N = action_states.shape[1]
+        # Sparse top-k только для больших графов (N > 48).
+        # При N <= 48 overhead от topk + scatter > выигрыш от sparsity.
+        if self.top_k < N and N > 48:
             topk_vals, topk_idx = scores.topk(self.top_k, dim=-1)
             mask = torch.zeros_like(scores).scatter_(-1, topk_idx, 1.0)
             scores = scores * mask + (1 - mask) * (-1e9)
@@ -499,10 +500,13 @@ class AgentCombination(nn.Module):
         super().__init__()
         self.threshold = coalition_threshold
         self.coalition_proj = nn.Linear(state_dim, state_dim // 4)
+        # Температура для soft threshold (обучаемая)
+        self.temperature = nn.Parameter(torch.tensor(10.0))
 
     def forward(self, agent_states, agent_actions):
         """
         Мягкая коалиция: агенты с похожими действиями обмениваются состояниями.
+        Используем sigmoid вместо hard threshold чтобы градиенты текли через coalition_proj.
         """
         B, N, D = agent_states.shape
 
@@ -511,11 +515,12 @@ class AgentCombination(nn.Module):
         proj_norm = F.normalize(proj, dim=-1)
         sim = torch.matmul(proj_norm, proj_norm.transpose(-2, -1))  # (B, N, N)
 
-        # Мягкая коалиция: high similarity → обмен состояниями
-        # Используем sim как mixing weights (только выше порога)
-        coalition_mask = (sim > self.threshold).float()
+        # Soft threshold: sigmoid((sim - threshold) * temperature)
+        # При temperature=10: sim=0.7 → 0.5, sim=0.8 → 0.73, sim=0.6 → 0.27
+        # Градиенты текут через sigmoid → proj_norm → coalition_proj
+        coalition_weights = torch.sigmoid((sim - self.threshold) * self.temperature)
         # Нормализуем: каждый агент усредняет состояния своей коалиции
-        coalition_weights = coalition_mask / (coalition_mask.sum(dim=-1, keepdim=True) + 1e-8)
+        coalition_weights = coalition_weights / (coalition_weights.sum(dim=-1, keepdim=True) + 1e-8)
 
         # Обмен: состояние = среднее по коалиции
         combined_states = torch.matmul(coalition_weights, agent_states)
@@ -599,6 +604,10 @@ class HoffmanSwarmV2(nn.Module):
         # Консенсус: важность каждого агента (обучаемая)
         self.agent_importance = nn.Parameter(torch.zeros(n_agents))
 
+        # Consensus → agent modulation: recalled consensus влияет на agent_states
+        # Это замыкает gradient path: consensus_memory_q/k/v → recalled → agent_states → loss
+        self.consensus_to_agents = nn.Linear(state_dim, state_dim)
+
         # Выход: проекция в state_dim → dot product с embedding (weight tying)
         # Экономит 3M параметров!
         self.dropout = nn.Dropout(dropout)
@@ -611,10 +620,10 @@ class HoffmanSwarmV2(nn.Module):
         self.output_bias = nn.Parameter(torch.zeros(vocab_size))
 
     def consensus_recall(self, query, memory_list):
-        """Hopfield-подобный запрос к памяти консенсусов"""
+        """Hopfield-подобный запрос к памяти консенсусов (legacy, для совместимости)"""
         if len(memory_list) == 0:
             return query
-        mem = torch.stack(memory_list[-self.memory_slots:], dim=1)  # (B, M, D)
+        mem = torch.stack(memory_list[-self.memory_slots:], dim=1)
         Q = self.consensus_memory_q(query).unsqueeze(1)
         K = self.consensus_memory_k(mem)
         V = self.consensus_memory_v(mem)
@@ -624,13 +633,101 @@ class HoffmanSwarmV2(nn.Module):
         g = torch.sigmoid(self.consensus_memory_gate(torch.cat([query, recalled], dim=-1)))
         return self.consensus_ln(query + g * recalled)
 
+    def consensus_recall_ring(self, query, ring_buf, count):
+        """Hopfield-подобный запрос к ring buffer консенсусов.
+
+        Вместо Python list + torch.stack на каждом шаге,
+        используем pre-allocated тензор ring_buf: (max_chunks, B, D).
+        """
+        if count == 0:
+            return query
+        n = min(count, self.memory_slots)
+        # .clone() обязателен: ring_buf — один тензор, запись в любой индекс
+        # инкрементирует version counter всего тензора. Без clone backward ломается.
+        if count <= self.memory_slots:
+            mem = ring_buf[:count].clone().permute(1, 0, 2)  # (B, count, D)
+        else:
+            mem = ring_buf[count - n:count].clone().permute(1, 0, 2)
+        Q = self.consensus_memory_q(query).unsqueeze(1)
+        K = self.consensus_memory_k(mem)
+        V = self.consensus_memory_v(mem)
+        attn = torch.matmul(Q, K.transpose(-2, -1)) * 6.0 / math.sqrt(self.state_dim)
+        attn = F.softmax(attn, dim=-1)
+        recalled = torch.matmul(attn, V).squeeze(1)
+        g = torch.sigmoid(self.consensus_memory_gate(torch.cat([query, recalled], dim=-1)))
+        return self.consensus_ln(query + g * recalled)
+
+    def _batched_sensory_injection(self, chunk_percepts, agent_states, prev_logits, importance):
+        """Батчированная сенсорная инъекция всего chunk-а.
+
+        Вместо per-token loop обрабатываем весь chunk параллельно.
+        Feedback loop: используем top-k argmax вместо full softmax @ embedding.
+
+        Args:
+            chunk_percepts: (B, chunk_len, D)
+            agent_states: (B, N, D) — текущие состояния агентов
+            prev_logits: (B, vocab) — logits с прошлого шага (для feedback первого токена)
+            importance: (N,) — pre-computed softmax(agent_importance)
+
+        Returns:
+            agent_states: (B, N, D) — обновлённые состояния
+            chunk_logits: (B, chunk_len, vocab) — logits для каждого токена chunk-а
+            last_logits: (B, vocab) — последние logits (для feedback следующего chunk-а)
+            accumulated_input: (B, N, D) — среднее сенсорное воздействие по chunk-у
+        """
+        B, CL, D = chunk_percepts.shape
+        N = self.n_agents
+        binding_gate = torch.sigmoid(self.binding_keys)  # (n_sensory, D) — вычисляем 1 раз
+
+        accumulated_sensory = torch.zeros(B, self.n_sensory, D, device=chunk_percepts.device)
+        chunk_logits_list = []
+
+        for t in range(CL):
+            current_percept = chunk_percepts[:, t, :]  # (B, D)
+
+            # === Feedback через top-k argmax (вместо full softmax @ embedding) ===
+            # Top-1 argmax + embedding lookup: O(B*D) вместо O(B*vocab*D)
+            top_idx = prev_logits.argmax(dim=-1)  # (B,)
+            feedback = self.word_embedding(top_idx)  # (B, D)
+
+            fg = torch.sigmoid(self.feedback_gate(
+                torch.cat([feedback, current_percept], dim=-1)
+            ))
+            modulated_percept = current_percept * (1 + fg)
+
+            # Сенсорная инъекция: обновляем только сенсорный срез
+            sensory_input = self.sensory_proj(modulated_percept)  # (B, n_sensory * D)
+            sensory_input = sensory_input.view(B, self.n_sensory, D) * binding_gate
+
+            # Разделяем на сенсорных и не-сенсорных, добавляем только к сенсорным
+            new_sensory = agent_states[:, :self.n_sensory, :] + sensory_input
+            agent_states = torch.cat([new_sensory, agent_states[:, self.n_sensory:, :]], dim=1)
+            accumulated_sensory = accumulated_sensory + sensory_input.detach()
+
+            # Logits для этого токена
+            agent_energy = agent_states.norm(dim=-1, keepdim=True)
+            fitness = torch.sigmoid(agent_energy - agent_energy.mean(dim=1, keepdim=True))
+            swarm_consensus = (agent_states * fitness * importance.view(1, -1, 1)).sum(dim=1)
+            projected = self.pre_action(swarm_consensus)
+            logits = F.linear(projected, self.word_embedding.weight, self.output_bias)
+            chunk_logits_list.append(logits)
+            prev_logits = logits.detach()
+
+        # Среднее сенсорное воздействие за chunk — дополняем нулями для non-sensory
+        avg_sensory = accumulated_sensory / max(CL, 1)
+        accumulated_input = torch.zeros(B, N, D, device=chunk_percepts.device)
+        accumulated_input[:, :self.n_sensory, :] = avg_sensory
+
+        chunk_logits = torch.stack(chunk_logits_list, dim=1)  # (B, CL, vocab)
+        return agent_states, chunk_logits, prev_logits, accumulated_input
+
     def forward(self, idx, targets=None):
         B, T = idx.shape
 
         # Embedding → Interface (Хофман: восприятие как интерфейс)
         pos = torch.arange(T, device=idx.device)
         raw_percepts = self.word_embedding(idx) + self.pos_embedding(pos)
-        percepts = self.perception_interface(raw_percepts)  # "иконки" вместо "реальности"
+        percepts = self.perception_interface(raw_percepts)
         percepts = self.dropout(percepts)
 
         # Инициализация состояний агентов
@@ -639,100 +736,71 @@ class HoffmanSwarmV2(nn.Module):
 
         # HDC память для каждого агента
         episodic_memories = torch.zeros(B, self.n_agents, self.hdc_dim, device=idx.device)
-        # Crystallized memory — не обнуляется, но для batched training инициализируем
         crystallized_memories = torch.zeros(B, self.n_agents, self.hdc_dim, device=idx.device)
 
-        logits_seq = []
         vocab = self.word_embedding.weight.shape[0]
         prev_logits = torch.zeros(B, vocab, device=idx.device)
-        consensus_memory_list = []
         importance = F.softmax(self.agent_importance, dim=0)
 
-        for t in range(T):
-            current_percept = percepts[:, t, :]
+        # Ring buffer для consensus memory (вместо Python list + stack)
+        max_chunks = (T + 7) // 8
+        consensus_buf = torch.zeros(max_chunks, B, self.state_dim, device=idx.device)
+        consensus_count = 0
 
-            # === ПЕТЛЯ ХОФМАНА: feedback через weight tying ===
-            # Softmax(logits) @ embedding.weight = "средний смысл" предыдущего предсказания
-            feedback_probs = F.softmax(prev_logits, dim=-1)  # (B, vocab)
-            feedback = feedback_probs @ self.word_embedding.weight  # (B, state_dim)
-            fg = torch.sigmoid(self.feedback_gate(
-                torch.cat([feedback, current_percept], dim=-1)
-            ))
-            modulated_percept = current_percept * (1 + fg)
+        # === CHUNK PROCESSING: 8 токенов за раз ===
+        CHUNK = min(8, T)
+        n_chunks = (T + CHUNK - 1) // CHUNK
+        all_logits = []
 
-            # === СЕНСОРНАЯ ИНЪЕКЦИЯ: только N_SENSORY агентов получают вход ===
-            sensory_input = self.sensory_proj(modulated_percept)
-            sensory_input = sensory_input.view(B, self.n_sensory, self.state_dim)
-            sensory_input = sensory_input * torch.sigmoid(self.binding_keys)
+        for chunk_idx in range(n_chunks):
+            chunk_start = chunk_idx * CHUNK
+            chunk_end = min(chunk_start + CHUNK, T)
+            chunk_percepts = percepts[:, chunk_start:chunk_end, :]
 
-            # Формируем входной сигнал для каждого агента
-            agent_input = torch.zeros_like(agent_states)
-            agent_input[:, :self.n_sensory, :] = sensory_input
+            # === СЕНСОРНАЯ ИНЪЕКЦИЯ (батчированная) ===
+            agent_states, chunk_logits, prev_logits, accumulated_input = \
+                self._batched_sensory_injection(chunk_percepts, agent_states, prev_logits, importance)
+            all_logits.append(chunk_logits)
 
-            # === ДИНАМИЧЕСКИЙ ГРАФ: кто с кем общается ===
-            # Оптимизация: пересчитываем граф каждые 4 шага (граф меняется медленно)
-            if t % 4 == 0 or t == 0:
-                adjacency = self.dynamic_graph.compute_graph(agent_actions)  # (B, N, N)
-            # Входящие действия для каждого агента: взвешенная сумма действий соседей
-            incoming_actions = torch.matmul(adjacency, agent_actions)  # (B, N, D)
+            # === ОБСУЖДЕНИЕ после chunk-а ===
+            adjacency = self.dynamic_graph.compute_graph(agent_actions)
+            incoming_actions = torch.matmul(adjacency, agent_actions)
 
-            # === ВНУТРЕННИЙ ДИАЛОГ: 3 раунда обсуждения ===
-            # Агенты "обсуждают" перед тем как дать ответ.
-            # Раунд 1: каждый агент реагирует на вход
-            # Раунд 2-3: агенты реагируют на ДЕЙСТВИЯ друг друга
-            # Это chain-of-thought на уровне архитектуры.
-            for discussion_round in range(3):
-                if discussion_round > 0:
-                    # В раундах 2-3 входной сигнал = 0, только actions соседей
-                    agent_input = torch.zeros_like(agent_states)
-                    incoming_actions = torch.matmul(adjacency, agent_actions)
+            # Передаём accumulated_input (среднее по chunk-у) вместо последнего токена
+            agent_actions, agent_states, episodic_memories, experiences = self.agents.forward_all(
+                incoming_signal=accumulated_input,
+                incoming_actions=incoming_actions,
+                episodic_mem=episodic_memories,
+                crystallized_mem=crystallized_memories,
+                prev_states=agent_states,
+                hdc_engine=self.hdc,
+                step=chunk_idx,
+            )
 
-                agent_actions, agent_states, episodic_memories, experiences = self.agents.forward_all(
-                    incoming_signal=agent_input,
-                    incoming_actions=incoming_actions,
-                    episodic_mem=episodic_memories,
-                    crystallized_mem=crystallized_memories,
-                    prev_states=agent_states,
-                    hdc_engine=self.hdc,
-                    step=t,
-                )
+            # Crystallized memory: HDC bundling
+            with torch.no_grad():
+                BN_hdc = crystallized_memories.shape[0] * crystallized_memories.shape[1]
+                cm_flat = crystallized_memories.view(BN_hdc, -1)
+                exp_flat = experiences.view(BN_hdc, -1)
+                cm_updated = self.hdc.write(cm_flat, exp_flat, chunk_idx)
+                crystallized_memories = cm_updated.view_as(crystallized_memories)
 
-            # Crystallized memory: HDC bundling вместо EMA
-            # Flatten (B, N, hdc_dim) → (B*N, hdc_dim) для HDC write, потом обратно
-            BN_hdc = crystallized_memories.shape[0] * crystallized_memories.shape[1]
-            cm_flat = crystallized_memories.detach().view(BN_hdc, -1)
-            exp_flat = experiences.detach().view(BN_hdc, -1)
-            cm_updated = self.hdc.write(cm_flat, exp_flat, t)
-            crystallized_memories = cm_updated.view_as(crystallized_memories)
-
-            # === COMPOSITION: мягкие коалиции (каждые 8 шагов) ===
-            if t % 8 == 0 and t > 0:
-                agent_states = self.agent_combination(agent_states, agent_actions)
-
+            # Composition: коалиции
+            agent_states = self.agent_combination(agent_states, agent_actions)
             agent_states = self.dropout(agent_states)
 
-            # === FITNESS-BASED SELECTION (Хофман: Fitness Beats Truth) ===
-            # Агенты с высокой "энергией" (norm) вносят больше в консенсус
-            # Это создаёт естественный отбор: полезные агенты усиливаются
-            agent_energy = agent_states.norm(dim=-1, keepdim=True)  # (B, N, 1)
-            fitness = torch.sigmoid(agent_energy - agent_energy.mean(dim=1, keepdim=True))
-            agent_states_weighted = agent_states * fitness
+            # Consensus memory (ring buffer) — recalled consensus модулирует agent_states
+            swarm_consensus = (agent_states * importance.view(1, -1, 1)).sum(dim=1)
+            recalled_consensus = self.consensus_recall_ring(swarm_consensus, consensus_buf, consensus_count)
+            consensus_buf[consensus_count] = recalled_consensus.detach()
+            consensus_count += 1
 
-            # === КОНСЕНСУС ===
-            swarm_consensus = (agent_states_weighted * importance.view(1, -1, 1)).sum(dim=1)
+            # Recalled consensus → agent modulation (замыкает gradient path)
+            # Каждый агент получает "память группы" через broadcast
+            consensus_signal = self.consensus_to_agents(recalled_consensus)  # (B, D)
+            agent_states = agent_states + 0.1 * consensus_signal.unsqueeze(1)
 
-            # Consensus memory recall
-            swarm_consensus = self.consensus_recall(swarm_consensus, consensus_memory_list)
-            consensus_memory_list.append(swarm_consensus.detach())
-
-            # === ДЕЙСТВИЕ ===
-            # Weight-tied output: project → dot product с embedding
-            projected = self.pre_action(swarm_consensus)  # (B, state_dim)
-            logits = F.linear(projected, self.word_embedding.weight, self.output_bias)  # (B, vocab)
-            logits_seq.append(logits)
-            prev_logits = logits.detach()
-
-        logits = torch.stack(logits_seq, dim=1)
+        logits = torch.cat(all_logits, dim=1)  # (B, T, vocab)
 
         loss = None
         if targets is not None:
