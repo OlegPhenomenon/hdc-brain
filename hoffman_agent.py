@@ -159,10 +159,14 @@ class HDCMemory(nn.Module):
 
     def to_hdc(self, float_vector):
         """Конвертация float вектора в bipolar HDC.
-        Используем tanh (мягкий sign) чтобы сохранить gradient flow.
-        При инференсе можно заменить на hard sign для скорости.
+        Straight-Through Estimator: forward = hard sign, backward = tanh gradient.
+        Это позволяет градиентам течь через HDC операции.
         """
-        return torch.tanh(float_vector * 3.0)  # Мягкий sign: ≈±1 но дифференцируемый
+        soft = torch.tanh(float_vector * 3.0)
+        hard = torch.sign(float_vector)
+        hard = torch.where(hard == 0, torch.ones_like(hard), hard)  # избегаем 0
+        # STE: forward использует hard sign, backward — soft gradient от tanh
+        return (hard - soft).detach() + soft
 
     def from_hdc(self, hdc_vector):
         """HDC → float"""
@@ -365,18 +369,18 @@ class SharedConsciousAgent(nn.Module):
         ], dim=-1)  # (BN, 2D)
         perception = self.perception_kernel(perception_input)  # (BN, D)
 
-        # 2. REMEMBER (HDC) — без gradient (HDC = быстрая память, не backprop)
-        with torch.no_grad():
-            hdc_query = hdc_engine.to_hdc(self.to_hdc_proj(perception.detach()))
-            agent_keys = self.agent_hdc_key.unsqueeze(0).expand(B, -1, -1).reshape(BN, -1)
-            personal_query = hdc_engine.bind(hdc_query, agent_keys)
-            ep_flat = episodic_mem.view(BN, -1)
-            cr_flat = crystallized_mem.view(BN, -1)
-            episodic_sim = hdc_engine.read(ep_flat, personal_query)
-            crystal_sim = hdc_engine.read(cr_flat, personal_query)
-            memory_strength = torch.sigmoid(episodic_sim + crystal_sim).unsqueeze(-1)
-        # from_hdc_proj остаётся с gradient — это "мост" между HDC и float миром
-        memory_recall = self.from_hdc_proj((ep_flat + cr_flat).detach()) * memory_strength
+        # 2. REMEMBER (HDC) — STE позволяет градиентам течь через to_hdc_proj
+        # bind и cosine_similarity дифференцируемы → grad flows: loss → memory_strength → sim → query → to_hdc_proj
+        hdc_query = hdc_engine.to_hdc(self.to_hdc_proj(perception))  # STE: grad через tanh
+        agent_keys = self.agent_hdc_key.unsqueeze(0).expand(B, -1, -1).reshape(BN, -1)
+        personal_query = hdc_engine.bind(hdc_query, agent_keys)  # element-wise mul — diff
+        ep_flat = episodic_mem.view(BN, -1).detach()  # HDC content не backprop'ится
+        cr_flat = crystallized_mem.view(BN, -1).detach()
+        episodic_sim = hdc_engine.read(ep_flat, personal_query)  # cosine_sim — diff через query
+        crystal_sim = hdc_engine.read(cr_flat, personal_query)
+        memory_strength = torch.sigmoid(episodic_sim + crystal_sim).unsqueeze(-1)
+        # from_hdc_proj + memory_strength → gradient path к loss
+        memory_recall = self.from_hdc_proj(ep_flat + cr_flat) * memory_strength
 
         # 3. DECIDE — все агенты параллельно
         # По Хофману: decision kernel = марковское ядро P(action|perception)
@@ -419,10 +423,10 @@ class SharedConsciousAgent(nn.Module):
                     'decision_norm': decision_pattern.norm(dim=-1).cpu().numpy(),
                 })
 
-        # 5. STORE (без gradient — HDC память не backprop'ится)
+        # 5. STORE (без gradient — запись в HDC не backprop'ится)
         with torch.no_grad():
             experience_hdc = hdc_engine.to_hdc(self.to_hdc_proj(new_states.detach()))
-            personal_exp = hdc_engine.bind(experience_hdc, agent_keys)
+            personal_exp = hdc_engine.bind(experience_hdc, agent_keys.detach())
             new_episodics = hdc_engine.write(ep_flat, personal_exp, step)
 
         # Reshape обратно: (BN, ...) → (B, N, ...)
@@ -452,6 +456,8 @@ class DynamicGraph(nn.Module):
         self.query_proj = nn.Linear(state_dim, state_dim // 4)
         self.key_proj = nn.Linear(state_dim, state_dim // 4)
         self.scale = math.sqrt(state_dim // 4)
+        # Обучаемая температура: высокая → dense (все общаются), низкая → sparse
+        self.log_temperature = nn.Parameter(torch.tensor(0.0))  # exp(0) = 1.0
 
     def compute_graph(self, action_states):
         """
@@ -465,8 +471,9 @@ class DynamicGraph(nn.Module):
         Q = self.query_proj(action_states)  # (B, N, D//4)
         K = self.key_proj(action_states)    # (B, N, D//4)
 
-        # Attention-подобные scores
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / self.scale  # (B, N, N)
+        # Attention-подобные scores с обучаемой температурой
+        temperature = torch.exp(self.log_temperature).clamp(min=0.1, max=10.0)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.scale * temperature)
 
         N = action_states.shape[1]
         # Sparse top-k только для больших графов (N > 48).
@@ -608,8 +615,19 @@ class HoffmanSwarmV2(nn.Module):
         # Это замыкает gradient path: consensus_memory_q/k/v → recalled → agent_states → loss
         self.consensus_to_agents = nn.Linear(state_dim, state_dim)
 
+        # === RESIDUAL SHORTCUT: прямой провод от текущего токена к logits ===
+        # Без этого ВСЯ информация о текущем токене должна пройти через agent_states.
+        # Трансформеры имеют residual stream — прямой провод вход→выход.
+        # Это даёт модели "bigram baseline" бесплатно.
+        self.residual_proj = nn.Linear(state_dim, state_dim)
+
+        # === GRU-ГЕЙТ для сенсорной инъекции ===
+        # Вместо тупого += дать агентам решать что принять, а что забыть.
+        # gate = sigmoid(W_z @ [agent_state, sensory_input])
+        # agent_state = gate * agent_state + (1-gate) * sensory_input
+        self.sensory_gate = nn.Linear(state_dim * 2, state_dim)
+
         # Выход: проекция в state_dim → dot product с embedding (weight tying)
-        # Экономит 3M параметров!
         self.dropout = nn.Dropout(dropout)
         self.pre_action = nn.Sequential(
             nn.Linear(state_dim, state_dim),
@@ -695,21 +713,34 @@ class HoffmanSwarmV2(nn.Module):
             ))
             modulated_percept = current_percept * (1 + fg)
 
-            # Сенсорная инъекция: обновляем только сенсорный срез
+            # Сенсорная инъекция с GRU-гейтом: агенты решают что принять
             sensory_input = self.sensory_proj(modulated_percept)  # (B, n_sensory * D)
             sensory_input = sensory_input.view(B, self.n_sensory, D) * binding_gate
 
-            # Разделяем на сенсорных и не-сенсорных, добавляем только к сенсорным
-            new_sensory = agent_states[:, :self.n_sensory, :] + sensory_input
+            # GRU-гейт: gate = σ(W @ [current_state, new_input])
+            # Позволяет забывать/перевзвешивать вместо тупого +=
+            current_sensory = agent_states[:, :self.n_sensory, :]  # (B, n_sensory, D)
+            gate_input = torch.cat([
+                current_sensory.reshape(B * self.n_sensory, D),
+                sensory_input.reshape(B * self.n_sensory, D)
+            ], dim=-1)
+            gate = torch.sigmoid(self.sensory_gate(gate_input))  # (B*n_sensory, D)
+            gate = gate.view(B, self.n_sensory, D)
+            new_sensory = gate * current_sensory + (1 - gate) * sensory_input
             agent_states = torch.cat([new_sensory, agent_states[:, self.n_sensory:, :]], dim=1)
             accumulated_sensory = accumulated_sensory + sensory_input.detach()
 
-            # Logits для этого токена
+            # Logits = swarm consensus + residual shortcut от текущего токена
             agent_energy = agent_states.norm(dim=-1, keepdim=True)
             fitness = torch.sigmoid(agent_energy - agent_energy.mean(dim=1, keepdim=True))
             swarm_consensus = (agent_states * fitness * importance.view(1, -1, 1)).sum(dim=1)
             projected = self.pre_action(swarm_consensus)
-            logits = F.linear(projected, self.word_embedding.weight, self.output_bias)
+
+            # Residual shortcut: прямой провод от текущего percept к logits
+            # Даёт модели "bigram baseline" без прохождения через agent bottleneck
+            residual = self.residual_proj(current_percept)  # (B, D)
+            combined = projected + residual
+            logits = F.linear(combined, self.word_embedding.weight, self.output_bias)
             chunk_logits_list.append(logits)
             prev_logits = logits.detach()
 
