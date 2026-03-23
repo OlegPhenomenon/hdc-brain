@@ -641,7 +641,13 @@ class HoffmanSwarmV2(nn.Module):
         self.consensus_memory_gate = nn.Linear(state_dim * 2, state_dim)
         self.consensus_ln = nn.LayerNorm(state_dim)
 
-        # Консенсус: важность каждого агента (обучаемая)
+        # === MULTI-HEAD CONSENSUS: разные "комитеты" агентов ===
+        # Вместо одного взвешенного среднего — 4 головы, каждая фокусируется
+        # на своём аспекте (грамматика, смысл, стиль, факты).
+        self.n_consensus_heads = 4
+        self.consensus_head_proj = nn.Linear(state_dim, self.n_consensus_heads * state_dim)
+        self.consensus_head_merge = nn.Linear(self.n_consensus_heads * state_dim, state_dim)
+        # Legacy importance (для совместимости с чекпоинтом)
         self.agent_importance = nn.Parameter(torch.zeros(n_agents))
 
         # Consensus → agent modulation: recalled consensus влияет на agent_states
@@ -669,6 +675,31 @@ class HoffmanSwarmV2(nn.Module):
         )
         # Bias для выходного слоя
         self.output_bias = nn.Parameter(torch.zeros(vocab_size))
+
+    def multi_head_consensus(self, agent_states):
+        """Multi-Head Consensus: разные "комитеты" агентов.
+
+        Вместо одного взвешенного среднего (importance @ states),
+        4 головы извлекают разные аспекты из роя и объединяют.
+        Каждая голова = своя проекция → attention по агентам → свой "вывод".
+        """
+        B, N, D = agent_states.shape
+        H = self.n_consensus_heads
+
+        # Проецируем каждого агента в H пространств
+        projected = self.consensus_head_proj(agent_states)  # (B, N, H*D)
+        projected = projected.view(B, N, H, D).permute(0, 2, 1, 3)  # (B, H, N, D)
+
+        # Attention по агентам для каждой головы
+        attn_scores = projected.norm(dim=-1)  # (B, H, N) — энергия как score
+        attn_weights = F.softmax(attn_scores, dim=-1)  # (B, H, N)
+
+        # Взвешенная сумма по агентам для каждой головы
+        head_outputs = (projected * attn_weights.unsqueeze(-1)).sum(dim=2)  # (B, H, D)
+
+        # Объединяем головы
+        merged = head_outputs.reshape(B, H * D)
+        return self.consensus_head_merge(merged)  # (B, D)
 
     def consensus_recall(self, query, memory_list):
         """Hopfield-подобный запрос к памяти консенсусов (legacy, для совместимости)"""
@@ -709,80 +740,81 @@ class HoffmanSwarmV2(nn.Module):
         return self.consensus_ln(query + g * recalled)
 
     def _batched_sensory_injection(self, chunk_percepts, agent_states, prev_logits, importance):
-        """Батчированная сенсорная инъекция всего chunk-а.
+        """Батчированная сенсорная инъекция с Temporal Aggregation.
 
-        Вместо per-token loop обрабатываем весь chunk параллельно.
-        Feedback loop: используем top-k argmax вместо full softmax @ embedding.
+        Хофман: сознание дискретно. Агенты не реагируют на каждый символ —
+        они накапливают восприятие за SENSORY_WINDOW токенов и затем
+        "выстреливают" обновлённым состоянием. Как человек слышит слово,
+        а не отдельные звуки.
 
-        Args:
-            chunk_percepts: (B, chunk_len, D)
-            agent_states: (B, N, D) — текущие состояния агентов
-            prev_logits: (B, vocab) — logits с прошлого шага (для feedback первого токена)
-            importance: (N,) — pre-computed softmax(agent_importance)
-
-        Returns:
-            agent_states: (B, N, D) — обновлённые состояния
-            chunk_logits: (B, chunk_len, vocab) — logits для каждого токена chunk-а
-            last_logits: (B, vocab) — последние logits (для feedback следующего chunk-а)
-            accumulated_input: (B, N, D) — среднее сенсорное воздействие по chunk-у
+        Logits для каждого токена всё равно вычисляются (нужны для loss),
+        но через residual shortcut + текущий consensus (без обновления агентов).
         """
         B, CL, D = chunk_percepts.shape
         N = self.n_agents
-        binding_gate = torch.sigmoid(self.binding_keys)  # (n_sensory, D) — вычисляем 1 раз
+        SENSORY_WINDOW = 2  # Агенты "слышат" порциями по 2 токена
+        binding_gate = torch.sigmoid(self.binding_keys)
 
         accumulated_sensory = torch.zeros(B, self.n_sensory, D, device=chunk_percepts.device)
+        sensory_buffer = torch.zeros(B, self.n_sensory, D, device=chunk_percepts.device)
+        buffer_count = 0
         chunk_logits_list = []
 
         for t in range(CL):
-            current_percept = chunk_percepts[:, t, :]  # (B, D)
+            current_percept = chunk_percepts[:, t, :]
 
-            # === Feedback через top-k argmax (вместо full softmax @ embedding) ===
-            # Top-1 argmax + embedding lookup: O(B*D) вместо O(B*vocab*D)
-            top_idx = prev_logits.argmax(dim=-1)  # (B,)
-            feedback = self.word_embedding(top_idx)  # (B, D)
-
+            # Feedback
+            top_idx = prev_logits.argmax(dim=-1)
+            feedback = self.word_embedding(top_idx)
             fg = torch.sigmoid(self.feedback_gate(
                 torch.cat([feedback, current_percept], dim=-1)
             ))
             modulated_percept = current_percept * (1 + fg)
 
-            # Сенсорная инъекция с GRU-гейтом: агенты решают что принять
-            sensory_input = self.sensory_proj(modulated_percept)  # (B, n_sensory * D)
+            # Сенсорный вход → буфер (накапливаем)
+            sensory_input = self.sensory_proj(modulated_percept)
             sensory_input = sensory_input.view(B, self.n_sensory, D) * binding_gate
+            sensory_buffer = sensory_buffer + sensory_input
+            buffer_count += 1
 
-            # GRU-гейт: gate = σ(W @ [current_state, new_input])
-            # Позволяет забывать/перевзвешивать вместо тупого +=
-            current_sensory = agent_states[:, :self.n_sensory, :]  # (B, n_sensory, D)
-            gate_input = torch.cat([
-                current_sensory.reshape(B * self.n_sensory, D),
-                sensory_input.reshape(B * self.n_sensory, D)
-            ], dim=-1)
-            gate = torch.sigmoid(self.sensory_gate(gate_input))  # (B*n_sensory, D)
-            gate = gate.view(B, self.n_sensory, D)
-            new_sensory = gate * current_sensory + (1 - gate) * sensory_input
-            agent_states = torch.cat([new_sensory, agent_states[:, self.n_sensory:, :]], dim=1)
-            accumulated_sensory = accumulated_sensory + sensory_input.detach()
+            # Temporal Aggregation: "выстрел" каждые SENSORY_WINDOW токенов
+            if buffer_count >= SENSORY_WINDOW or t == CL - 1:
+                # Усреднённый сенсорный пакет за окно
+                avg_sensory_batch = sensory_buffer / buffer_count
 
-            # Logits = swarm consensus + residual shortcut от текущего токена
-            agent_energy = agent_states.norm(dim=-1, keepdim=True)
-            fitness = torch.sigmoid(agent_energy - agent_energy.mean(dim=1, keepdim=True))
-            swarm_consensus = (agent_states * fitness * importance.view(1, -1, 1)).sum(dim=1)
+                # GRU-гейт: агенты решают что принять из пакета
+                current_sensory = agent_states[:, :self.n_sensory, :]
+                gate_input = torch.cat([
+                    current_sensory.reshape(B * self.n_sensory, D),
+                    avg_sensory_batch.reshape(B * self.n_sensory, D)
+                ], dim=-1)
+                gate = torch.sigmoid(self.sensory_gate(gate_input))
+                gate = gate.view(B, self.n_sensory, D)
+                new_sensory = gate * current_sensory + (1 - gate) * avg_sensory_batch
+                agent_states = torch.cat([new_sensory, agent_states[:, self.n_sensory:, :]], dim=1)
+                accumulated_sensory = accumulated_sensory + avg_sensory_batch.detach()
+
+                # Reset buffer
+                sensory_buffer = torch.zeros_like(sensory_buffer)
+                buffer_count = 0
+
+            # Logits для КАЖДОГО токена (нужны для loss)
+            # Multi-Head Consensus: разные "комитеты" агентов
+            swarm_consensus = self.multi_head_consensus(agent_states)
             projected = self.pre_action(swarm_consensus)
-
-            # Residual shortcut: прямой провод от текущего percept к logits
-            # Даёт модели "bigram baseline" без прохождения через agent bottleneck
-            residual = self.residual_proj(current_percept)  # (B, D)
+            residual = self.residual_proj(current_percept)
             combined = projected + residual
             logits = F.linear(combined, self.word_embedding.weight, self.output_bias)
             chunk_logits_list.append(logits)
             prev_logits = logits.detach()
 
-        # Среднее сенсорное воздействие за chunk — дополняем нулями для non-sensory
-        avg_sensory = accumulated_sensory / max(CL, 1)
+        # Среднее сенсорное воздействие за chunk
+        n_fires = max(CL // SENSORY_WINDOW, 1)
+        avg_sensory = accumulated_sensory / n_fires
         accumulated_input = torch.zeros(B, N, D, device=chunk_percepts.device)
         accumulated_input[:, :self.n_sensory, :] = avg_sensory
 
-        chunk_logits = torch.stack(chunk_logits_list, dim=1)  # (B, CL, vocab)
+        chunk_logits = torch.stack(chunk_logits_list, dim=1)
         return agent_states, chunk_logits, prev_logits, accumulated_input
 
     def forward(self, idx, targets=None):
@@ -854,7 +886,7 @@ class HoffmanSwarmV2(nn.Module):
             agent_states = self.dropout(agent_states)
 
             # Consensus memory (ring buffer) — recalled consensus модулирует agent_states
-            swarm_consensus = (agent_states * importance.view(1, -1, 1)).sum(dim=1)
+            swarm_consensus = self.multi_head_consensus(agent_states)
             recalled_consensus = self.consensus_recall_ring(swarm_consensus, consensus_buf, consensus_count)
             consensus_buf[consensus_count] = recalled_consensus.detach()
             consensus_count += 1
@@ -898,8 +930,9 @@ class HoffmanSwarmV2(nn.Module):
             # Штраф если variance слишком мала (все gates одинаковые)
             mem_gate_loss = -0.1 * mem_gate_var + 0.01 * (mem_gate_mean - 0.5) ** 2
 
-            # Итоговый loss: CE + auxiliary Hoffman pressures
-            loss = ce_loss + 0.01 * sparsity_loss + 0.1 * ortho_loss + mem_gate_loss
+            # Итоговый loss: CE + мягкие auxiliary Hoffman pressures
+            # Коэффициенты ослаблены в 10x — чтобы не мешать основному обучению
+            loss = ce_loss + 0.001 * sparsity_loss + 0.01 * ortho_loss + 0.1 * mem_gate_loss
 
         return logits, loss
 
