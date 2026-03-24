@@ -417,23 +417,64 @@ class SharedConsciousAgent(nn.Module):
         self.oscillation_rate = nn.Parameter(torch.linspace(0.0, 2.0, n_agents))  # 0=медленный, 2=быстрый
 
         # === [NEW v3.0] COMPETITIVE SELECTION: winner-takes-all ===
-        # Агенты конкурируют за право влиять на выход.
-        # Не мягкий consensus — жёсткая борьба.
-        self.competition_proj = nn.Linear(state_dim, 1)  # "уверенность" агента
+        self.competition_proj = nn.Linear(state_dim, 1)
+
+        # === [NEW v4.0] MINI-TRANSFORMER: рабочая память агента ===
+        # Каждый агент хранит историю из последних K=16 шагов.
+        # Self-attention по истории → агент "помнит" что было и решает на основе контекста.
+        # Это НЕ общий трансформер — каждый агент имеет СВОЮ независимую память.
+        self.memory_len = 16  # длина рабочей памяти
+        self.n_attn_heads = 4
+        head_dim = state_dim // self.n_attn_heads
+        self.attn_q = nn.Linear(state_dim, state_dim)
+        self.attn_k = nn.Linear(state_dim, state_dim)
+        self.attn_v = nn.Linear(state_dim, state_dim)
+        self.attn_out = nn.Linear(state_dim, state_dim)
+        self.attn_ln = nn.LayerNorm(state_dim)
 
         self.thought_log = []
         self.layer_norm = nn.LayerNorm(state_dim)
 
+    def agent_self_attention(self, current_state, memory_buffer):
+        """Мини-трансформер: агент смотрит в свою рабочую память.
+
+        Каждый агент хранит историю (memory_buffer) из последних K шагов.
+        Self-attention позволяет "вспомнить" конкретный момент из прошлого.
+        Это как человек: "минуту назад я видел букву К, значит..."
+
+        Args:
+            current_state: (BN, D) — текущее состояние агента
+            memory_buffer: (BN, K, D) — буфер рабочей памяти агента
+        Returns:
+            attended: (BN, D) — обогащённое контекстом состояние
+        """
+        BN, D = current_state.shape
+        H = self.n_attn_heads
+        head_dim = D // H
+        K_len = memory_buffer.shape[1]
+
+        # Query = текущее состояние, Key/Value = память
+        q = self.attn_q(current_state).view(BN, 1, H, head_dim).transpose(1, 2)  # (BN, H, 1, hd)
+        k = self.attn_k(memory_buffer).view(BN, K_len, H, head_dim).transpose(1, 2)  # (BN, H, K, hd)
+        v = self.attn_v(memory_buffer).view(BN, K_len, H, head_dim).transpose(1, 2)  # (BN, H, K, hd)
+
+        # Scaled dot-product attention
+        attn = torch.matmul(q, k.transpose(-2, -1)) / (head_dim ** 0.5)  # (BN, H, 1, K)
+        attn = F.softmax(attn, dim=-1)
+        out = torch.matmul(attn, v)  # (BN, H, 1, hd)
+        out = out.transpose(1, 2).reshape(BN, D)  # (BN, D)
+
+        # Residual + LayerNorm
+        attended = self.attn_ln(current_state + self.attn_out(out))
+        return attended
+
     def forward_all(self, incoming_signal, incoming_actions,
                     episodic_mem, crystallized_mem, prev_states, hdc_engine, step,
-                    prev_prediction=None):
+                    prev_prediction=None, agent_memory_buffer=None):
         """
-        Цикл ВСЕХ агентов с сознательными механизмами v3.0:
-        - Prediction Error (удивление)
-        - Осцилляции (быстрые/медленные агенты)
-        - Конкурентная селекция (winner-takes-all)
-        - Мульти-проход (2 круга размышлений)
-        - Самокоррекция (через feedback)
+        Цикл ВСЕХ агентов с сознательными механизмами v4.0:
+        - Всё из v3.0 (prediction error, oscillations, competition, multi-pass)
+        - [NEW] Mini-Transformer: рабочая память каждого агента
         """
         B, N, D = incoming_signal.shape
         BN = B * N
@@ -499,8 +540,13 @@ class SharedConsciousAgent(nn.Module):
             decision = self.decision_kernel(decision_input)
             personality_flat = personality.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
             decision = decision * (1 + 0.1 * personality_flat)
+
+            # 3.5. MINI-TRANSFORMER: обогащаем решение рабочей памятью
+            # Агент "вспоминает" последние K шагов и корректирует решение
+            if agent_memory_buffer is not None and agent_memory_buffer.shape[1] > 0:
+                decision = self.agent_self_attention(decision, agent_memory_buffer)
+
             if self.training:
-                # Меньше шума во втором круге (уже обдумал)
                 noise_scale = 0.02 if thinking_round == 0 else 0.005
                 decision = decision + noise_scale * torch.randn_like(decision)
 
@@ -580,13 +626,24 @@ class SharedConsciousAgent(nn.Module):
             personal_exp = hdc_engine.bind(experience_hdc, agent_keys.detach())
             new_episodics = hdc_engine.write(ep_flat, personal_exp, step, gate=mem_gate.detach())
 
+        # Обновляем рабочую память (ring buffer: добавляем текущее состояние)
+        if agent_memory_buffer is not None:
+            # Сдвигаем буфер влево, добавляем новое состояние справа
+            new_memory = torch.cat([
+                agent_memory_buffer[:, 1:, :],  # убираем самый старый
+                new_states.unsqueeze(1),         # добавляем текущий
+            ], dim=1)
+        else:
+            new_memory = new_states.unsqueeze(1)  # начало: (BN, 1, D)
+
         return (
             actions.view(B, N, D),
             new_states.view(B, N, D),
             new_episodics.view(B, N, -1),
             experience_hdc.view(B, N, -1),
             mem_gate.view(B, N, 1),
-            next_prediction,  # для prediction error на следующем шаге
+            next_prediction,
+            new_memory,  # обновлённая рабочая память
         )
 
 
@@ -960,6 +1017,12 @@ class HoffmanSwarmV2(nn.Module):
         # Prediction для prediction error (None на первом шаге)
         prev_prediction = None
 
+        # Рабочая память агентов (mini-transformer buffer)
+        # (B*N, K, D) — каждый агент хранит K последних состояний
+        agent_mem_buf = torch.zeros(
+            B * self.n_agents, self.agents.memory_len, self.state_dim,
+            device=idx.device)
+
         # Ring buffer для consensus memory (вместо Python list + stack)
         max_chunks = (T + 7) // 8
         consensus_buf = torch.zeros(max_chunks, B, self.state_dim, device=idx.device)
@@ -994,8 +1057,9 @@ class HoffmanSwarmV2(nn.Module):
                 hdc_engine=self.hdc,
                 step=chunk_idx,
                 prev_prediction=prev_prediction,
+                agent_memory_buffer=agent_mem_buf,
             )
-            agent_actions, agent_states, episodic_memories, experiences, mem_gates, prev_prediction = result
+            agent_actions, agent_states, episodic_memories, experiences, mem_gates, prev_prediction, agent_mem_buf = result
 
             # Crystallized memory: HDC bundling
             with torch.no_grad():
@@ -1104,8 +1168,9 @@ class HoffmanSwarmV2(nn.Module):
             hdc_engine=self.hdc,
             step=0,
             prev_prediction=prev_prediction,
+            agent_memory_buffer=None,  # во сне без рабочей памяти (чистые мысли)
         )
-        agent_actions, agent_states, episodic_memories, experiences, mem_gates, next_pred = result
+        agent_actions, agent_states, episodic_memories, experiences, mem_gates, next_pred, _ = result
 
         # Коалиции во сне (агенты группируются по "интересам")
         agent_states = self.agent_combination(agent_states, agent_actions)
