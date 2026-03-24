@@ -122,6 +122,46 @@ class SubwordTokenizer:
 HDCTokenizer = SubwordTokenizer
 
 
+class FixedCharTokenizer:
+    """Фиксированный символьный токенизатор. Vocab НИКОГДА не меняется.
+
+    Покрывает: кириллица (А-Яа-яЁё), латиница (A-Za-z), цифры (0-9),
+    пунктуация, пробельные символы. Всё остальное → <UNK> (id=0).
+    Добавление любых данных не ломает чекпоинт.
+    vocab_size = 197
+    """
+    VOCAB_SIZE = 197  # Константа — никогда не меняется
+
+    def __init__(self):
+        chars = ['<UNK>']
+        # Кириллица: А-Я (32) + а-я (32) + Ё + ё = 66
+        chars += [chr(c) for c in range(0x410, 0x450)]
+        chars += ['Ё', 'ё']
+        # Латиница: A-Z (26) + a-z (26) = 52
+        chars += [chr(c) for c in range(ord('A'), ord('Z') + 1)]
+        chars += [chr(c) for c in range(ord('a'), ord('z') + 1)]
+        # Цифры: 0-9 = 10
+        chars += [chr(c) for c in range(ord('0'), ord('9') + 1)]
+        # Пунктуация + спецсимволы + пробельные = 68
+        chars += list(' \n\t.,;:!?-\u2014\u2013()[]{}«»\u201c\u201d\'"/\\@#$%^&*+=<>~`|_')
+        # Дедупликация
+        seen = set()
+        unique = []
+        for c in chars:
+            if c not in seen:
+                seen.add(c)
+                unique.append(c)
+        self.stoi = {c: i for i, c in enumerate(unique)}
+        self.itos = {i: c for i, c in enumerate(unique)}
+        self.vocab_size = len(unique)
+
+    def encode(self, text):
+        return [self.stoi.get(c, 0) for c in text]
+
+    def decode(self, ids):
+        return ''.join(self.itos.get(i, '?') for i in ids)
+
+
 # ============================================================================
 # HDC MEMORY ENGINE
 # ============================================================================
