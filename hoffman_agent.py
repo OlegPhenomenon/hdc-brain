@@ -93,6 +93,30 @@ class SubwordTokenizer:
     def decode(self, ids):
         return ''.join(self.itos.get(i, '?') for i in ids)
 
+    def save_vocab(self, path):
+        """Сохранить vocab в JSON — фиксирует token→id маппинг.
+        При добавлении новых данных vocab НЕ пересоздаётся."""
+        import json
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump({'stoi': self.stoi, 'itos': {str(k): v for k, v in self.itos.items()},
+                       'vocab_size': self.vocab_size}, f, ensure_ascii=False)
+
+    @classmethod
+    def load_vocab(cls, path):
+        """Загрузить фиксированный vocab из JSON."""
+        import json
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        tok = cls.__new__(cls)
+        tok.stoi = data['stoi']
+        tok.itos = {int(k): v for k, v in data['itos'].items()}
+        tok.vocab_size = data['vocab_size']
+        tok.char_vocab = {c: i for i, c in enumerate(sorted(
+            [s for s in tok.stoi if len(s) == 1]))}
+        tok.tokens_by_length = sorted(
+            [(s, i) for s, i in tok.stoi.items()], key=lambda x: -len(x[0]))
+        return tok
+
 
 # Сохраняем обратную совместимость
 HDCTokenizer = SubwordTokenizer
@@ -904,10 +928,12 @@ class HoffmanSwarmV2(nn.Module):
 
             # === AUXILIARY LOSSES (Хофман: давление на специализацию) ===
 
-            # 1. Sparsity penalty: заставляет граф быть разреженным
-            # Агенты должны выбирать КОГО слушать, а не болтать со всеми
-            # L1 norm adjacency → давление к 0 (т.е. к sparse графу)
-            sparsity_loss = adjacency.mean()  # adjacency уже нормирована, mean ≈ 1/N
+            # 1. Graph entropy: агенты должны быть УВЕРЕНЫ с кем говорят
+            # Минимизируем энтропию softmax-распределения связей.
+            # Низкая энтропия = один сильный пик (уверенный выбор собеседника).
+            # BUG FIX: adjacency.mean() = 1/N (константа после softmax, градиент=0)
+            entropy = -torch.sum(adjacency * torch.log(adjacency + 1e-9), dim=-1)  # (B, N)
+            sparsity_loss = entropy.mean()
 
             # 2. Orthogonality loss: "иконки" восприятия должны быть различимы
             # По Хофману: interface создаёт максимально контрастные представления
@@ -930,9 +956,11 @@ class HoffmanSwarmV2(nn.Module):
             # Штраф если variance слишком мала (все gates одинаковые)
             mem_gate_loss = -0.1 * mem_gate_var + 0.01 * (mem_gate_mean - 0.5) ** 2
 
-            # Итоговый loss: CE + мягкие auxiliary Hoffman pressures
-            # Коэффициенты ослаблены в 10x — чтобы не мешать основному обучению
-            loss = ce_loss + 0.001 * sparsity_loss + 0.01 * ortho_loss + 0.1 * mem_gate_loss
+            # Итоговый loss: CE + auxiliary Hoffman pressures
+            # sparsity (entropy): давление на разреженный граф общения
+            # ortho: мягкое давление на контрастные percepts (0.001 — не ломает грамматику)
+            # mem_gate: давление на разнообразие стратегий запоминания
+            loss = ce_loss + 0.01 * sparsity_loss + 0.001 * ortho_loss + 0.1 * mem_gate_loss
 
         return logits, loss
 
