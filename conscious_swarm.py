@@ -253,6 +253,7 @@ class ConsciousSwarm(nn.Module):
 
         # Инициализация
         agent_states = torch.zeros(B, self.n_agents, self.state_dim, device=device)
+        actions = torch.zeros(B, self.n_agents, self.state_dim, device=device)
         prev_prediction = None
 
         CHUNK = 8
@@ -295,13 +296,17 @@ class ConsciousSwarm(nn.Module):
             all_logits.append(torch.stack(chunk_logits, dim=1))
 
             # === ОБСУЖДЕНИЕ после chunk-а ===
-            # Swarm Communication
+            # Swarm Communication (через actions — то что агенты "говорят")
             agent_states = self.swarm_communicate(agent_states)
 
             # Agent step: полный цикл P→D→A с curiosity и self-model
-            accumulated = agent_states.mean(dim=1, keepdim=True).expand(-1, self.n_agents, -1)
+            # incoming = communication messages (actions from previous step or accumulated input)
+            if chunk_idx == 0:
+                incoming = agent_states.mean(dim=1, keepdim=True).expand(-1, self.n_agents, -1)
+            else:
+                incoming = self.swarm_communicate(actions)  # используем actions для incoming
             agent_states, actions, prev_prediction, curiosity, self_err = self.agent_step(
-                agent_states, accumulated, broadcast, prev_prediction)
+                agent_states, incoming, broadcast, prev_prediction)
 
             total_curiosity += curiosity
             total_self_error += self_err
