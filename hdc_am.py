@@ -54,6 +54,30 @@ class HDCProcessor(nn.Module):
         """Символы → HDC bipolar вектора. Lookup, мгновенно."""
         return self.char_codebook[idx]  # (B, T, D_hdc)
 
+    def encode_trigrams(self, idx):
+        """Символы → HDC триграммы через bind+roll. Матричная операция.
+
+        Триграмм[t] = char[t] * roll(char[t-1], 1) * roll(char[t-2], 2)
+        Захватывает локальные паттерны (слоги, морфемы) напрямую.
+        Всё через матричные операции, без циклов.
+        """
+        chars = self.char_codebook[idx]  # (B, T, D)
+        # Сдвинутые версии: char[t-1] и char[t-2]
+        chars_m1 = torch.roll(chars, 1, dims=1)   # (B, T, D) — сдвиг на 1 по T
+        chars_m2 = torch.roll(chars, 2, dims=1)   # сдвиг на 2
+        # Обнуляем начало (нет предшествующих символов)
+        chars_m1[:, 0, :] = 0
+        chars_m2[:, :2, :] = 0
+        # Roll по D-измерению (позиционное кодирование в HDC)
+        chars_m1_rolled = torch.roll(chars_m1, 1, dims=-1)  # roll по D
+        chars_m2_rolled = torch.roll(chars_m2, 2, dims=-1)
+        # Bind (element-wise multiply для bipolar)
+        # trigram = char[t] * roll_D(char[t-1]) * roll_D²(char[t-2])
+        trigrams = chars * chars_m1_rolled * chars_m2_rolled
+        # Комбинируем: обогащаем char информацией о контексте
+        # 0.7 * trigram + 0.3 * char (чтобы не потерять отдельные символы)
+        return 0.7 * trigrams + 0.3 * chars
+
     def build_context(self, hdc_chars):
         """Весь контекст = ОДНА матричная операция.
 
@@ -176,7 +200,8 @@ class HDCAM(nn.Module):
         device = idx.device
 
         # 1. HDC encoding: символы → bipolar вектора (lookup, O(1))
-        hdc_chars = self.hdc.encode(idx)  # (B, T, hdc_dim) — bipolar
+        # HDC триграммы: захватывают слоги/морфемы напрямую
+        hdc_chars = self.hdc.encode_trigrams(idx)  # (B, T, hdc_dim)
 
         # 2. HDC context: ОДНА матричная операция
         hdc_contexts = self.hdc.build_context(hdc_chars)  # (B, T, hdc_dim)
@@ -209,10 +234,10 @@ def create_hdc_am(vocab_size, config=None):
     """Фабрика модели."""
     if config is None:
         config = {
-            'hdc_dim': 4096,
-            'codebook_size': 8192,
-            'nav_hidden': 512,
-            'nav_layers': 3,
+            'hdc_dim': 3072,
+            'codebook_size': 6144,
+            'nav_hidden': 384,
+            'nav_layers': 4,
             'decay': 0.95,
             'dropout': 0.1,
         }
