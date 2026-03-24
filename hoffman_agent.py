@@ -332,7 +332,7 @@ class SharedConsciousAgent(nn.Module):
         self.state_dim = state_dim
         self.hdc_dim = hdc_dim
 
-        # Общие ядра (shared across agents) с Pre-LN (стабилизация градиентов)
+        # Общие ядра (shared across agents) с Pre-LN
         self.perception_kernel = nn.Sequential(
             nn.LayerNorm(state_dim * 2),
             nn.Linear(state_dim * 2, state_dim),
@@ -351,147 +351,202 @@ class SharedConsciousAgent(nn.Module):
         self.to_hdc_proj = nn.Linear(state_dim, hdc_dim)
         self.from_hdc_proj = nn.Linear(hdc_dim, state_dim)
 
-        # === ИНДИВИДУАЛЬНОСТЬ каждого агента ===
-        # Врождённый характер (обучается через backprop)
+        # === ИНДИВИДУАЛЬНОСТЬ ===
         self.agent_personality = nn.Parameter(torch.randn(n_agents, state_dim) * 0.1)
-
-        # Приобретённый характер (формируется из опыта, НЕ через backprop)
-        # EMA решений агента — какие решения он обычно принимает
-        # Это "менталитет" — устойчивый паттерн поведения
         self.register_buffer('agent_character', torch.zeros(n_agents, state_dim))
-
-        # Индивидуальные HDC ключи
         self.agent_hdc_key = nn.Parameter(torch.sign(torch.randn(n_agents, hdc_dim)))
 
-        # === GATED MEMORY: агент решает что запомнить (Хофман: сознательная память) ===
-        # Вместо фиксированного decay 0.95: gate = σ(W @ [state, experience])
-        # Важное воспоминание → gate≈1 (сохранить), шум → gate≈0 (перезаписать)
+        # === GATED MEMORY (Хофман: сознательная память) ===
         self.memory_gate = nn.Linear(state_dim + hdc_dim, 1)
 
-        # === ROLE DROPOUT: заставляет агентов специализироваться ===
-        # По Хофману, мета-агенты формируются из специализированных.
-        # Случайное отключение 15% агентов → каждый учится быть незаменимым.
+        # === ROLE DROPOUT: специализация агентов ===
         self.role_dropout = nn.Dropout(p=0.15)
 
-        # === ЖУРНАЛ МЫСЛЕЙ (для интроспекции) ===
-        # Не участвует в обучении — только для наблюдения
-        self.thought_log = []
+        # === [NEW v3.0] PREDICTION ERROR: удивление ===
+        # Каждый агент предсказывает следующий сенсорный вход.
+        # Ошибка предсказания (surprise) усиливает обработку.
+        # Мозг работает так: предсказал → не совпало → напрягся.
+        self.prediction_head = nn.Linear(state_dim, state_dim)
+        # surprise_gate: чем больше ошибка, тем сильнее агенты перестраиваются
+        self.surprise_gate = nn.Linear(state_dim, state_dim)
 
+        # === [NEW v3.0] ОСЦИЛЛЯЦИИ: быстрые и медленные агенты ===
+        # Первая половина агентов = "быстрые" (gamma): обновляются каждый шаг
+        # Вторая половина = "медленные" (theta): обновляются каждые 4 шага, несут контекст
+        # oscillation_phase: обучаемая скорость обновления для каждого агента
+        self.oscillation_rate = nn.Parameter(torch.linspace(0.0, 2.0, n_agents))  # 0=медленный, 2=быстрый
+
+        # === [NEW v3.0] COMPETITIVE SELECTION: winner-takes-all ===
+        # Агенты конкурируют за право влиять на выход.
+        # Не мягкий consensus — жёсткая борьба.
+        self.competition_proj = nn.Linear(state_dim, 1)  # "уверенность" агента
+
+        self.thought_log = []
         self.layer_norm = nn.LayerNorm(state_dim)
 
     def forward_all(self, incoming_signal, incoming_actions,
-                    episodic_mem, crystallized_mem, prev_states, hdc_engine, step):
+                    episodic_mem, crystallized_mem, prev_states, hdc_engine, step,
+                    prev_prediction=None):
         """
-        Цикл ВСЕХ агентов одновременно (батчированно).
-
-        Args:
-            incoming_signal: (B, N, D) — входной сигнал для каждого агента
-            incoming_actions: (B, N, D) — действия соседей для каждого агента
-            episodic_mem: (B, N, hdc_dim) — HDC память каждого агента
-            crystallized_mem: (B, N, hdc_dim) — долгосрочная HDC память
-            prev_states: (B, N, D) — предыдущие состояния
-            hdc_engine: HDCMemory
-            step: int
-        Returns:
-            actions, new_states, new_episodics, experiences — всё (B, N, ...)
+        Цикл ВСЕХ агентов с сознательными механизмами v3.0:
+        - Prediction Error (удивление)
+        - Осцилляции (быстрые/медленные агенты)
+        - Конкурентная селекция (winner-takes-all)
+        - Мульти-проход (2 круга размышлений)
+        - Самокоррекция (через feedback)
         """
         B, N, D = incoming_signal.shape
+        BN = B * N
 
-        # Индивидуальность = врождённый характер + приобретённый менталитет
-        personality = self.agent_personality  # (N, D) — врождённый
-        character = self.agent_character      # (N, D) — приобретённый
-        full_personality = personality + 0.3 * character  # Менталитет влияет на 30%
+        # === PREDICTION ERROR (удивление) ===
+        # Агенты предсказывали что придёт. Сравниваем с реальностью.
+        # Большая ошибка → сигнал "удивления" → агенты напрягаются.
+        if prev_prediction is not None:
+            # prev_prediction: (B, N, D) — что агенты ожидали
+            surprise = (incoming_signal - prev_prediction).abs().mean(dim=-1, keepdim=True)  # (B, N, 1)
+            # surprise_modulation: удивлённые агенты обрабатывают сигнал сильнее
+            surprise_strength = torch.sigmoid(self.surprise_gate(
+                (incoming_signal - prev_prediction).view(BN, D)
+            )).view(B, N, D)
+            incoming_signal = incoming_signal * (1 + surprise_strength)
+        else:
+            surprise = torch.zeros(B, N, 1, device=incoming_signal.device)
+
+        # === ОСЦИЛЛЯЦИИ: скорость обновления каждого агента ===
+        # oscillation_rate: обучаемый, 0=медленный (theta), 2+=быстрый (gamma)
+        # На каждом шаге: update_strength = sigmoid(rate - step_phase)
+        # Медленные агенты обновляются реже → несут долгосрочный контекст
+        # Осцилляции: мягкая маска обновления.
+        # osc_rate ≈ 1 → быстрый агент (всегда обновляется)
+        # osc_rate ≈ 0 → медленный (обновляется с затуханием cos)
+        osc_rate = torch.sigmoid(self.oscillation_rate)  # (N,) in [0, 1]
+        # Фазовая модуляция: медленные агенты "пульсируют"
+        phase = math.cos(step * math.pi / 2)  # колебание: 1, 0, -1, 0, 1, ...
+        # Быстрые агенты: mask ≈ 1 всегда. Медленные: mask пульсирует 0.2-1.0
+        osc_mask = (osc_rate + (1 - osc_rate) * max(phase, 0.0)
+                    ).unsqueeze(0).unsqueeze(-1)  # (1, N, 1)
+
+        # Индивидуальность
+        personality = self.agent_personality
+        character = self.agent_character
+        full_personality = personality + 0.3 * character
         modulated_signal = incoming_signal * (1 + 0.1 * full_personality.unsqueeze(0))
 
-        # 1. PERCEIVE — все агенты параллельно
-        # Reshape: (B, N, D) → (B*N, D) для прохода через shared linear
-        BN = B * N
-        perception_input = torch.cat([
-            modulated_signal.view(BN, D),
-            incoming_actions.view(BN, D)
-        ], dim=-1)  # (BN, 2D)
-        perception = self.perception_kernel(perception_input)  # (BN, D)
+        # === МУЛЬТИ-ПРОХОД: 2 круга размышлений ===
+        # Круг 1: быстрая реакция
+        # Круг 2: перепроверка с учётом первого решения
+        for thinking_round in range(2):
+            # 1. PERCEIVE
+            perception_input = torch.cat([
+                modulated_signal.view(BN, D),
+                incoming_actions.view(BN, D)
+            ], dim=-1)
+            perception = self.perception_kernel(perception_input)
 
-        # 2. REMEMBER (HDC) — STE позволяет градиентам течь через to_hdc_proj
-        # bind и cosine_similarity дифференцируемы → grad flows: loss → memory_strength → sim → query → to_hdc_proj
-        hdc_query = hdc_engine.to_hdc(self.to_hdc_proj(perception))  # STE: grad через tanh
-        agent_keys = self.agent_hdc_key.unsqueeze(0).expand(B, -1, -1).reshape(BN, -1)
-        personal_query = hdc_engine.bind(hdc_query, agent_keys)  # element-wise mul — diff
-        ep_flat = episodic_mem.view(BN, -1).detach()  # HDC content не backprop'ится
-        cr_flat = crystallized_mem.view(BN, -1).detach()
-        episodic_sim = hdc_engine.read(ep_flat, personal_query)  # cosine_sim — diff через query
-        crystal_sim = hdc_engine.read(cr_flat, personal_query)
-        memory_strength = torch.sigmoid(episodic_sim + crystal_sim).unsqueeze(-1)
-        # from_hdc_proj + memory_strength → gradient path к loss
-        memory_recall = self.from_hdc_proj(ep_flat + cr_flat) * memory_strength
+            # 2. REMEMBER (HDC + STE)
+            hdc_query = hdc_engine.to_hdc(self.to_hdc_proj(perception))
+            agent_keys = self.agent_hdc_key.unsqueeze(0).expand(B, -1, -1).reshape(BN, -1)
+            personal_query = hdc_engine.bind(hdc_query, agent_keys)
+            ep_flat = episodic_mem.view(BN, -1).detach()
+            cr_flat = crystallized_mem.view(BN, -1).detach()
+            episodic_sim = hdc_engine.read(ep_flat, personal_query)
+            crystal_sim = hdc_engine.read(cr_flat, personal_query)
+            memory_strength = torch.sigmoid(episodic_sim + crystal_sim).unsqueeze(-1)
+            memory_recall = self.from_hdc_proj(ep_flat + cr_flat) * memory_strength
 
-        # 3. DECIDE — все агенты параллельно
-        # По Хофману: decision kernel = марковское ядро P(action|perception)
-        # Добавляем стохастичность при обучении (exploration)
-        decision_input = torch.cat([perception, memory_recall], dim=-1)  # (BN, 2D)
-        decision = self.decision_kernel(decision_input)  # (BN, D)
-        # Модуляция личностью
-        personality_flat = personality.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
-        decision = decision * (1 + 0.1 * personality_flat)
-        # Стохастическое ядро: добавляем шум при обучении (exploration/exploitation)
-        if self.training:
-            decision = decision + 0.02 * torch.randn_like(decision)
+            # 3. DECIDE
+            decision_input = torch.cat([perception, memory_recall], dim=-1)
+            decision = self.decision_kernel(decision_input)
+            personality_flat = personality.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
+            decision = decision * (1 + 0.1 * personality_flat)
+            if self.training:
+                # Меньше шума во втором круге (уже обдумал)
+                noise_scale = 0.02 if thinking_round == 0 else 0.005
+                decision = decision + noise_scale * torch.randn_like(decision)
 
-        # GRU update
-        prev_flat = prev_states.view(BN, D)
-        gate = torch.sigmoid(self.update_gate(
-            torch.cat([prev_flat, decision], dim=-1)
-        ))
-        new_states = self.layer_norm(gate * decision + (1 - gate) * prev_flat)
+            # GRU update с осцилляцией
+            prev_flat = prev_states.view(BN, D)
+            gate = torch.sigmoid(self.update_gate(
+                torch.cat([prev_flat, decision], dim=-1)
+            ))
+            # Осцилляция: медленные агенты почти не обновляются (gate → 0)
+            gate = gate.view(B, N, D) * osc_mask
+            gate = gate.view(BN, D)
+            new_states = self.layer_norm(gate * decision + (1 - gate) * prev_flat)
+
+            # После первого круга: результат становится входом для второго
+            if thinking_round == 0:
+                # Самокоррекция: первый "ответ" агента модулирует второе восприятие
+                first_decision = new_states.view(B, N, D)
+                modulated_signal = incoming_signal + 0.1 * first_decision
+                prev_states = new_states.view(B, N, D)
+                incoming_actions = self.action_kernel(new_states).view(B, N, D)
 
         # 4. ACT
         actions = self.action_kernel(new_states)  # (BN, D)
 
-        # === ROLE DROPOUT: случайное отключение агентов при обучении ===
-        # Заставляет агентов специализироваться, не полагаться на "лидера".
-        # При eval все агенты активны (стандартное поведение Dropout).
+        # === COMPETITIVE SELECTION (winner-takes-all) ===
+        # Каждый агент "голосует" насколько он уверен. Неуверенные подавляются.
+        confidence = self.competition_proj(new_states)  # (BN, 1)
+        confidence = confidence.view(B, N, 1)
+        # Gumbel-softmax для жёсткой конкуренции при train, обычный softmax при eval
         if self.training:
-            # Dropout по агентам (dim=1), не по features
+            gumbel_noise = -torch.log(-torch.log(torch.rand_like(confidence) + 1e-9) + 1e-9)
+            competition_weights = F.softmax((confidence + gumbel_noise * 0.5) * 5.0, dim=1)
+        else:
+            competition_weights = F.softmax(confidence * 5.0, dim=1)
+        # Подавляем неуверенных агентов
+        actions = actions.view(B, N, D) * competition_weights
+        actions = actions.view(BN, D)
+
+        # ROLE DROPOUT поверх конкуренции
+        if self.training:
             role_mask = torch.ones(B, N, 1, device=actions.device)
-            role_mask = self.role_dropout(role_mask)  # ~15% агентов обнулены
+            role_mask = self.role_dropout(role_mask)
             actions = actions.view(B, N, D) * role_mask
             actions = actions.view(BN, D)
 
-        # === ФОРМИРОВАНИЕ ХАРАКТЕРА ===
+        # === PREDICTION: агенты предсказывают следующий вход ===
+        # Это их "ожидание" — будет сравнено с реальностью на следующем шаге
+        next_prediction = self.prediction_head(new_states).view(B, N, D)
+
+        # Формирование характера
         with torch.no_grad():
             decision_pattern = decision.view(B, N, D).mean(dim=0)
             self.agent_character.mul_(0.99).add_(0.01 * decision_pattern)
 
-        # === ЖУРНАЛ МЫСЛЕЙ (только при eval) ===
+        # Журнал мыслей
         if not self.training and len(self.thought_log) < 200:
             with torch.no_grad():
                 energies = new_states.view(B, N, D).norm(dim=-1).mean(dim=0)
                 gate_mean = gate.view(B, N, D).mean(dim=(0, 2))
+                surprise_mean = surprise.squeeze(-1).mean(dim=0) if surprise.shape[-1] == 1 else torch.zeros(N)
                 self.thought_log.append({
                     'step': step,
                     'agent_energies': energies.cpu().numpy(),
                     'gate_openness': gate_mean.cpu().numpy(),
                     'decision_norm': decision_pattern.norm(dim=-1).cpu().numpy(),
+                    'surprise': surprise_mean.cpu().numpy() if torch.is_tensor(surprise_mean) else surprise_mean,
+                    'competition': competition_weights.squeeze(-1).mean(dim=0).cpu().numpy(),
+                    'oscillation': osc_rate.detach().cpu().numpy(),
                 })
 
-        # 5. STORE с GATED MEMORY (Хофман: сознательное запоминание)
-        # Memory gate вычисляется С градиентом — агент учится ЧТО запоминать
-        # HDC запись остаётся без gradient (bipolar операции)
-        mem_gate_input = torch.cat([new_states, hdc_query], dim=-1)  # (BN, D + hdc_dim)
-        mem_gate = torch.sigmoid(self.memory_gate(mem_gate_input))  # (BN, 1)
+        # 5. STORE с GATED MEMORY
+        mem_gate_input = torch.cat([new_states, hdc_query], dim=-1)
+        mem_gate = torch.sigmoid(self.memory_gate(mem_gate_input))
 
         with torch.no_grad():
             experience_hdc = hdc_engine.to_hdc(self.to_hdc_proj(new_states.detach()))
             personal_exp = hdc_engine.bind(experience_hdc, agent_keys.detach())
             new_episodics = hdc_engine.write(ep_flat, personal_exp, step, gate=mem_gate.detach())
 
-        # Reshape обратно: (BN, ...) → (B, N, ...)
         return (
             actions.view(B, N, D),
             new_states.view(B, N, D),
             new_episodics.view(B, N, -1),
             experience_hdc.view(B, N, -1),
-            mem_gate.view(B, N, 1),  # для memory regularization loss
+            mem_gate.view(B, N, 1),
+            next_prediction,  # для prediction error на следующем шаге
         )
 
 
@@ -862,6 +917,9 @@ class HoffmanSwarmV2(nn.Module):
         prev_logits = torch.zeros(B, vocab, device=idx.device)
         importance = F.softmax(self.agent_importance, dim=0)
 
+        # Prediction для prediction error (None на первом шаге)
+        prev_prediction = None
+
         # Ring buffer для consensus memory (вместо Python list + stack)
         max_chunks = (T + 7) // 8
         consensus_buf = torch.zeros(max_chunks, B, self.state_dim, device=idx.device)
@@ -886,8 +944,8 @@ class HoffmanSwarmV2(nn.Module):
             adjacency = self.dynamic_graph.compute_graph(agent_actions)
             incoming_actions = torch.matmul(adjacency, agent_actions)
 
-            # Передаём accumulated_input (среднее по chunk-у) вместо последнего токена
-            agent_actions, agent_states, episodic_memories, experiences, mem_gates = self.agents.forward_all(
+            # Передаём accumulated_input + prediction от прошлого шага
+            result = self.agents.forward_all(
                 incoming_signal=accumulated_input,
                 incoming_actions=incoming_actions,
                 episodic_mem=episodic_memories,
@@ -895,7 +953,9 @@ class HoffmanSwarmV2(nn.Module):
                 prev_states=agent_states,
                 hdc_engine=self.hdc,
                 step=chunk_idx,
+                prev_prediction=prev_prediction,
             )
+            agent_actions, agent_states, episodic_memories, experiences, mem_gates, prev_prediction = result
 
             # Crystallized memory: HDC bundling
             with torch.no_grad():
@@ -956,11 +1016,19 @@ class HoffmanSwarmV2(nn.Module):
             # Штраф если variance слишком мала (все gates одинаковые)
             mem_gate_loss = -0.1 * mem_gate_var + 0.01 * (mem_gate_mean - 0.5) ** 2
 
-            # Итоговый loss: CE + auxiliary Hoffman pressures
-            # sparsity (entropy): давление на разреженный граф общения
-            # ortho: мягкое давление на контрастные percepts (0.001 — не ломает грамматику)
-            # mem_gate: давление на разнообразие стратегий запоминания
-            loss = ce_loss + 0.01 * sparsity_loss + 0.001 * ortho_loss + 0.1 * mem_gate_loss
+            # 4. Prediction error loss: агенты должны ХОРОШО предсказывать
+            # Чем лучше предсказания → тем меньше surprise → тем эффективнее обработка
+            if prev_prediction is not None and accumulated_input is not None:
+                pred_error = F.mse_loss(prev_prediction, accumulated_input.detach())
+            else:
+                pred_error = torch.tensor(0.0, device=logits.device)
+
+            # Итоговый loss: CE + Hoffman consciousness pressures
+            loss = (ce_loss
+                    + 0.01 * sparsity_loss      # разреженный граф (entropy)
+                    + 0.001 * ortho_loss         # контрастные percepts
+                    + 0.1 * mem_gate_loss        # разнообразие запоминания
+                    + 0.01 * pred_error)         # предсказание будущего
 
         return logits, loss
 
