@@ -419,58 +419,12 @@ class SharedConsciousAgent(nn.Module):
         # === [NEW v3.0] COMPETITIVE SELECTION: winner-takes-all ===
         self.competition_proj = nn.Linear(state_dim, 1)
 
-        # === [NEW v4.0] MINI-TRANSFORMER: рабочая память агента ===
-        # Каждый агент хранит историю из последних K=16 шагов.
-        # Self-attention по истории → агент "помнит" что было и решает на основе контекста.
-        # Это НЕ общий трансформер — каждый агент имеет СВОЮ независимую память.
-        self.memory_len = 16  # длина рабочей памяти
-        self.n_attn_heads = 4
-        head_dim = state_dim // self.n_attn_heads
-        self.attn_q = nn.Linear(state_dim, state_dim)
-        self.attn_k = nn.Linear(state_dim, state_dim)
-        self.attn_v = nn.Linear(state_dim, state_dim)
-        self.attn_out = nn.Linear(state_dim, state_dim)
-        self.attn_ln = nn.LayerNorm(state_dim)
-
         self.thought_log = []
         self.layer_norm = nn.LayerNorm(state_dim)
 
-    def agent_self_attention(self, current_state, memory_buffer):
-        """Мини-трансформер: агент смотрит в свою рабочую память.
-
-        Каждый агент хранит историю (memory_buffer) из последних K шагов.
-        Self-attention позволяет "вспомнить" конкретный момент из прошлого.
-        Это как человек: "минуту назад я видел букву К, значит..."
-
-        Args:
-            current_state: (BN, D) — текущее состояние агента
-            memory_buffer: (BN, K, D) — буфер рабочей памяти агента
-        Returns:
-            attended: (BN, D) — обогащённое контекстом состояние
-        """
-        BN, D = current_state.shape
-        H = self.n_attn_heads
-        head_dim = D // H
-        K_len = memory_buffer.shape[1]
-
-        # Query = текущее состояние, Key/Value = память
-        q = self.attn_q(current_state).view(BN, 1, H, head_dim).transpose(1, 2)  # (BN, H, 1, hd)
-        k = self.attn_k(memory_buffer).view(BN, K_len, H, head_dim).transpose(1, 2)  # (BN, H, K, hd)
-        v = self.attn_v(memory_buffer).view(BN, K_len, H, head_dim).transpose(1, 2)  # (BN, H, K, hd)
-
-        # Scaled dot-product attention
-        attn = torch.matmul(q, k.transpose(-2, -1)) / (head_dim ** 0.5)  # (BN, H, 1, K)
-        attn = F.softmax(attn, dim=-1)
-        out = torch.matmul(attn, v)  # (BN, H, 1, hd)
-        out = out.transpose(1, 2).reshape(BN, D)  # (BN, D)
-
-        # Residual + LayerNorm
-        attended = self.attn_ln(current_state + self.attn_out(out))
-        return attended
-
     def forward_all(self, incoming_signal, incoming_actions,
                     episodic_mem, crystallized_mem, prev_states, hdc_engine, step,
-                    prev_prediction=None, agent_memory_buffer=None):
+                    prev_prediction=None):
         """
         Цикл ВСЕХ агентов с сознательными механизмами v4.0:
         - Всё из v3.0 (prediction error, oscillations, competition, multi-pass)
@@ -540,11 +494,6 @@ class SharedConsciousAgent(nn.Module):
             decision = self.decision_kernel(decision_input)
             personality_flat = personality.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
             decision = decision * (1 + 0.1 * personality_flat)
-
-            # 3.5. MINI-TRANSFORMER: обогащаем решение рабочей памятью
-            # Агент "вспоминает" последние K шагов и корректирует решение
-            if agent_memory_buffer is not None and agent_memory_buffer.shape[1] > 0:
-                decision = self.agent_self_attention(decision, agent_memory_buffer)
 
             if self.training:
                 noise_scale = 0.02 if thinking_round == 0 else 0.005
@@ -626,16 +575,6 @@ class SharedConsciousAgent(nn.Module):
             personal_exp = hdc_engine.bind(experience_hdc, agent_keys.detach())
             new_episodics = hdc_engine.write(ep_flat, personal_exp, step, gate=mem_gate.detach())
 
-        # Обновляем рабочую память (ring buffer: добавляем текущее состояние)
-        if agent_memory_buffer is not None:
-            # Сдвигаем буфер влево, добавляем новое состояние справа
-            new_memory = torch.cat([
-                agent_memory_buffer[:, 1:, :],  # убираем самый старый
-                new_states.unsqueeze(1),         # добавляем текущий
-            ], dim=1)
-        else:
-            new_memory = new_states.unsqueeze(1)  # начало: (BN, 1, D)
-
         return (
             actions.view(B, N, D),
             new_states.view(B, N, D),
@@ -643,7 +582,6 @@ class SharedConsciousAgent(nn.Module):
             experience_hdc.view(B, N, -1),
             mem_gate.view(B, N, 1),
             next_prediction,
-            new_memory,  # обновлённая рабочая память
         )
 
 
@@ -651,49 +589,51 @@ class SharedConsciousAgent(nn.Module):
 # DYNAMIC GRAPH — агенты решают с кем общаться
 # ============================================================================
 
-class DynamicGraph(nn.Module):
-    """Динамический граф связей.
+class SwarmCommunication(nn.Module):
+    """Multi-Head Cross-Attention для общения агентов.
 
-    Вместо фиксированного agent_network (nn.Parameter),
-    связи вычисляются из ACTION состояний агентов.
+    Заменяет простой DynamicGraph. Агенты обмениваются не просто
+    "весом связи", а конкретными фичами через Multi-Head Attention:
+      Q = "Мне нужна информация о..." (запрос агента к рою)
+      K = "Я эксперт по..." (реклама знаний)
+      V = содержание сообщения
 
-    Сознание → материя: топология сети = результат коллективного сознания.
+    Каждая голова = отдельный "канал" общения (грамматика, смысл, ритм...)
+    Это параллельная матричная операция — быстрее чем цикл с torch.cat.
     """
-    def __init__(self, state_dim, top_k_neighbors=8):
+    def __init__(self, state_dim, n_heads=4):
         super().__init__()
-        self.top_k = top_k_neighbors
-        self.query_proj = nn.Linear(state_dim, state_dim // 4)
-        self.key_proj = nn.Linear(state_dim, state_dim // 4)
-        self.scale = math.sqrt(state_dim // 4)
-        # Обучаемая температура: высокая → dense (все общаются), низкая → sparse
-        self.log_temperature = nn.Parameter(torch.tensor(0.0))  # exp(0) = 1.0
+        self.n_heads = n_heads
+        self.head_dim = state_dim // n_heads
+        self.scale = self.head_dim ** -0.5
 
-    def compute_graph(self, action_states):
+        self.q_proj = nn.Linear(state_dim, state_dim)
+        self.k_proj = nn.Linear(state_dim, state_dim)
+        self.v_proj = nn.Linear(state_dim, state_dim)
+        self.out_proj = nn.Linear(state_dim, state_dim)
+        self.msg_ln = nn.LayerNorm(state_dim)
+
+    def forward(self, agent_states):
         """
-        Вычисляет граф связей из действий агентов.
-
         Args:
-            action_states: (B, N, state_dim) — действия всех агентов
+            agent_states: (B, N, D) — состояния/действия агентов
         Returns:
-            adjacency: (B, N, N) — soft adjacency matrix
+            messages: (B, N, D) — полученные сообщения
+            attn: (B, H, N, N) — attention weights (для визуализации)
         """
-        Q = self.query_proj(action_states)  # (B, N, D//4)
-        K = self.key_proj(action_states)    # (B, N, D//4)
+        B, N, D = agent_states.shape
+        H = self.n_heads
 
-        # Attention-подобные scores с обучаемой температурой
-        temperature = torch.exp(self.log_temperature).clamp(min=0.1, max=10.0)
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.scale * temperature)
+        Q = self.q_proj(agent_states).view(B, N, H, self.head_dim).transpose(1, 2)
+        K = self.k_proj(agent_states).view(B, N, H, self.head_dim).transpose(1, 2)
+        V = self.v_proj(agent_states).view(B, N, H, self.head_dim).transpose(1, 2)
 
-        N = action_states.shape[1]
-        # Sparse top-k только для больших графов (N > 48).
-        # При N <= 48 overhead от topk + scatter > выигрыш от sparsity.
-        if self.top_k < N and N > 48:
-            topk_vals, topk_idx = scores.topk(self.top_k, dim=-1)
-            mask = torch.zeros_like(scores).scatter_(-1, topk_idx, 1.0)
-            scores = scores * mask + (1 - mask) * (-1e9)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale  # (B, H, N, N)
+        attn = F.softmax(scores, dim=-1)
+        messages = torch.matmul(attn, V)  # (B, H, N, hd)
+        messages = messages.transpose(1, 2).reshape(B, N, D)
 
-        adjacency = F.softmax(scores, dim=-1)
-        return adjacency
+        return self.msg_ln(self.out_proj(messages)), attn
 
 
 # ============================================================================
@@ -804,8 +744,8 @@ class HoffmanSwarmV2(nn.Module):
         # === АГЕНТЫ с shared kernels ===
         self.agents = SharedConsciousAgent(n_agents, state_dim, hdc_dim)
 
-        # === ДИНАМИЧЕСКИЙ ГРАФ ===
-        self.dynamic_graph = DynamicGraph(state_dim, top_k_neighbors=min(8, n_agents))
+        # === SWARM COMMUNICATION: Multi-Head Cross-Attention между агентами ===
+        self.swarm_comm = SwarmCommunication(state_dim, n_heads=4)
 
         # === COMPOSITION (N): мягкое объединение агентов ===
         self.agent_combination = AgentCombination(n_agents, state_dim)
@@ -1017,13 +957,7 @@ class HoffmanSwarmV2(nn.Module):
         # Prediction для prediction error (None на первом шаге)
         prev_prediction = None
 
-        # Рабочая память агентов (mini-transformer buffer)
-        # (B*N, K, D) — каждый агент хранит K последних состояний
-        agent_mem_buf = torch.zeros(
-            B * self.n_agents, self.agents.memory_len, self.state_dim,
-            device=idx.device)
-
-        # Ring buffer для consensus memory (вместо Python list + stack)
+        # Ring buffer для consensus memory
         max_chunks = (T + 7) // 8
         consensus_buf = torch.zeros(max_chunks, B, self.state_dim, device=idx.device)
         consensus_count = 0
@@ -1043,11 +977,9 @@ class HoffmanSwarmV2(nn.Module):
                 self._batched_sensory_injection(chunk_percepts, agent_states, prev_logits, importance)
             all_logits.append(chunk_logits)
 
-            # === ОБСУЖДЕНИЕ после chunk-а ===
-            adjacency = self.dynamic_graph.compute_graph(agent_actions)
-            incoming_actions = torch.matmul(adjacency, agent_actions)
+            # === ОБСУЖДЕНИЕ: Swarm Cross-Attention ===
+            incoming_actions, attention_matrix = self.swarm_comm(agent_actions)
 
-            # Передаём accumulated_input + prediction от прошлого шага
             result = self.agents.forward_all(
                 incoming_signal=accumulated_input,
                 incoming_actions=incoming_actions,
@@ -1057,9 +989,10 @@ class HoffmanSwarmV2(nn.Module):
                 hdc_engine=self.hdc,
                 step=chunk_idx,
                 prev_prediction=prev_prediction,
-                agent_memory_buffer=agent_mem_buf,
             )
-            agent_actions, agent_states, episodic_memories, experiences, mem_gates, prev_prediction, agent_mem_buf = result
+            agent_actions, agent_states, episodic_memories, experiences, mem_gates, prev_prediction = result
+            # attention_matrix: (B, H, N, N) — для entropy loss
+            adjacency = attention_matrix.mean(dim=1)  # average over heads для совместимости
 
             # Crystallized memory: HDC bundling
             with torch.no_grad():
@@ -1155,9 +1088,8 @@ class HoffmanSwarmV2(nn.Module):
             episodic_memories.view(B * N, -1)
         ).view(B, N, D)
 
-        # Обсуждение на основе воспоминаний
-        adjacency = self.dynamic_graph.compute_graph(agent_actions)
-        incoming_actions = torch.matmul(adjacency, agent_actions)
+        # Обсуждение во сне через Swarm Communication
+        incoming_actions, _ = self.swarm_comm(agent_actions)
 
         result = self.agents.forward_all(
             incoming_signal=dream_signal,
@@ -1168,9 +1100,8 @@ class HoffmanSwarmV2(nn.Module):
             hdc_engine=self.hdc,
             step=0,
             prev_prediction=prev_prediction,
-            agent_memory_buffer=None,  # во сне без рабочей памяти (чистые мысли)
         )
-        agent_actions, agent_states, episodic_memories, experiences, mem_gates, next_pred, _ = result
+        agent_actions, agent_states, episodic_memories, experiences, mem_gates, next_pred = result
 
         # Коалиции во сне (агенты группируются по "интересам")
         agent_states = self.agent_combination(agent_states, agent_actions)
