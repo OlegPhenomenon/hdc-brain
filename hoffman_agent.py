@@ -1032,6 +1032,54 @@ class HoffmanSwarmV2(nn.Module):
 
         return logits, loss
 
+    def dream_step(self, agent_states, agent_actions, episodic_memories,
+                   crystallized_memories, prev_prediction=None):
+        """Фаза сна: агенты общаются друг с другом БЕЗ внешнего входа.
+
+        Как мозг во сне: нет сенсорных данных, но нейроны прогоняют
+        внутренние циклы — переорганизуют память, укрепляют связи,
+        находят паттерны в том что видели днём.
+
+        Не создаёт новых параметров. Использует существующие ядра.
+        Возвращает обновлённые состояния (агенты "проснулись умнее").
+        """
+        B, N, D = agent_states.shape
+
+        # Вместо внешнего сигнала — агенты "вспоминают":
+        # recalled memory как входной сигнал (снятся воспоминания)
+        dream_signal = self.agents.from_hdc_proj(
+            episodic_memories.view(B * N, -1)
+        ).view(B, N, D)
+
+        # Обсуждение на основе воспоминаний
+        adjacency = self.dynamic_graph.compute_graph(agent_actions)
+        incoming_actions = torch.matmul(adjacency, agent_actions)
+
+        result = self.agents.forward_all(
+            incoming_signal=dream_signal,
+            incoming_actions=incoming_actions,
+            episodic_mem=episodic_memories,
+            crystallized_mem=crystallized_memories,
+            prev_states=agent_states,
+            hdc_engine=self.hdc,
+            step=0,
+            prev_prediction=prev_prediction,
+        )
+        agent_actions, agent_states, episodic_memories, experiences, mem_gates, next_pred = result
+
+        # Коалиции во сне (агенты группируются по "интересам")
+        agent_states = self.agent_combination(agent_states, agent_actions)
+
+        # Консолидация: crystallized memory обновляется
+        with torch.no_grad():
+            BN = B * N
+            cm_flat = crystallized_memories.view(BN, -1)
+            exp_flat = experiences.view(BN, -1)
+            cm_updated = self.hdc.write(cm_flat, exp_flat, 0)
+            crystallized_memories = cm_updated.view_as(crystallized_memories)
+
+        return agent_states, agent_actions, episodic_memories, crystallized_memories, next_pred
+
 
 # ============================================================================
 # ФАБРИКА МОДЕЛИ
