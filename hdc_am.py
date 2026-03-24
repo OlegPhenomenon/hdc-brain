@@ -234,9 +234,9 @@ def create_hdc_am(vocab_size, config=None):
     """Фабрика модели."""
     if config is None:
         config = {
-            'hdc_dim': 3072,
-            'codebook_size': 6144,
-            'nav_hidden': 384,
+            'hdc_dim': 4096,
+            'codebook_size': 8192,
+            'nav_hidden': 512,
             'nav_layers': 4,
             'decay': 0.95,
             'dropout': 0.1,
