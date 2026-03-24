@@ -391,7 +391,13 @@ class SharedConsciousAgent(nn.Module):
         self.to_hdc_proj = nn.Linear(state_dim, hdc_dim)
         self.from_hdc_proj = nn.Linear(hdc_dim, state_dim)
 
-        # === ИНДИВИДУАЛЬНОСТЬ ===
+        # === ИНДИВИДУАЛЬНОСТЬ: FiLM модуляция ===
+        # Мультипликативная личность: sigmoid(mask) * thought
+        # Каждый агент "видит" свою часть общего мозга
+        # Мощнее чем additive personality: реально выключает/усиливает нейроны
+        self.agent_film_scale = nn.Parameter(torch.randn(n_agents, state_dim) * 0.1)
+        self.agent_film_shift = nn.Parameter(torch.zeros(n_agents, state_dim))
+        # Legacy (для совместимости чекпоинтов)
         self.agent_personality = nn.Parameter(torch.randn(n_agents, state_dim) * 0.1)
         self.register_buffer('agent_character', torch.zeros(n_agents, state_dim))
         self.agent_hdc_key = nn.Parameter(torch.sign(torch.randn(n_agents, hdc_dim)))
@@ -492,8 +498,10 @@ class SharedConsciousAgent(nn.Module):
             # 3. DECIDE
             decision_input = torch.cat([perception, memory_recall], dim=-1)
             decision = self.decision_kernel(decision_input)
-            personality_flat = personality.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
-            decision = decision * (1 + 0.1 * personality_flat)
+            # FiLM модуляция: scale * decision + shift (каждый агент фильтрует по-своему)
+            film_scale = torch.sigmoid(self.agent_film_scale).unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
+            film_shift = self.agent_film_shift.unsqueeze(0).expand(B, -1, -1).reshape(BN, D)
+            decision = film_scale * decision + film_shift
 
             if self.training:
                 noise_scale = 0.02 if thinking_round == 0 else 0.005
