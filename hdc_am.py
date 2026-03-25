@@ -34,6 +34,10 @@ class HDCProcessor(nn.Module):
         codebook[codebook == 0] = 1.0
         self.register_buffer('char_codebook', codebook)
 
+        # === SELECTIVE GATING: важность каждого токена ===
+        # Пробел и запятая ≠ корень слова. Важные токены "живут" дольше.
+        self.importance_gate = nn.Linear(hdc_dim, 1)
+
         # Precompute decay matrix для разных seq_len (кешируется)
         self._decay_cache = {}
 
@@ -79,18 +83,20 @@ class HDCProcessor(nn.Module):
         return 0.7 * trigrams + 0.3 * chars
 
     def build_context(self, hdc_chars):
-        """Весь контекст = ОДНА матричная операция.
+        """Контекст с Selective Gating.
 
-        context[t] = Σ(decay^(t-i) * hdc_chars[i]) для i=0..t
-        = causal_decay_matrix @ hdc_chars
-
-        Args: hdc_chars (B, T, D_hdc) — bipolar вектора символов
-        Returns: contexts (B, T, D_hdc) — HDC контекст для каждой позиции
+        Не все токены одинаково важны. importance_gate предсказывает
+        "вес" каждого токена. Корень слова → высокий вес, пробел → низкий.
+        context = decay_matrix @ (hdc_chars * importance)
         """
         B, T, D = hdc_chars.shape
+        # Selective Gating: предсказываем важность каждого токена
+        importance = torch.sigmoid(self.importance_gate(hdc_chars))  # (B, T, 1)
+        # Модулируем: важные токены "громче" в контексте
+        gated_chars = hdc_chars * importance  # (B, T, D)
+        # ОДНА матричная операция
         decay_matrix = self.get_decay_matrix(T, hdc_chars.device)
-        # ОДНА матричная операция: (T,T) @ (B,T,D) → (B,T,D)
-        contexts = torch.matmul(decay_matrix, hdc_chars)
+        contexts = torch.matmul(decay_matrix, gated_chars)
         return contexts
 
 
@@ -147,34 +153,40 @@ class NeuralNavigator(nn.Module):
         self.net = nn.Sequential(*layers)
         self.head = nn.Linear(hidden_dim, vocab_size)
 
-        # === THOUGHT LOOPS: рекурсивное рассуждение ===
-        # Навигатор "перечитывает" свой вывод и корректирует
-        # thought_proj: hidden → input_dim (чтобы прогнать через net ещё раз)
+        # === FiLM MODULATION: контекст модулирует веса навигатора ===
+        # HDC контекст генерирует gamma/beta для каждого слоя
+        # Навигатор физически меняет поведение в зависимости от темы
+        self.film_modulator = nn.Linear(hidden_dim, hidden_dim * 2)  # → gamma, beta
+
+        # Thought Loops (отключаемые, для будущего)
         self.thought_proj = nn.Linear(hidden_dim, input_dim)
         self.thought_gate = nn.Linear(hidden_dim * 2, hidden_dim)
         self.thought_ln = nn.LayerNorm(hidden_dim)
-        self.n_thoughts = 1  # 1 = без thought loops, 2+ = рассуждение
+        self.n_thoughts = 1
 
-    def forward(self, x):
+    def forward(self, x, context_vec=None):
         """x: (B, T, input_dim) → logits: (B, T, vocab_size)
 
-        Thought Loops:
-        1. Первый проход → быстрая реакция (hidden_1)
-        2. hidden_1 → проекция обратно в input space → второй проход → refined hidden
-        3. Gate решает сколько принять от refined vs original
+        FiLM: если context_vec задан, модулирует hidden через gamma/beta.
+        Навигатор адаптирует поведение под контекст (проза vs код vs инструкции).
         """
-        # Первый проход: быстрая реакция
         hidden = self.net(x)  # (B, T, hidden_dim)
 
-        # Thought Loops: "подумать ещё раз"
+        # FiLM модуляция: контекст меняет "характер" навигатора
+        if context_vec is not None:
+            film_params = self.film_modulator(context_vec)  # (B, T, hidden_dim*2)
+            gamma, beta = film_params.chunk(2, dim=-1)
+            hidden = hidden * (1 + gamma) + beta
+
+        # Thought Loops (если включены)
         for _ in range(self.n_thoughts - 1):
-            # Проецируем hidden обратно в input space
-            thought_input = self.thought_proj(hidden)  # (B, T, input_dim)
-            # Смешиваем с оригинальным входом (не забываем контекст)
+            thought_input = self.thought_proj(hidden)
             refined_input = thought_input + x
-            # Второй проход
-            refined = self.net(refined_input)  # (B, T, hidden_dim)
-            # Gate: сколько принять от refined мысли
+            refined = self.net(refined_input)
+            if context_vec is not None:
+                film_params = self.film_modulator(context_vec)
+                gamma, beta = film_params.chunk(2, dim=-1)
+                refined = refined * (1 + gamma) + beta
             gate = torch.sigmoid(self.thought_gate(
                 torch.cat([hidden, refined], dim=-1)
             ))
@@ -284,8 +296,8 @@ class HDCAM(nn.Module):
         combined_hdc = hdc_float + phrase_float  # (B, T, nav_hidden)
         combined = torch.cat([combined_hdc, retrieved, residual], dim=-1)  # (B, T, nav_hidden*3)
 
-        # Neural navigator → logits
-        logits = self.navigator(combined)  # (B, T, vocab_size)
+        # Neural navigator → logits (FiLM: HDC контекст модулирует навигатор)
+        logits = self.navigator(combined, context_vec=combined_hdc)  # (B, T, vocab_size)
 
         # === ATTRACTOR GUARD: коррекция при "бреде" ===
         # Якорь = первый контекст (начало темы). Если текущий контекст
@@ -310,7 +322,7 @@ class HDCAM(nn.Module):
                     corrected_retrieved * drift_mask + retrieved * (1 - drift_mask),
                     residual
                 ], dim=-1)
-                logits = self.navigator(combined_corrected)
+                logits = self.navigator(combined_corrected, context_vec=combined_hdc)
 
         # Loss
         loss = None
