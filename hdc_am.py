@@ -152,37 +152,46 @@ class NeuralNavigator(nn.Module):
 
 
 class HDCAM(nn.Module):
-    """HDC-Associative Manifold: полная модель.
+    """HDC-Associative Manifold с иерархическим HDC.
 
-    Pipeline (ВСЁ через matmul, никаких циклов):
-    1. idx → HDC bipolar vectors (embedding lookup)
-    2. HDC vectors → contexts (one matmul: decay_matrix @ vectors)
-    3. contexts → retrieve from codebook (one matmul: context @ keys.T)
-    4. context + retrieved + residual → neural navigator → logits
+    Два уровня HDC:
+    1. Символьный: триграммы → контекст (decay matrix)
+    2. Фразовый: chunk'и по 8 токенов → контекст фраз (второй decay matrix)
+
+    Фразовый уровень даёт "понимание сюжета", символьный — "орфографию".
+    Оба уровня — matmul, без циклов.
     """
     def __init__(self, vocab_size, hdc_dim=4096, codebook_size=8192,
                  nav_hidden=512, nav_layers=3, decay=0.95, dropout=0.1):
         super().__init__()
         self.vocab_size = vocab_size
         self.hdc_dim = hdc_dim
+        self.chunk_size = 8  # размер фразового chunk'а
 
-        # HDC ядро
+        # HDC ядро (символьный уровень)
         self.hdc = HDCProcessor(vocab_size, hdc_dim, decay)
 
-        # Ассоциативная память
+        # === ИЕРАРХИЧЕСКИЙ HDC: фразовый уровень ===
+        # Проецирует chunk из 8 символьных HDC → 1 фразовый HDC
+        self.phrase_proj = nn.Linear(hdc_dim, hdc_dim)
+        # Decay matrix для фраз (медленнее чем для символов)
+        self.phrase_decay = 0.9  # фразы затухают медленнее
+
+        # Ассоциативная память (работает с обоими уровнями)
         self.memory = AssociativeMemory(codebook_size, hdc_dim, nav_hidden)
 
-        # Проекция HDC → float для нейросети
+        # Проекции HDC → float
         self.hdc_proj = nn.Linear(hdc_dim, nav_hidden)
+        self.phrase_hdc_proj = nn.Linear(hdc_dim, nav_hidden)
 
-        # Residual shortcut (доказано что работает)
+        # Residual shortcut
         self.residual_embed = nn.Embedding(vocab_size, nav_hidden)
-        self.pos_embed = nn.Embedding(1024, nav_hidden)  # позиционное кодирование
+        self.pos_embed = nn.Embedding(1024, nav_hidden)
 
-        # Навигатор: context_proj + retrieved + residual → logits
-        # Input: nav_hidden * 3 (hdc_proj + retrieved + residual)
+        # Навигатор: char_hdc + phrase_hdc + retrieved + residual → logits
+        # Input: nav_hidden * 4 (добавился phrase level)
         self.navigator = NeuralNavigator(
-            input_dim=nav_hidden * 3,
+            input_dim=nav_hidden * 4,
             hidden_dim=nav_hidden,
             vocab_size=vocab_size,
             n_layers=nav_layers,
@@ -199,27 +208,49 @@ class HDCAM(nn.Module):
         B, T = idx.shape
         device = idx.device
 
-        # 1. HDC encoding: символы → bipolar вектора (lookup, O(1))
-        # HDC триграммы: захватывают слоги/морфемы напрямую
+        # === УРОВЕНЬ 1: Символьный HDC ===
+        # Триграммы → контекст (одна matmul)
         hdc_chars = self.hdc.encode_trigrams(idx)  # (B, T, hdc_dim)
-
-        # 2. HDC context: ОДНА матричная операция
         hdc_contexts = self.hdc.build_context(hdc_chars)  # (B, T, hdc_dim)
 
-        # 3. Associative retrieval: ОДНА матричная операция
-        retrieved, attn_weights = self.memory.retrieve(hdc_contexts)  # (B, T, nav_hidden)
+        # === УРОВЕНЬ 2: Фразовый HDC ===
+        # Chunk'и по 8 символов → фразовые вектора → контекст фраз
+        C = self.chunk_size
+        n_chunks = (T + C - 1) // C
+        # Pad до кратного chunk_size
+        if T % C != 0:
+            pad = C - (T % C)
+            hdc_padded = F.pad(hdc_contexts, (0, 0, 0, pad))  # (B, T_padded, D)
+        else:
+            hdc_padded = hdc_contexts
+        # Reshape в chunks и усреднить каждый chunk → фразовый вектор
+        T_padded = hdc_padded.shape[1]
+        chunks = hdc_padded.view(B, n_chunks, C, self.hdc_dim).mean(dim=2)  # (B, n_chunks, D)
+        phrase_vecs = torch.tanh(self.phrase_proj(chunks))  # (B, n_chunks, D)
+        # Decay matrix для фраз
+        phrase_decay_matrix = self.hdc.get_decay_matrix(n_chunks, device)
+        # Замена decay значения для фраз (медленнее)
+        phrase_contexts = torch.matmul(phrase_decay_matrix, phrase_vecs)  # (B, n_chunks, D)
+        # Expand обратно к длине T: каждый chunk → все его позиции
+        phrase_expanded = phrase_contexts.repeat_interleave(C, dim=1)[:, :T, :]  # (B, T, D)
 
-        # 4. Проекция HDC → float
+        # === RETRIEVAL: из обоих уровней ===
+        # Комбинируем символьный и фразовый контекст для запроса
+        combined_query = hdc_contexts + 0.5 * phrase_expanded
+        retrieved, _ = self.memory.retrieve(combined_query)  # (B, T, nav_hidden)
+
+        # === ПРОЕКЦИИ ===
         hdc_float = self.hdc_proj(hdc_contexts)  # (B, T, nav_hidden)
+        phrase_float = self.phrase_hdc_proj(phrase_expanded)  # (B, T, nav_hidden)
 
-        # 5. Residual shortcut + positional encoding
+        # Residual shortcut + positional encoding
         pos = torch.arange(T, device=device)
         residual = self.residual_embed(idx) + self.pos_embed(pos)  # (B, T, nav_hidden)
 
-        # 6. Конкатенация: HDC context + retrieved pattern + residual
-        combined = torch.cat([hdc_float, retrieved, residual], dim=-1)  # (B, T, nav_hidden*3)
+        # Конкатенация: char_hdc + phrase_hdc + retrieved + residual
+        combined = torch.cat([hdc_float, phrase_float, retrieved, residual], dim=-1)  # (B, T, nav_hidden*4)
 
-        # 7. Neural navigator → logits (матричные операции)
+        # Neural navigator → logits
         logits = self.navigator(combined)  # (B, T, vocab_size)
 
         # Loss
@@ -234,9 +265,9 @@ def create_hdc_am(vocab_size, config=None):
     """Фабрика модели."""
     if config is None:
         config = {
-            'hdc_dim': 4096,
-            'codebook_size': 8192,
-            'nav_hidden': 512,
+            'hdc_dim': 3072,
+            'codebook_size': 4096,
+            'nav_hidden': 384,
             'nav_layers': 4,
             'decay': 0.95,
             'dropout': 0.1,

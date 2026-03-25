@@ -13,15 +13,15 @@ if os.name != 'nt':
     signal.alarm(7200)
 
 CONFIG = {
-    'hdc_dim': 4096,
-    'codebook_size': 8192,
-    'nav_hidden': 512,
+    'hdc_dim': 3072,
+    'codebook_size': 4096,
+    'nav_hidden': 384,
     'nav_layers': 4,
     'decay': 0.95,
     'dropout': 0.1,
 }
-BATCH = 24
-GRAD_ACCUM = 5
+BATCH = 32
+GRAD_ACCUM = 4
 SEQ_LEN = 256
 LR = 3e-4
 WARMUP = 500
