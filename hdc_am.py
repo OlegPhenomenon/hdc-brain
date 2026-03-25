@@ -83,20 +83,36 @@ class HDCProcessor(nn.Module):
         return 0.7 * trigrams + 0.3 * chars
 
     def build_context(self, hdc_chars):
-        """Контекст с Selective Gating.
+        """HDC Resonance Context — заменяет тупой decay на адаптивный резонанс.
 
-        Не все токены одинаково важны. importance_gate предсказывает
-        "вес" каждого токена. Корень слова → высокий вес, пробел → низкий.
-        context = decay_matrix @ (hdc_chars * importance)
+        Вместо "всё складываем с затуханием" → "похожие токены резонируют".
+        Безпараметрический self-attention в HDC пространстве:
+        - scores = hdc_chars @ hdc_chars.T (само-подобие)
+        - weights = softmax(scores) * decay * causal_mask
+        - context = weights @ hdc_chars
+
+        "к" резонирует с "у" → "ку" сохраняется, шум фильтруется.
+        Ноль новых параметров. O(T²D) но T=256 = мелочь.
         """
         B, T, D = hdc_chars.shape
-        # Selective Gating: предсказываем важность каждого токена
+
+        # Selective Gating: важность каждого токена
         importance = torch.sigmoid(self.importance_gate(hdc_chars))  # (B, T, 1)
-        # Модулируем: важные токены "громче" в контексте
-        gated_chars = hdc_chars * importance  # (B, T, D)
-        # ОДНА матричная операция
-        decay_matrix = self.get_decay_matrix(T, hdc_chars.device)
-        contexts = torch.matmul(decay_matrix, gated_chars)
+        gated_chars = hdc_chars * importance
+
+        # HDC Resonance: само-подобие в HDC пространстве
+        scores = torch.matmul(gated_chars, gated_chars.transpose(-1, -2)) * (D ** -0.5)  # (B, T, T)
+
+        # Causal mask + Decay как distance bias
+        causal = torch.tril(torch.ones(T, T, device=hdc_chars.device))
+        decay = self.get_decay_matrix(T, hdc_chars.device)
+
+        # Resonance = Softmax(similarity) * decay * causal
+        scores = scores.masked_fill(causal == 0, -1e9)
+        resonance = F.softmax(scores, dim=-1) * decay
+
+        # Контекст из резонирующих векторов (не из тупой суммы)
+        contexts = torch.matmul(resonance, gated_chars)
         return contexts
 
 
