@@ -153,7 +153,7 @@ class NeuralNavigator(nn.Module):
         self.thought_proj = nn.Linear(hidden_dim, input_dim)
         self.thought_gate = nn.Linear(hidden_dim * 2, hidden_dim)
         self.thought_ln = nn.LayerNorm(hidden_dim)
-        self.n_thoughts = 2  # количество итераций "размышления"
+        self.n_thoughts = 1  # 1 = без thought loops, 2+ = рассуждение
 
     def forward(self, x):
         """x: (B, T, input_dim) → logits: (B, T, vocab_size)
