@@ -128,9 +128,10 @@ class AssociativeMemory(nn.Module):
 
 
 class NeuralNavigator(nn.Module):
-    """Маленькая нейросеть-навигатор: HDC context + retrieved → logits.
+    """Нейросеть-навигатор с Thought Loops.
 
     Не хранит знания — только "логика переходов".
+    Thought Loops: навигатор может "перечитать" свой вывод и скорректировать.
     """
     def __init__(self, input_dim, hidden_dim, vocab_size, n_layers=2, dropout=0.1):
         super().__init__()
@@ -146,9 +147,40 @@ class NeuralNavigator(nn.Module):
         self.net = nn.Sequential(*layers)
         self.head = nn.Linear(hidden_dim, vocab_size)
 
+        # === THOUGHT LOOPS: рекурсивное рассуждение ===
+        # Навигатор "перечитывает" свой вывод и корректирует
+        # thought_proj: hidden → input_dim (чтобы прогнать через net ещё раз)
+        self.thought_proj = nn.Linear(hidden_dim, input_dim)
+        self.thought_gate = nn.Linear(hidden_dim * 2, hidden_dim)
+        self.thought_ln = nn.LayerNorm(hidden_dim)
+        self.n_thoughts = 2  # количество итераций "размышления"
+
     def forward(self, x):
-        """x: (B, T, input_dim) → logits: (B, T, vocab_size)"""
-        return self.head(self.net(x))
+        """x: (B, T, input_dim) → logits: (B, T, vocab_size)
+
+        Thought Loops:
+        1. Первый проход → быстрая реакция (hidden_1)
+        2. hidden_1 → проекция обратно в input space → второй проход → refined hidden
+        3. Gate решает сколько принять от refined vs original
+        """
+        # Первый проход: быстрая реакция
+        hidden = self.net(x)  # (B, T, hidden_dim)
+
+        # Thought Loops: "подумать ещё раз"
+        for _ in range(self.n_thoughts - 1):
+            # Проецируем hidden обратно в input space
+            thought_input = self.thought_proj(hidden)  # (B, T, input_dim)
+            # Смешиваем с оригинальным входом (не забываем контекст)
+            refined_input = thought_input + x
+            # Второй проход
+            refined = self.net(refined_input)  # (B, T, hidden_dim)
+            # Gate: сколько принять от refined мысли
+            gate = torch.sigmoid(self.thought_gate(
+                torch.cat([hidden, refined], dim=-1)
+            ))
+            hidden = self.thought_ln(gate * refined + (1 - gate) * hidden)
+
+        return self.head(hidden)
 
 
 class HDCAM(nn.Module):
@@ -295,7 +327,7 @@ def create_hdc_am(vocab_size, config=None):
             'hdc_dim': 4096,
             'codebook_size': 4096,
             'nav_hidden': 512,
-            'nav_layers': 4,
+            'nav_layers': 8,
             'decay': 0.95,
             'dropout': 0.1,
         }

@@ -16,7 +16,7 @@ CONFIG = {
     'hdc_dim': 4096,
     'codebook_size': 4096,
     'nav_hidden': 512,
-    'nav_layers': 4,
+    'nav_layers': 8,
     'decay': 0.95,
     'dropout': 0.1,
 }
