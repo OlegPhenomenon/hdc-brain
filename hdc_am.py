@@ -35,8 +35,10 @@ class HDCProcessor(nn.Module):
         self.register_buffer('char_codebook', codebook)
 
         # === SELECTIVE GATING: важность каждого токена ===
-        # Пробел и запятая ≠ корень слова. Важные токены "живут" дольше.
         self.importance_gate = nn.Linear(hdc_dim, 1)
+
+        # === HETERO-RESONANCE: асимметричный поиск связей ===
+        self.resonance = HeteroResonance(hdc_dim, bottleneck=256)
 
         # Precompute decay matrix для разных seq_len (кешируется)
         self._decay_cache = {}
@@ -83,17 +85,52 @@ class HDCProcessor(nn.Module):
         return 0.7 * trigrams + 0.3 * chars
 
     def build_context(self, hdc_chars):
-        """HDC контекст с Selective Gating.
+        """HDC контекст с Selective Gating + HeteroResonance.
 
-        Decay matrix + importance gating.
-        Resonance (self-attention) создавал эхо-повторы — убран.
+        1. Importance gating: важные токены "громче"
+        2. HeteroResonance: асимметричный поиск связей (Q≠K, антиэхо)
+        3. Blend: 70% decay + 30% resonance (внутри HeteroResonance)
         """
         B, T, D = hdc_chars.shape
         importance = torch.sigmoid(self.importance_gate(hdc_chars))
         gated_chars = hdc_chars * importance
         decay_matrix = self.get_decay_matrix(T, hdc_chars.device)
-        contexts = torch.matmul(decay_matrix, gated_chars)
+        # HeteroResonance: decay + asymmetric resonance (без эхо)
+        contexts = self.resonance(gated_chars, decay_matrix)
         return contexts
+
+
+class HeteroResonance(nn.Module):
+    """Гетеро-ассоциативный резонанс: ломает симметрию Q=K.
+
+    Вместо "ц ищет ц" → "ц ищет то что обычно рядом с ц".
+    Отдельные Q/K проекции через bottleneck (экономия VRAM).
+    Штраф за локальный повтор: diagonal=-4 блокирует эхо.
+    """
+    def __init__(self, hdc_dim, bottleneck=256):
+        super().__init__()
+        self.q_proj = nn.Linear(hdc_dim, bottleneck)
+        self.k_proj = nn.Linear(hdc_dim, bottleneck)
+        self.scale = bottleneck ** -0.5
+
+    def forward(self, hdc_chars, decay_matrix):
+        B, T, D = hdc_chars.shape
+        device = hdc_chars.device
+
+        # Асимметричный поиск
+        q = self.q_proj(hdc_chars)  # (B, T, bottleneck)
+        k = self.k_proj(hdc_chars)  # (B, T, bottleneck)
+        scores = torch.matmul(q, k.transpose(-1, -2)) * self.scale  # (B, T, T)
+
+        # Causal + Local Repetition Penalty (блокируем 3 соседей)
+        mask = torch.tril(torch.ones(T, T, device=device), diagonal=-4)
+        scores = scores.masked_fill(mask == 0, -65000.0)  # float16 safe
+
+        resonance = F.softmax(scores, dim=-1)
+
+        # 70% decay (орфография) + 30% resonance (семантика)
+        combined = 0.7 * decay_matrix + 0.3 * resonance
+        return torch.matmul(combined, hdc_chars)
 
 
 class AssociativeMemory(nn.Module):
