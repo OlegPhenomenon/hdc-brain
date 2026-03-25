@@ -253,6 +253,32 @@ class HDCAM(nn.Module):
         # Neural navigator → logits
         logits = self.navigator(combined)  # (B, T, vocab_size)
 
+        # === ATTRACTOR GUARD: коррекция при "бреде" ===
+        # Якорь = первый контекст (начало темы). Если текущий контекст
+        # слишком далёк от якоря → один thought step для коррекции.
+        # cosine_sim(current, anchor) < threshold → пересчитываем через memory ещё раз
+        if T > 16:  # только для достаточно длинных последовательностей
+            anchor = hdc_float[:, :8, :].mean(dim=1, keepdim=True)  # (B, 1, nav_hidden)
+            anchor_expanded = anchor.expand(-1, T, -1)  # (B, T, nav_hidden)
+            # Cosine similarity с якорем
+            cos_sim = F.cosine_similarity(hdc_float, anchor_expanded, dim=-1)  # (B, T)
+            # Маска: где контекст "ушёл" от темы
+            drift_mask = (cos_sim < 0.3).float().unsqueeze(-1)  # (B, T, 1)
+            if drift_mask.sum() > 0:
+                # Thought step: re-retrieve из памяти с учётом якоря
+                hdc_anchor = hdc_contexts[:, :8, :].mean(dim=1, keepdim=True).expand(-1, T, -1)
+                corrected_query = combined_query * (1 - drift_mask) + \
+                    (combined_query + hdc_anchor * 0.5) * drift_mask
+                corrected_retrieved, _ = self.memory.retrieve(corrected_query)
+                # Заменяем retrieved в drifted позициях
+                combined_corrected = torch.cat([
+                    hdc_float,
+                    phrase_float,
+                    corrected_retrieved * drift_mask + retrieved * (1 - drift_mask),
+                    residual
+                ], dim=-1)
+                logits = self.navigator(combined_corrected)
+
         # Loss
         loss = None
         if targets is not None:
