@@ -188,10 +188,11 @@ class HDCAM(nn.Module):
         self.residual_embed = nn.Embedding(vocab_size, nav_hidden)
         self.pos_embed = nn.Embedding(1024, nav_hidden)
 
-        # Навигатор: char_hdc + phrase_hdc + retrieved + residual → logits
-        # Input: nav_hidden * 4 (добавился phrase level)
+        # Навигатор: (char+phrase) + retrieved + residual → logits
+        # Input: nav_hidden * 3 (phrase складывается с char, не concat)
+        # Фиксированный input_dim = nav_hidden * 3 — НИКОГДА не меняется
         self.navigator = NeuralNavigator(
-            input_dim=nav_hidden * 4,
+            input_dim=nav_hidden * 3,
             hidden_dim=nav_hidden,
             vocab_size=vocab_size,
             n_layers=nav_layers,
@@ -247,8 +248,9 @@ class HDCAM(nn.Module):
         pos = torch.arange(T, device=device)
         residual = self.residual_embed(idx) + self.pos_embed(pos)  # (B, T, nav_hidden)
 
-        # Конкатенация: char_hdc + phrase_hdc + retrieved + residual
-        combined = torch.cat([hdc_float, phrase_float, retrieved, residual], dim=-1)  # (B, T, nav_hidden*4)
+        # Сложение char + phrase (вместо concat — экономит params, сохраняет инфо)
+        combined_hdc = hdc_float + phrase_float  # (B, T, nav_hidden)
+        combined = torch.cat([combined_hdc, retrieved, residual], dim=-1)  # (B, T, nav_hidden*3)
 
         # Neural navigator → logits
         logits = self.navigator(combined)  # (B, T, vocab_size)
@@ -272,8 +274,7 @@ class HDCAM(nn.Module):
                 corrected_retrieved, _ = self.memory.retrieve(corrected_query)
                 # Заменяем retrieved в drifted позициях
                 combined_corrected = torch.cat([
-                    hdc_float,
-                    phrase_float,
+                    combined_hdc,
                     corrected_retrieved * drift_mask + retrieved * (1 - drift_mask),
                     residual
                 ], dim=-1)
@@ -291,9 +292,9 @@ def create_hdc_am(vocab_size, config=None):
     """Фабрика модели."""
     if config is None:
         config = {
-            'hdc_dim': 3072,
+            'hdc_dim': 4096,
             'codebook_size': 4096,
-            'nav_hidden': 384,
+            'nav_hidden': 512,
             'nav_layers': 4,
             'decay': 0.95,
             'dropout': 0.1,
