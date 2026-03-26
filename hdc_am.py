@@ -307,9 +307,9 @@ def create_hdc_am(vocab_size, config=None):
     if config is None:
         config = {
             'hdc_dim': 4096,
-            'codebook_size': 4096,
-            'nav_hidden': 512,
-            'nav_layers': 8,
+            'codebook_size': 8192,
+            'nav_hidden': 1024,
+            'nav_layers': 12,
             'decay': 0.95,
             'dropout': 0.1,
         }

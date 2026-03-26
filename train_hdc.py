@@ -10,18 +10,18 @@ def handler(signum, frame):
     stop_training = True
 if os.name != 'nt':
     signal.signal(signal.SIGALRM, handler)
-    signal.alarm(7200)
+    signal.alarm(86400)  # 24 часа
 
 CONFIG = {
     'hdc_dim': 4096,
-    'codebook_size': 4096,
-    'nav_hidden': 512,
-    'nav_layers': 8,
+    'codebook_size': 8192,
+    'nav_hidden': 1024,
+    'nav_layers': 12,
     'decay': 0.95,
     'dropout': 0.1,
 }
-BATCH = 24
-GRAD_ACCUM = 5
+BATCH = 16
+GRAD_ACCUM = 8
 SEQ_LEN = 256
 LR = 3e-4
 WARMUP = 500
