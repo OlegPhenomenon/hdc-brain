@@ -85,16 +85,21 @@ class HDCProcessor(nn.Module):
         super().__init__()
         self.hdc_dim = hdc_dim
 
-        # HDC codebook
-        codebook = torch.sign(torch.randn(vocab_size, hdc_dim))
-        codebook[codebook == 0] = 1.0
-        self.register_buffer('char_codebook', codebook)
+        # HDC codebook — ОБУЧАЕМЫЙ (THDC: Training HDC with Backpropagation)
+        # STE: forward = sign (bipolar), backward = gradient через real weights
+        # Модель выучит что "а" и "е" (гласные) ближе чем "а" и "з"
+        self.char_codebook = nn.Parameter(torch.randn(vocab_size, hdc_dim) * 0.02)
 
         # GLA контекст вместо decay
         self.gla = GatedLinearContext(hdc_dim, state_dim=128)
 
     def encode(self, idx):
-        return self.char_codebook[idx]
+        """STE: forward = sign (bipolar ±1), backward = gradient через real weights."""
+        real = self.char_codebook[idx]  # (B, T, D) — real-valued
+        # STE: hard sign forward, soft gradient backward
+        hard = torch.sign(real)
+        hard = torch.where(hard == 0, torch.ones_like(hard), hard)
+        return (hard - real).detach() + real  # forward=hard, backward=через real
 
     def encode_trigrams(self, idx):
         chars = self.char_codebook[idx]
