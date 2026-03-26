@@ -15,122 +15,103 @@ import torch.nn.functional as F
 import math
 
 
-class HDCProcessor(nn.Module):
-    """HDC ядро: контекст из T символов = одна матричная операция.
+class GatedLinearContext(nn.Module):
+    """GLA: Gated Linear Attention для контекста.
 
-    Вместо O(T²) attention или O(T) RNN:
-    - Каждый символ = случайный bipolar вектор (фиксированный)
-    - Контекст = causal weighted sum с exponential decay
-    - Одна matmul: decay_matrix (T,T) @ char_vectors (B,T,D) = contexts (B,T,D)
+    Заменяет decay + HeteroResonance. Data-dependent gating:
+    - "Москва" → gate≈0.95 (запомни надолго)
+    - пробел → gate≈0.5 (забудь быстро)
+
+    State = (D_key × D_val) матрица — ассоциативная память.
+    Каждый токен: state = gate * state + key ⊗ value (outer product)
+    Выход: query @ state
+
+    O(T × D²) вместо O(T² × D). Быстрее + умнее.
+    """
+    def __init__(self, input_dim, state_dim=128):
+        super().__init__()
+        self.state_dim = state_dim
+        self.q_proj = nn.Linear(input_dim, state_dim)
+        self.k_proj = nn.Linear(input_dim, state_dim)
+        self.v_proj = nn.Linear(input_dim, state_dim)
+        self.g_proj = nn.Linear(input_dim, state_dim)  # data-dependent gate
+        self.out_proj = nn.Linear(state_dim, input_dim)
+        self.ln = nn.LayerNorm(input_dim)
+
+    def forward(self, x):
+        """x: (B, T, D) → contexts: (B, T, D)
+
+        Sequential GLA: loop over T (fast since each step = small matrix ops).
+        """
+        B, T, D = x.shape
+        S = self.state_dim
+        device = x.device
+
+        q = self.q_proj(x)  # (B, T, S)
+        k = self.k_proj(x)  # (B, T, S)
+        v = self.v_proj(x)  # (B, T, S)
+        g = torch.sigmoid(self.g_proj(x))  # (B, T, S) — per-dim gate
+
+        # State: (B, S, S) — ассоциативная память (key-value matrix)
+        state = torch.zeros(B, S, S, device=device)
+        outputs = []
+
+        for t in range(T):
+            # Gate: сколько старого запомнить
+            g_t = g[:, t, :].unsqueeze(-1)  # (B, S, 1)
+            # Outer product: новая ассоциация key→value
+            k_t = k[:, t, :].unsqueeze(-1)  # (B, S, 1)
+            v_t = v[:, t, :].unsqueeze(1)   # (B, 1, S)
+            kv = torch.matmul(k_t, v_t)     # (B, S, S)
+            # Update state: forget old + add new
+            state = g_t * state + kv
+            # Query: извлекаем из state
+            q_t = q[:, t, :].unsqueeze(1)   # (B, 1, S)
+            out = torch.matmul(q_t, state).squeeze(1)  # (B, S)
+            outputs.append(out)
+
+        out = torch.stack(outputs, dim=1)  # (B, T, S)
+        # Project back + residual
+        return self.ln(x + self.out_proj(out))
+
+
+class HDCProcessor(nn.Module):
+    """HDC ядро с GLA контекстом.
+
+    Триграммы → GLA (data-dependent gating) → контекст.
+    Модель сама решает что запомнить а что забыть.
     """
     def __init__(self, vocab_size, hdc_dim=4096, decay=0.95):
         super().__init__()
         self.hdc_dim = hdc_dim
-        self.decay = decay
 
-        # Фиксированный HDC codebook: каждый символ = случайный bipolar вектор
-        # НЕ обучаемый — это "атомы" пространства
+        # HDC codebook
         codebook = torch.sign(torch.randn(vocab_size, hdc_dim))
         codebook[codebook == 0] = 1.0
         self.register_buffer('char_codebook', codebook)
 
-        # === SELECTIVE GATING: важность каждого токена ===
-        self.importance_gate = nn.Linear(hdc_dim, 1)
-
-        # === HETERO-RESONANCE: асимметричный поиск связей ===
-        self.resonance = HeteroResonance(hdc_dim, bottleneck=256)
-
-        # Precompute decay matrix для разных seq_len (кешируется)
-        self._decay_cache = {}
-
-    def get_decay_matrix(self, T, device):
-        """Causal decay matrix: (T, T) lower-triangular с экспоненциальным затуханием."""
-        if T not in self._decay_cache or self._decay_cache[T].device != device:
-            indices = torch.arange(T, device=device)
-            # decay_matrix[i,j] = decay^(i-j) if j <= i, else 0
-            diffs = (indices.unsqueeze(1) - indices.unsqueeze(0)).float()
-            matrix = self.decay ** diffs.clamp(min=0)
-            matrix = torch.tril(matrix)  # causal: будущее не видно
-            # Нормализуем строки чтобы сумма ≈ 1
-            matrix = matrix / matrix.sum(dim=-1, keepdim=True)
-            self._decay_cache[T] = matrix
-        return self._decay_cache[T]
+        # GLA контекст вместо decay
+        self.gla = GatedLinearContext(hdc_dim, state_dim=128)
 
     def encode(self, idx):
-        """Символы → HDC bipolar вектора. Lookup, мгновенно."""
-        return self.char_codebook[idx]  # (B, T, D_hdc)
+        return self.char_codebook[idx]
 
     def encode_trigrams(self, idx):
-        """Символы → HDC триграммы через bind+roll. Матричная операция.
-
-        Триграмм[t] = char[t] * roll(char[t-1], 1) * roll(char[t-2], 2)
-        Захватывает локальные паттерны (слоги, морфемы) напрямую.
-        Всё через матричные операции, без циклов.
-        """
-        chars = self.char_codebook[idx]  # (B, T, D)
-        # Сдвинутые версии: char[t-1] и char[t-2]
-        chars_m1 = torch.roll(chars, 1, dims=1)   # (B, T, D) — сдвиг на 1 по T
-        chars_m2 = torch.roll(chars, 2, dims=1)   # сдвиг на 2
-        # Обнуляем начало (нет предшествующих символов)
+        chars = self.char_codebook[idx]
+        chars_m1 = torch.roll(chars, 1, dims=1)
+        chars_m2 = torch.roll(chars, 2, dims=1)
         chars_m1[:, 0, :] = 0
         chars_m2[:, :2, :] = 0
-        # Roll по D-измерению (позиционное кодирование в HDC)
-        chars_m1_rolled = torch.roll(chars_m1, 1, dims=-1)  # roll по D
+        chars_m1_rolled = torch.roll(chars_m1, 1, dims=-1)
         chars_m2_rolled = torch.roll(chars_m2, 2, dims=-1)
-        # Bind (element-wise multiply для bipolar)
-        # trigram = char[t] * roll_D(char[t-1]) * roll_D²(char[t-2])
         trigrams = chars * chars_m1_rolled * chars_m2_rolled
-        # Комбинируем: обогащаем char информацией о контексте
-        # 0.7 * trigram + 0.3 * char (чтобы не потерять отдельные символы)
         return 0.7 * trigrams + 0.3 * chars
 
     def build_context(self, hdc_chars):
-        """HDC контекст с Selective Gating + HeteroResonance.
-
-        1. Importance gating: важные токены "громче"
-        2. HeteroResonance: асимметричный поиск связей (Q≠K, антиэхо)
-        3. Blend: 70% decay + 30% resonance (внутри HeteroResonance)
+        """GLA контекст: data-dependent gating.
+        "Москва" → запомни. Пробел → забудь.
         """
-        B, T, D = hdc_chars.shape
-        importance = torch.sigmoid(self.importance_gate(hdc_chars))
-        gated_chars = hdc_chars * importance
-        decay_matrix = self.get_decay_matrix(T, hdc_chars.device)
-        # HeteroResonance: decay + asymmetric resonance (без эхо)
-        contexts = self.resonance(gated_chars, decay_matrix)
-        return contexts
-
-
-class HeteroResonance(nn.Module):
-    """Гетеро-ассоциативный резонанс: ломает симметрию Q=K.
-
-    Вместо "ц ищет ц" → "ц ищет то что обычно рядом с ц".
-    Отдельные Q/K проекции через bottleneck (экономия VRAM).
-    Штраф за локальный повтор: diagonal=-4 блокирует эхо.
-    """
-    def __init__(self, hdc_dim, bottleneck=256):
-        super().__init__()
-        self.q_proj = nn.Linear(hdc_dim, bottleneck)
-        self.k_proj = nn.Linear(hdc_dim, bottleneck)
-        self.scale = bottleneck ** -0.5
-
-    def forward(self, hdc_chars, decay_matrix):
-        B, T, D = hdc_chars.shape
-        device = hdc_chars.device
-
-        # Асимметричный поиск
-        q = self.q_proj(hdc_chars)  # (B, T, bottleneck)
-        k = self.k_proj(hdc_chars)  # (B, T, bottleneck)
-        scores = torch.matmul(q, k.transpose(-1, -2)) * self.scale  # (B, T, T)
-
-        # Causal + Local Repetition Penalty (блокируем 3 соседей)
-        mask = torch.tril(torch.ones(T, T, device=device), diagonal=-4)
-        scores = scores.masked_fill(mask == 0, -65000.0)  # float16 safe
-
-        resonance = F.softmax(scores, dim=-1)
-
-        # 70% decay (орфография) + 30% resonance (семантика)
-        combined = 0.7 * decay_matrix + 0.3 * resonance
-        return torch.matmul(combined, hdc_chars)
+        return self.gla(hdc_chars)
 
 
 class AssociativeMemory(nn.Module):
@@ -286,76 +267,27 @@ class HDCAM(nn.Module):
         B, T = idx.shape
         device = idx.device
 
-        # === УРОВЕНЬ 1: Символьный HDC ===
-        # Триграммы → контекст (одна matmul)
+        # === HDC Trigrams → GLA Context ===
         hdc_chars = self.hdc.encode_trigrams(idx)  # (B, T, hdc_dim)
-        hdc_contexts = self.hdc.build_context(hdc_chars)  # (B, T, hdc_dim)
+        hdc_contexts = self.hdc.build_context(hdc_chars)  # (B, T, hdc_dim) — GLA inside
 
-        # === УРОВЕНЬ 2: Фразовый HDC ===
-        # Chunk'и по 8 символов → фразовые вектора → контекст фраз
-        C = self.chunk_size
-        n_chunks = (T + C - 1) // C
-        # Pad до кратного chunk_size
-        if T % C != 0:
-            pad = C - (T % C)
-            hdc_padded = F.pad(hdc_contexts, (0, 0, 0, pad))  # (B, T_padded, D)
-        else:
-            hdc_padded = hdc_contexts
-        # Reshape в chunks и усреднить каждый chunk → фразовый вектор
-        T_padded = hdc_padded.shape[1]
-        chunks = hdc_padded.view(B, n_chunks, C, self.hdc_dim).mean(dim=2)  # (B, n_chunks, D)
-        phrase_vecs = torch.tanh(self.phrase_proj(chunks))  # (B, n_chunks, D)
-        # Decay matrix для фраз
-        phrase_decay_matrix = self.hdc.get_decay_matrix(n_chunks, device)
-        # Замена decay значения для фраз (медленнее)
-        phrase_contexts = torch.matmul(phrase_decay_matrix, phrase_vecs)  # (B, n_chunks, D)
-        # Expand обратно к длине T: каждый chunk → все его позиции
-        phrase_expanded = phrase_contexts.repeat_interleave(C, dim=1)[:, :T, :]  # (B, T, D)
+        # === Retrieval из ассоциативной памяти ===
+        retrieved, _ = self.memory.retrieve(hdc_contexts)  # (B, T, nav_hidden)
 
-        # === RETRIEVAL: из обоих уровней ===
-        # Комбинируем символьный и фразовый контекст для запроса
-        combined_query = hdc_contexts + 0.5 * phrase_expanded
-        retrieved, _ = self.memory.retrieve(combined_query)  # (B, T, nav_hidden)
-
-        # === ПРОЕКЦИИ ===
+        # === Проекция HDC → float ===
         hdc_float = self.hdc_proj(hdc_contexts)  # (B, T, nav_hidden)
-        phrase_float = self.phrase_hdc_proj(phrase_expanded)  # (B, T, nav_hidden)
 
         # Residual shortcut + positional encoding
         pos = torch.arange(T, device=device)
         residual = self.residual_embed(idx) + self.pos_embed(pos)  # (B, T, nav_hidden)
 
-        # Сложение char + phrase (вместо concat — экономит params, сохраняет инфо)
-        combined_hdc = hdc_float + phrase_float  # (B, T, nav_hidden)
-        combined = torch.cat([combined_hdc, retrieved, residual], dim=-1)  # (B, T, nav_hidden*3)
+        # Конкатенация: hdc + retrieved + residual
+        combined = torch.cat([hdc_float, retrieved, residual], dim=-1)  # (B, T, nav_hidden*3)
 
-        # Neural navigator → logits (FiLM: HDC контекст модулирует навигатор)
-        logits = self.navigator(combined, context_vec=combined_hdc)  # (B, T, vocab_size)
+        # Navigator → logits (FiLM: контекст модулирует)
+        logits = self.navigator(combined, context_vec=hdc_float)  # (B, T, vocab_size)
 
-        # === ATTRACTOR GUARD: коррекция при "бреде" ===
-        # Якорь = первый контекст (начало темы). Если текущий контекст
-        # слишком далёк от якоря → один thought step для коррекции.
-        # cosine_sim(current, anchor) < threshold → пересчитываем через memory ещё раз
-        if T > 16:  # только для достаточно длинных последовательностей
-            anchor = hdc_float[:, :8, :].mean(dim=1, keepdim=True)  # (B, 1, nav_hidden)
-            anchor_expanded = anchor.expand(-1, T, -1)  # (B, T, nav_hidden)
-            # Cosine similarity с якорем
-            cos_sim = F.cosine_similarity(hdc_float, anchor_expanded, dim=-1)  # (B, T)
-            # Маска: где контекст "ушёл" от темы
-            drift_mask = (cos_sim < 0.3).float().unsqueeze(-1)  # (B, T, 1)
-            if drift_mask.sum() > 0:
-                # Thought step: re-retrieve из памяти с учётом якоря
-                hdc_anchor = hdc_contexts[:, :8, :].mean(dim=1, keepdim=True).expand(-1, T, -1)
-                corrected_query = combined_query * (1 - drift_mask) + \
-                    (combined_query + hdc_anchor * 0.5) * drift_mask
-                corrected_retrieved, _ = self.memory.retrieve(corrected_query)
-                # Заменяем retrieved в drifted позициях
-                combined_corrected = torch.cat([
-                    combined_hdc,
-                    corrected_retrieved * drift_mask + retrieved * (1 - drift_mask),
-                    residual
-                ], dim=-1)
-                logits = self.navigator(combined_corrected, context_vec=combined_hdc)
+        # Attractor Guard убран — GLA сама управляет контекстом через gating
 
         # Loss
         loss = None
