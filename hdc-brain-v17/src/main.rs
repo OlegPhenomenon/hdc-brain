@@ -297,50 +297,31 @@ fn cmd_train(args: &[String]) {
         }
     }
 
-    // === Multi-pass: самоанализ → работа над ошибками ===
-    // Не перечитываем весь учебник, а работаем над ошибками.
-    let mut pass = 1;
-    while train_start.elapsed().as_secs_f64() < max_secs * 0.85 {
-        pass += 1;
+    // === Cascade: каждый уровень учит ошибки предыдущих ===
+    // Как мозг: слой 1 знает базу, слой 2 ловит исключения, слой 3 — тонкости
+    let max_levels = 4;
+    while model.cascade.len() < max_levels
+          && train_start.elapsed().as_secs_f64() < max_secs * 0.85 {
+        let level = model.cascade.len();
         println!("\n{}", "=".repeat(60));
         let elapsed_min = train_start.elapsed().as_secs_f64() / 60.0;
-        println!("=== Pass {} (self-analysis, {:.1}min elapsed) ===", pass, elapsed_min);
+        println!("=== Cascade Level {} ({:.1}min elapsed) ===", level, elapsed_min);
 
-        // САМОАНАЛИЗ: найти где ошибаемся
         let t0 = Instant::now();
-        let errors = model.find_errors(train_data);
-        let error_rate = errors.len() as f64 / (train_data.len() - 3) as f64 * 100.0;
-        println!("  Self-analysis: {} errors ({:.1}%) in {:.1}s",
-                 errors.len(), error_rate, t0.elapsed().as_secs_f64());
+        model.add_cascade_level(train_data);
+        println!("  Time: {:.1}s", t0.elapsed().as_secs_f64());
 
-        if errors.is_empty() {
-            println!("  No errors — perfect knowledge!");
-            break;
-        }
-
-        // РАБОТА НАД ОШИБКАМИ: учить только непонятное
-        let t0 = Instant::now();
-        model.train_on_errors(train_data, &errors);
-        println!("  Error training: {:.1}s", t0.elapsed().as_secs_f64());
-
-        if train_start.elapsed().as_secs_f64() > max_secs * 0.85 { break; }
-
-        // Обновить факты из ошибок
-        let t0 = Instant::now();
-        model.build_facts_on_errors(train_data, &errors);
-        println!("  Error facts: {:.1}s", t0.elapsed().as_secs_f64());
-
-        // Eval
+        // Eval after each new level
         let eval_data_slice = if val_data.len() > eval_n + 3 {
             &val_data[..eval_n + 3]
         } else { val_data };
         let result = model.evaluate(eval_data_slice);
-        println!("  --- Pass {} results ---", pass);
+        println!("  --- After level {} ---", level);
         result.print();
     }
 
     let total_min = train_start.elapsed().as_secs_f64() / 60.0;
-    println!("\n  Total training: {:.1} min, {} passes", total_min, pass);
+    println!("\n  Total training: {:.1} min, {} cascade levels", total_min, model.cascade.len());
 
     // Final comprehensive evaluation
     println!("\n{}", "=".repeat(60));

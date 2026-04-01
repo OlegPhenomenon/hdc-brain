@@ -176,18 +176,20 @@ pub struct HDCBrainV17 {
     pub config: Config,
     pub codebook: Vec<BinaryVec>,
 
-    // Layer 1-2: Phrase Memory (narrow trigram → successor)
-    pub phrase_buckets: Vec<PhraseBucket>,
+    // Cascade phrase memories: каждый уровень учит ошибки предыдущего
+    // cascade[0] = основная память (все данные)
+    // cascade[1] = ошибки cascade[0]
+    // cascade[2] = ошибки cascade[0]+cascade[1]
+    pub cascade: Vec<Vec<PhraseBucket>>,
 
-    // Layer 3-4: Context Memory (broad 5-gram → successor)
-    // "В КАКОМ контексте фраза применяется?"
+    // Context Memory (broad 5-gram → successor)
     pub context_buckets: Vec<PhraseBucket>,
     pub context_lsh_bits: usize,
 
-    // Layer 5-6: Improvisation (semantic substitution)
-    pub codebook_neighbors: Vec<Vec<(u16, i32)>>,  // per token: top-K similar + similarity
+    // Improvisation (semantic substitution)
+    pub codebook_neighbors: Vec<Vec<(u16, i32)>>,
 
-    // Layer 5-6 (additional): Discovered Rules
+    // Discovered Rules
     pub rules: Vec<Rule>,
 
     // Stats
@@ -206,13 +208,14 @@ impl HDCBrainV17 {
             .map(|_| BinaryVec::random(config.hdc_dim, &mut rng))
             .collect();
 
-        // Empty phrase buckets (Layer 1-2: narrow)
-        let phrase_buckets: Vec<PhraseBucket> = (0..n_buckets)
+        // Cascade level 0 (main phrase memory)
+        let level0: Vec<PhraseBucket> = (0..n_buckets)
             .map(|_| PhraseBucket::new(config.hdc_dim))
             .collect();
+        let cascade = vec![level0];
 
-        // Empty context buckets (Layer 3-4: broad, fewer buckets)
-        let context_lsh_bits = 14; // 16384 buckets (broader = less precise)
+        // Context buckets
+        let context_lsh_bits = 14;
         let n_context_buckets = 1 << context_lsh_bits;
         let context_buckets: Vec<PhraseBucket> = (0..n_context_buckets)
             .map(|_| PhraseBucket::new(config.hdc_dim))
@@ -221,7 +224,7 @@ impl HDCBrainV17 {
         HDCBrainV17 {
             config,
             codebook,
-            phrase_buckets,
+            cascade,
             context_buckets,
             context_lsh_bits,
             codebook_neighbors: Vec::new(),
@@ -444,7 +447,7 @@ impl HDCBrainV17 {
             let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
             let successor = data[t + 1];
 
-            self.phrase_buckets[hash].add(&trigram, successor);
+            self.cascade[0][hash].add(&trigram, successor);
 
             if (t - 2) % report_every == 0 {
                 let pct = ((t - 2) as f64 / total as f64 * 100.0) as u32;
@@ -457,17 +460,81 @@ impl HDCBrainV17 {
     }
 
     fn active_buckets(&self) -> usize {
-        self.phrase_buckets.iter().filter(|b| b.count > 0).count()
+        self.cascade[0].iter().filter(|b| b.count > 0).count()
     }
 
     /// Collapse all buckets: сжать → сбросить → готово к новому проходу.
     pub fn collapse_all(&mut self) {
-        for bucket in &mut self.phrase_buckets {
+        for bucket in &mut self.cascade[0] {
             bucket.collapse();
         }
         for bucket in &mut self.context_buckets {
             bucket.collapse();
         }
+    }
+
+    /// Предсказание по ВСЕМ уровням каскада.
+    /// Каскад: level 0 (основа) → level 1 (ошибки level 0) → level 2 → ...
+    pub fn cascade_predict(&self, trigram: &BinaryVec) -> Vec<(u16, u32)> {
+        let mut combined: HashMap<u16, u32> = HashMap::new();
+        let hash = lsh_hash(trigram, self.config.lsh_bits) as usize;
+
+        for (level, buckets) in self.cascade.iter().enumerate() {
+            let bucket = &buckets[hash];
+            if bucket.count == 0 { continue; }
+            // Deeper levels = more specialized, higher weight
+            let level_weight = (level as u32 + 1) * 2;
+            for &(tok, cnt) in &bucket.top_successors(5) {
+                *combined.entry(tok).or_insert(0) += cnt * level_weight;
+            }
+        }
+
+        let mut result: Vec<(u16, u32)> = combined.into_iter().collect();
+        result.sort_by(|a, b| b.1.cmp(&a.1));
+        result
+    }
+
+    /// Cascade top1: лучший ответ из всех уровней.
+    pub fn cascade_top1(&self, trigram: &BinaryVec) -> Option<u16> {
+        self.cascade_predict(trigram).first().map(|&(tok, _)| tok)
+    }
+
+    /// Добавить новый уровень каскада из ошибок предыдущих уровней.
+    pub fn add_cascade_level(&mut self, data: &[u16]) {
+        let n = data.len();
+        if n < 4 { return; }
+
+        let level = self.cascade.len();
+        let n_buckets = self.config.n_buckets();
+        let mut new_level: Vec<PhraseBucket> = (0..n_buckets)
+            .map(|_| PhraseBucket::new(self.config.hdc_dim))
+            .collect();
+
+        let mut errors = 0u64;
+        let mut total = 0u64;
+
+        for t in 2..n - 1 {
+            let trigram = self.make_trigram(data, t);
+            let correct = data[t + 1];
+            total += 1;
+
+            // Спросить ВСЕ предыдущие уровни
+            let predicted = self.cascade_top1(&trigram);
+
+            if predicted != Some(correct) {
+                // Ошибка! Добавить в новый уровень
+                let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
+                new_level[hash].add(&trigram, correct);
+                errors += 1;
+            }
+        }
+
+        let active = new_level.iter().filter(|b| b.count > 0).count();
+        let error_rate = errors as f64 / total as f64 * 100.0;
+        println!("  Cascade level {}: {} errors ({:.1}%), {} active buckets",
+                 level, errors, error_rate, active);
+
+        self.cascade.push(new_level);
     }
 
     /// Самоанализ: найти позиции где модель ОШИБАЕТСЯ.
@@ -482,7 +549,7 @@ impl HDCBrainV17 {
             let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
             let correct = data[t + 1];
 
-            if self.phrase_buckets[hash].top1() != Some(correct) {
+            if self.cascade[0][hash].top1() != Some(correct) {
                 errors.push(t);
             }
         }
@@ -495,7 +562,7 @@ impl HDCBrainV17 {
             if t < 2 || t + 1 >= data.len() { continue; }
             let trigram = self.make_trigram(data, t);
             let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
-            self.phrase_buckets[hash].add(&trigram, data[t + 1]);
+            self.cascade[0][hash].add(&trigram, data[t + 1]);
         }
         println!("  Trained on {} errors", error_positions.len());
     }
@@ -519,7 +586,7 @@ impl HDCBrainV17 {
         let mut updated = 0;
         for i in 0..n_buckets {
             if fact_accs[i].count >= 2 {
-                self.phrase_buckets[i].fact_vec = Some(fact_accs[i].to_binary());
+                self.cascade[0][i].fact_vec = Some(fact_accs[i].to_binary());
                 updated += 1;
             }
         }
@@ -529,7 +596,7 @@ impl HDCBrainV17 {
     /// Reset phrase memory for fresh start (keeps codebook and rules).
     pub fn reset_phrases(&mut self) {
         let n = self.config.n_buckets();
-        self.phrase_buckets = (0..n)
+        self.cascade[0] = (0..n)
             .map(|_| PhraseBucket::new(self.config.hdc_dim))
             .collect();
         self.phrases_trained = 0;
@@ -544,11 +611,11 @@ impl HDCBrainV17 {
             let trigram = self.make_trigram(data, t);
             let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
             // Multi-probe: check primary + neighbors
-            let mut found = self.phrase_buckets[hash].top1() == Some(data[t + 1]);
+            let mut found = self.cascade[0][hash].top1() == Some(data[t + 1]);
             if !found {
                 for bit in 0..self.config.lsh_bits {
                     let neighbor = hash ^ (1 << bit);
-                    if self.phrase_buckets[neighbor].top1() == Some(data[t + 1]) {
+                    if self.cascade[0][neighbor].top1() == Some(data[t + 1]) {
                         found = true;
                         break;
                     }
@@ -618,7 +685,7 @@ impl HDCBrainV17 {
                 }
             }
             if total_count >= 3 {
-                self.phrase_buckets[i].fact_vec = Some(merged.to_binary());
+                self.cascade[0][i].fact_vec = Some(merged.to_binary());
                 stored += 1;
             }
         }
@@ -710,7 +777,7 @@ impl HDCBrainV17 {
         let dim = self.config.hdc_dim;
         let lsh_bits = self.config.lsh_bits;
         let codebook = &self.codebook;
-        let phrase_buckets = &self.phrase_buckets;
+        let phrase_buckets = &self.cascade[0];
 
         // Parallel: each thread finds errors in its chunk
         let thread_results: Vec<(Vec<BundleAccumulator>, Vec<HashMap<u16, u32>>, u64, u64)> =
@@ -829,33 +896,36 @@ impl HDCBrainV17 {
         let trigram = self.make_trigram(tokens, t);
         let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
 
-        // === Layer 1-2: Phrase Memory (multi-probe LSH) ===
-        // Search primary bucket + 1-bit flip neighbors
+        // === Layer 1-2: CASCADE Phrase Memory (all levels + multi-probe) ===
         let mut all_phrase: HashMap<u16, u32> = HashMap::new();
 
-        // Primary bucket (weighted heavily — exact match)
-        let bucket = &self.phrase_buckets[hash];
-        let primary_top = bucket.top_successors(self.config.top_k);
-        for &(tok, cnt) in &primary_top {
-            *all_phrase.entry(tok).or_insert(0) += cnt * 10; // primary = 10x weight
-        }
+        for (level, buckets) in self.cascade.iter().enumerate() {
+            let level_weight = (level as u32 + 1) * 3; // deeper = more specialized
 
-        // Neighbor buckets: flip each bit of hash → 16 neighbors
-        // Weight by how similar neighbor's representative is to our trigram
-        for bit in 0..self.config.lsh_bits {
-            let neighbor = hash ^ (1 << bit);
-            let nbucket = &self.phrase_buckets[neighbor];
-            if nbucket.count < 5 { continue; }
-            // Check actual similarity between trigram and bucket representative
-            let rep = nbucket.accumulator.to_binary();
-            let sim = trigram.similarity(&rep);
-            if sim <= 0 { continue; } // skip dissimilar neighbors
-            let weight = (sim as u32 / 100).max(1); // proportional to similarity
-            for &(tok, cnt) in &nbucket.top_successors(3) {
-                *all_phrase.entry(tok).or_insert(0) += cnt * weight;
+            // Primary bucket
+            let bucket = &buckets[hash];
+            for &(tok, cnt) in &bucket.top_successors(self.config.top_k) {
+                *all_phrase.entry(tok).or_insert(0) += cnt * 10 * level_weight;
+            }
+
+            // Multi-probe neighbors (only for level 0 to save time)
+            if level == 0 {
+                for bit in 0..self.config.lsh_bits {
+                    let neighbor = hash ^ (1 << bit);
+                    let nbucket = &buckets[neighbor];
+                    if nbucket.count < 5 { continue; }
+                    let rep = nbucket.accumulator.to_binary();
+                    let sim = trigram.similarity(&rep);
+                    if sim <= 0 { continue; }
+                    let weight = (sim as u32 / 100).max(1);
+                    for &(tok, cnt) in &nbucket.top_successors(3) {
+                        *all_phrase.entry(tok).or_insert(0) += cnt * weight;
+                    }
+                }
             }
         }
 
+        let bucket = &self.cascade[0][hash]; // for fact_vec access
         let mut phrase_candidates: Vec<(u16, u32)> = all_phrase.into_iter().collect();
         phrase_candidates.sort_by(|a, b| b.1.cmp(&a.1));
         phrase_candidates.truncate(self.config.top_k * 2);
@@ -956,7 +1026,7 @@ impl HDCBrainV17 {
                     let alt_trigram = alt_a.bind(&alt_b).bind(&alt_c);
 
                     let alt_hash = lsh_hash(&alt_trigram, self.config.lsh_bits) as usize;
-                    let alt_bucket = &self.phrase_buckets[alt_hash];
+                    let alt_bucket = &self.cascade[0][alt_hash];
 
                     if alt_bucket.count < 3 { continue; } // skip near-empty
 
@@ -1169,7 +1239,7 @@ impl HDCBrainV17 {
         }
 
         // Phrase buckets: save only active ones
-        let active: Vec<(u32, &PhraseBucket)> = self.phrase_buckets.iter()
+        let active: Vec<(u32, &PhraseBucket)> = self.cascade[0].iter()
             .enumerate()
             .filter(|(_, b)| b.count > 0)
             .map(|(i, b)| (i as u32, b))
@@ -1291,7 +1361,7 @@ impl HDCBrainV17 {
         let mut model = HDCBrainV17 {
             config,
             codebook,
-            phrase_buckets,
+            cascade: vec![phrase_buckets],
             context_buckets,
             context_lsh_bits,
             codebook_neighbors: Vec::new(),
