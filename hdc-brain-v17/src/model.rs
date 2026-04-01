@@ -149,14 +149,20 @@ pub struct HDCBrainV17 {
     pub config: Config,
     pub codebook: Vec<BinaryVec>,
 
-    // Layer 1-2: Phrase Memory (LSH buckets)
+    // Layer 1-2: Phrase Memory (narrow trigram → successor)
     pub phrase_buckets: Vec<PhraseBucket>,
 
-    // Layer 3-4: Discovered Rules
+    // Layer 3-4: Context Memory (broad 5-gram → successor)
+    // "В КАКОМ контексте фраза применяется?"
+    pub context_buckets: Vec<PhraseBucket>,
+    pub context_lsh_bits: usize,
+
+    // Layer 5-6: Discovered Rules
     pub rules: Vec<Rule>,
 
     // Stats
     pub phrases_trained: usize,
+    pub contexts_trained: usize,
     pub rules_discovered: usize,
 }
 
@@ -170,8 +176,15 @@ impl HDCBrainV17 {
             .map(|_| BinaryVec::random(config.hdc_dim, &mut rng))
             .collect();
 
-        // Empty phrase buckets
+        // Empty phrase buckets (Layer 1-2: narrow)
         let phrase_buckets: Vec<PhraseBucket> = (0..n_buckets)
+            .map(|_| PhraseBucket::new(config.hdc_dim))
+            .collect();
+
+        // Empty context buckets (Layer 3-4: broad, fewer buckets)
+        let context_lsh_bits = 14; // 16384 buckets (broader = less precise)
+        let n_context_buckets = 1 << context_lsh_bits;
+        let context_buckets: Vec<PhraseBucket> = (0..n_context_buckets)
             .map(|_| PhraseBucket::new(config.hdc_dim))
             .collect();
 
@@ -179,19 +192,41 @@ impl HDCBrainV17 {
             config,
             codebook,
             phrase_buckets,
+            context_buckets,
+            context_lsh_bits,
             rules: Vec::new(),
             phrases_trained: 0,
+            contexts_trained: 0,
             rules_discovered: 0,
         }
     }
 
     /// Build trigram: bind(tok[t], perm¹(tok[t-1]), perm²(tok[t-2]))
+    /// Layer 1-2: narrow context, precise matching
     #[inline]
     pub fn make_trigram(&self, tokens: &[u16], t: usize) -> BinaryVec {
         let a = &self.codebook[tokens[t] as usize];
         let b = self.codebook[tokens[t - 1] as usize].permute(1);
         let c = self.codebook[tokens[t - 2] as usize].permute(2);
         a.bind(&b).bind(&c)
+    }
+
+    /// Build broad context: weighted 5-gram bundle.
+    /// Layer 3-4: "в каком КОНТЕКСТЕ я это видел?"
+    /// Ближние слова важнее (weight 5,4,3,2,1).
+    /// Bundle (majority vote) вместо bind — сохраняет все токены, не только комбинацию.
+    pub fn make_broad_context(&self, tokens: &[u16], t: usize) -> BinaryVec {
+        let mut acc = BundleAccumulator::new(self.config.hdc_dim);
+        let window = 5.min(t + 1);
+        for offset in 0..window {
+            let tok_vec = &self.codebook[tokens[t - offset] as usize];
+            let permuted = tok_vec.permute(offset);
+            let weight = window - offset; // closer = heavier
+            for _ in 0..weight {
+                acc.add(&permuted);
+            }
+        }
+        acc.to_binary()
     }
 
     // ========================================================
@@ -262,7 +297,42 @@ impl HDCBrainV17 {
     }
 
     // ========================================================
-    // Phase 2: Discover Rules (из ошибок фразовой памяти)
+    // Phase B: Learn Contexts (Layer 3-4)
+    // "В каких ситуациях заученные фразы работают?"
+    // ========================================================
+
+    /// Шаг 2: пробуем применить заученные фразы в контексте.
+    /// Как ребёнок: выучил "мама дай", теперь пробует в разных ситуациях.
+    /// Записываем: широкий контекст → что сработало.
+    pub fn learn_contexts(&mut self, data: &[u16]) {
+        let n = data.len();
+        if n < 6 { return; }
+
+        let total = n - 5;
+        let report_every = total / 10 + 1;
+
+        for t in 4..n - 1 {
+            let broad_ctx = self.make_broad_context(data, t);
+            let ctx_hash = lsh_hash(&broad_ctx, self.context_lsh_bits) as usize;
+            let successor = data[t + 1];
+
+            // Record: in this broad context, this successor appeared
+            self.context_buckets[ctx_hash].add(&broad_ctx, successor);
+
+            if (t - 4) % report_every == 0 {
+                let pct = ((t - 4) as f64 / total as f64 * 100.0) as u32;
+                print!("\r  Contexts: {}%", pct);
+            }
+        }
+        self.contexts_trained = total;
+
+        let active = self.context_buckets.iter().filter(|b| b.count > 0).count();
+        println!("\r  Contexts: 100% — {} contexts in {} buckets",
+                 total, active);
+    }
+
+    // ========================================================
+    // Phase C: Discover Rules (из сравнения фраз и контекстов)
     // ========================================================
 
     /// Обнаружить правила: найти где фразовая память ошибается,
@@ -375,9 +445,9 @@ impl HDCBrainV17 {
 
     /// Predict next token using all 3 layers.
     ///
-    /// Layer 1-2: phrase lookup (multi-probe LSH) → "я видел эту фразу"
-    /// Layer 3-4: rule application → "тут работает правило"
-    /// Layer 5-6: reasoning → "в контексте это логично"
+    /// Layer 1-2: phrase lookup → "я заучил эту фразу"
+    /// Layer 3-4: context match → "в таком контексте это работает"
+    /// Layer 5-6: reasoning → "правила и факты это подтверждают"
     pub fn predict(
         &self,
         tokens: &[u16],
@@ -418,51 +488,85 @@ impl HDCBrainV17 {
         phrase_candidates.sort_by(|a, b| b.1.cmp(&a.1));
         phrase_candidates.truncate(self.config.top_k * 2);
 
-        // === Layer 3-4: Rule Application ===
-        // PRINCIPLE: фразы — основа, правила — только для неуверенных случаев.
-        // Если top phrase candidate уверен (count >> 2nd), не трогаем.
+        // === Layer 3-4: Context Memory ===
+        // "В таком широком контексте, что обычно идёт дальше?"
+        // Шаг 2: ищем заученные фразы в похожих ситуациях
+        let mut context_scores: HashMap<u16, u32> = HashMap::new();
+        if t >= 4 {
+            let broad_ctx = self.make_broad_context(tokens, t);
+            let ctx_hash = lsh_hash(&broad_ctx, self.context_lsh_bits) as usize;
 
-        let top_count = phrase_candidates.first().map(|c| c.1).unwrap_or(0);
-        let second_count = phrase_candidates.get(1).map(|c| c.1).unwrap_or(0);
-        let phrase_confidence = if top_count > 0 {
-            (top_count - second_count) as f64 / top_count as f64
-        } else { 0.0 };
+            // Primary context bucket
+            let ctx_bucket = &self.context_buckets[ctx_hash];
+            for &(tok, cnt) in &ctx_bucket.top_successors(self.config.top_k) {
+                *context_scores.entry(tok).or_insert(0) += cnt * 3;
+            }
 
-        // Rule weight: inversely proportional to phrase confidence
-        // Confident phrase (gap > 50%) → rules almost ignored
-        // Uncertain phrase (gap < 20%) → rules have more influence
-        let rule_weight = (1.0 - phrase_confidence).max(0.0).min(1.0) * 0.5;
+            // Context neighbors (fewer — 14 bit hash, check only top 8 bits)
+            for bit in 0..8.min(self.context_lsh_bits) {
+                let neighbor = ctx_hash ^ (1 << bit);
+                let nbucket = &self.context_buckets[neighbor];
+                if nbucket.count < 5 { continue; }
+                for &(tok, cnt) in &nbucket.top_successors(3) {
+                    *context_scores.entry(tok).or_insert(0) += cnt;
+                }
+            }
+        }
 
-        let dim = self.config.hdc_dim as f64;
+        // Combine: phrase scores (primary) + context scores (secondary)
         let mut scored: Vec<(u16, f64)> = phrase_candidates.iter()
             .map(|&(tok, count)| {
-                let mut score = count as f64 * 100.0; // phrase score dominates
+                let mut score = count as f64 * 100.0; // phrase = primary
 
-                // Apply rules only if phrase is uncertain
-                if rule_weight > 0.05 {
-                    for rule in self.rules.iter().take(50) { // top-50 rules
-                        let conclusion = trigram.unbind(&rule.pattern);
-                        let sim = conclusion.similarity(&self.codebook[tok as usize]);
-                        // Normalize to [-1, 1], only add positive support
-                        let norm_sim = sim as f64 / dim;
-                        if norm_sim > 0.0 {
-                            score += norm_sim * rule.confidence as f64 * rule_weight;
-                        }
-                    }
+                // Context boost: if context memory ALSO predicts this token → boost
+                if let Some(&ctx_count) = context_scores.get(&tok) {
+                    score += ctx_count as f64 * 10.0; // context confirmation
                 }
 
                 (tok, score)
             })
             .collect();
 
-        // === Layer 5-6: Reasoning (context consistency) ===
-        // Light touch: only boost, never suppress
+        // Add context-only predictions (tokens that context knows but phrases don't)
+        for (&tok, &cnt) in &context_scores {
+            if !scored.iter().any(|&(t, _)| t == tok) {
+                scored.push((tok, cnt as f64 * 5.0)); // lower weight than phrase+context
+            }
+        }
+
+        // === Layer 5-6: Rules + Reasoning ===
+        let dim = self.config.hdc_dim as f64;
+
+        // Rules: only for uncertain cases (when phrase and context disagree)
+        if scored.len() > 1 {
+            let top_score = scored.iter().map(|s| s.1).fold(0.0f64, f64::max);
+            let second_score = scored.iter().filter(|s| s.1 < top_score)
+                .map(|s| s.1).fold(0.0f64, f64::max);
+            let confidence_gap = if top_score > 0.0 {
+                (top_score - second_score) / top_score
+            } else { 0.0 };
+
+            if confidence_gap < 0.5 { // uncertain → apply rules
+                for item in scored.iter_mut() {
+                    for rule in self.rules.iter().take(20) {
+                        let conclusion = trigram.unbind(&rule.pattern);
+                        let sim = conclusion.similarity(&self.codebook[item.0 as usize]);
+                        let norm_sim = sim as f64 / dim;
+                        if norm_sim > 0.0 {
+                            item.1 += norm_sim * rule.confidence as f64 * 0.5;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Reasoning: context consistency (light touch)
         if let Some(facts) = fact_mem {
             for item in scored.iter_mut() {
                 let consistency = facts.consistency(&self.codebook[item.0 as usize]);
                 let norm_cons = consistency as f64 / dim;
                 if norm_cons > 0.0 {
-                    item.1 += norm_cons * 0.5; // small positive boost only
+                    item.1 += norm_cons * 0.5;
                 }
             }
         }
@@ -761,12 +865,21 @@ impl HDCBrainV17 {
         println!("Loaded v17: dim={}, vocab={}, {} active buckets, {} rules",
                  hdc_dim, vocab_size, n_active, n_rules);
 
+        let context_lsh_bits = 14;
+        let n_context_buckets = 1 << context_lsh_bits;
+        let context_buckets: Vec<PhraseBucket> = (0..n_context_buckets)
+            .map(|_| PhraseBucket::new(hdc_dim))
+            .collect();
+
         Ok(HDCBrainV17 {
             config,
             codebook,
             phrase_buckets,
+            context_buckets,
+            context_lsh_bits,
             rules,
             phrases_trained: 0,
+            contexts_trained: 0,
             rules_discovered: n_rules,
         })
     }

@@ -195,16 +195,21 @@ fn cmd_train(args: &[String]) {
                  i + 1, stages.len(), name, frac * 100.0,
                  new_chunk.len(), end);
 
-        // Phase 1: Learn new phrases (incremental — adds to existing memory)
+        // Phase A: Learn phrases — "заучить фразы"
         let t0 = Instant::now();
         model.train_phrases(new_chunk);
         let phrase_time = t0.elapsed().as_secs_f64();
 
         // Quick phrase accuracy
         let phrase_acc = model.phrase_accuracy(val_data, eval_n);
-        println!("  Phrase accuracy: {:.2}% (multi-probe LSH)", phrase_acc);
+        println!("  Phrase accuracy: {:.2}%", phrase_acc);
 
-        // Phase 2: Discover rules from ALL data so far
+        // Phase B: Learn contexts — "где эти фразы применяются?"
+        let t0 = Instant::now();
+        model.learn_contexts(new_chunk);
+        let context_time = t0.elapsed().as_secs_f64();
+
+        // Phase C: Discover rules — "какие правила вытекают?"
         let t0 = Instant::now();
         model.discover_rules(&train_data[..end]);
         let rule_time = t0.elapsed().as_secs_f64();
@@ -219,8 +224,8 @@ fn cmd_train(args: &[String]) {
 
         println!("  --- Stage {} results ---", i + 1);
         result.print();
-        println!("  Time: phrases {:.1}s, rules {:.1}s, eval {:.1}s",
-                 phrase_time, rule_time, eval_time);
+        println!("  Time: phrases {:.1}s, contexts {:.1}s, rules {:.1}s, eval {:.1}s",
+                 phrase_time, context_time, rule_time, eval_time);
 
         prev_end = end;
     }
