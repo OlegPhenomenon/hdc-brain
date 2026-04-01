@@ -482,47 +482,60 @@ impl HDCBrainV17 {
     /// Это НЕ подсчёт частот. Это хранение СВЯЗЕЙ через HDC bind.
     /// Предсказание = unbind (извлечение), не argmax(счётчик).
     pub fn build_fact_memory(&mut self, data: &[u16]) {
+        use rayon::prelude::*;
+
         let n = data.len();
         if n < 4 { return; }
 
         let n_buckets = self.config.n_buckets();
         let dim = self.config.hdc_dim;
+        let lsh_bits = self.config.lsh_bits;
+        let codebook = &self.codebook;
+        let n_threads = rayon::current_num_threads();
+        let chunk_size = (n - 3) / n_threads + 1;
 
-        // Temporary accumulators for fact bundles
-        let mut fact_accs: Vec<BundleAccumulator> = (0..n_buckets)
-            .map(|_| BundleAccumulator::new(dim))
-            .collect();
+        // Parallel: each thread builds local fact accumulators
+        let thread_accs: Vec<Vec<BundleAccumulator>> = (0..n_threads)
+            .into_par_iter()
+            .map(|tid| {
+                let start = 2 + tid * chunk_size;
+                let end = (start + chunk_size).min(n - 1);
+                let mut local: Vec<BundleAccumulator> = (0..n_buckets)
+                    .map(|_| BundleAccumulator::new(dim)).collect();
 
-        let total = n - 3;
-        let report_every = total / 10 + 1;
+                for t in start..end {
+                    if t < 2 { continue; }
+                    let a = &codebook[data[t] as usize];
+                    let b = codebook[data[t-1] as usize].permute(1);
+                    let c = codebook[data[t-2] as usize].permute(2);
+                    let trigram = a.bind(&b).bind(&c);
+                    let hash = lsh_hash(&trigram, lsh_bits) as usize;
+                    let fact = trigram.bind(&codebook[data[t+1] as usize]);
+                    local[hash].add(&fact);
+                }
+                local
+            }).collect();
 
-        for t in 2..n - 1 {
-            let trigram = self.make_trigram(data, t);
-            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
-            let successor = data[t + 1] as usize;
-
-            // ФАКТ = bind(контекст, ответ)
-            // "в этом контексте → этот токен" записано как ЛОГИЧЕСКАЯ СВЯЗЬ
-            let fact = trigram.bind(&self.codebook[successor]);
-            fact_accs[hash].add(&fact);
-
-            if (t - 2) % report_every == 0 {
-                let pct = ((t - 2) as f64 / total as f64 * 100.0) as u32;
-                print!("\r  Facts: {}%", pct);
-            }
-        }
-
-        // Collapse accumulators to binary and store
+        // Merge and collapse
         let mut stored = 0;
         for i in 0..n_buckets {
-            if fact_accs[i].count >= 3 { // need at least 3 facts for stable bundle
-                self.phrase_buckets[i].fact_vec = Some(fact_accs[i].to_binary());
+            let mut total_count = 0u32;
+            let mut merged = BundleAccumulator::new(dim);
+            for thread_local in &thread_accs {
+                if thread_local[i].count > 0 {
+                    for j in 0..dim {
+                        merged.counters[j] += thread_local[i].counters[j];
+                    }
+                    total_count += thread_local[i].count;
+                }
+            }
+            if total_count >= 3 {
+                self.phrase_buckets[i].fact_vec = Some(merged.to_binary());
                 stored += 1;
             }
         }
 
-        println!("\r  Facts: {} buckets with logical memory ({} total facts)",
-                 stored, total);
+        println!("  Facts: {} buckets (parallel {}T)", stored, n_threads);
     }
 
     // ========================================================
@@ -530,34 +543,62 @@ impl HDCBrainV17 {
     // "В каких ситуациях заученные фразы работают?"
     // ========================================================
 
-    /// Шаг 2: пробуем применить заученные фразы в контексте.
-    /// Как ребёнок: выучил "мама дай", теперь пробует в разных ситуациях.
-    /// Записываем: широкий контекст → что сработало.
+    /// Шаг 2: пробуем применить заученные фразы в контексте (PARALLEL).
     pub fn learn_contexts(&mut self, data: &[u16]) {
+        use rayon::prelude::*;
+
         let n = data.len();
         if n < 6 { return; }
 
-        let total = n - 5;
-        let report_every = total / 10 + 1;
+        let n_threads = rayon::current_num_threads();
+        let n_ctx = 1usize << self.context_lsh_bits;
+        let ctx_bits = self.context_lsh_bits;
+        let dim = self.config.hdc_dim;
+        let codebook = &self.codebook;
+        let chunk_size = (n - 5) / n_threads + 1;
 
-        for t in 4..n - 1 {
-            let broad_ctx = self.make_broad_context(data, t);
-            let ctx_hash = lsh_hash(&broad_ctx, self.context_lsh_bits) as usize;
-            let successor = data[t + 1];
+        // Each thread: lightweight successor counts per bucket
+        let thread_results: Vec<Vec<HashMap<u16, u32>>> = (0..n_threads)
+            .into_par_iter()
+            .map(|tid| {
+                let start = 4 + tid * chunk_size;
+                let end = (start + chunk_size).min(n - 1);
+                let mut local: Vec<HashMap<u16, u32>> = (0..n_ctx)
+                    .map(|_| HashMap::new()).collect();
+                let mut acc = BundleAccumulator::new(dim); // reuse per thread
 
-            // Record: in this broad context, this successor appeared
-            self.context_buckets[ctx_hash].add(&broad_ctx, successor);
+                for t in start..end {
+                    // Build broad context inline (can't call &self in parallel)
+                    acc.reset();
+                    let window = 5.min(t + 1);
+                    for offset in 0..window {
+                        let tok_idx = data[t - offset] as usize;
+                        if tok_idx < codebook.len() {
+                            let permuted = codebook[tok_idx].permute(offset);
+                            let weight = window - offset;
+                            for _ in 0..weight { acc.add(&permuted); }
+                        }
+                    }
+                    let broad_ctx = acc.to_binary();
+                    let hash = lsh_hash(&broad_ctx, ctx_bits) as usize;
+                    *local[hash].entry(data[t + 1]).or_insert(0) += 1;
+                }
+                local
+            }).collect();
 
-            if (t - 4) % report_every == 0 {
-                let pct = ((t - 4) as f64 / total as f64 * 100.0) as u32;
-                print!("\r  Contexts: {}%", pct);
+        // Merge into context_buckets
+        for thread_local in &thread_results {
+            for i in 0..n_ctx {
+                for (&tok, &cnt) in &thread_local[i] {
+                    *self.context_buckets[i].successors.entry(tok).or_insert(0) += cnt;
+                    self.context_buckets[i].count += cnt;
+                }
             }
         }
-        self.contexts_trained = total;
 
         let active = self.context_buckets.iter().filter(|b| b.count > 0).count();
-        println!("\r  Contexts: 100% — {} contexts in {} buckets",
-                 total, active);
+        let total: u32 = self.context_buckets.iter().map(|b| b.count).sum();
+        println!("  Contexts: {} (parallel {}T), {} buckets", total, n_threads, active);
     }
 
     // ========================================================
@@ -570,67 +611,81 @@ impl HDCBrainV17 {
     /// Как ребёнок: "мама дай" работает, но "бабушка дай" — нет.
     /// Правило: "кто-то + дай" = любой взрослый, не только мама.
     pub fn discover_rules(&mut self, data: &[u16]) {
+        use rayon::prelude::*;
+
         let n = data.len();
         if n < 4 { return; }
 
-        // Step 1: Find positions where phrase memory is wrong
-        // For each error, compute correction = bind(trigram, codebook[correct])
-        // LSH-hash corrections → error clusters
-        let n_error_buckets: usize = 1 << 14; // 16384
-        let mut error_accumulators: Vec<BundleAccumulator> = (0..n_error_buckets)
-            .map(|_| BundleAccumulator::new(self.config.hdc_dim))
-            .collect();
-        let mut error_tokens: Vec<HashMap<u16, u32>> = (0..n_error_buckets)
-            .map(|_| HashMap::new())
-            .collect();
+        let n_error_buckets: usize = 1 << 14;
+        let n_threads = rayon::current_num_threads();
+        let chunk_size = (n - 3) / n_threads + 1;
+        let dim = self.config.hdc_dim;
+        let lsh_bits = self.config.lsh_bits;
+        let codebook = &self.codebook;
+        let phrase_buckets = &self.phrase_buckets;
 
-        let mut total_errors = 0u64;
-        let mut total_checked = 0u64;
-        let report_every = (n - 3) / 10 + 1;
+        // Parallel: each thread finds errors in its chunk
+        let thread_results: Vec<(Vec<BundleAccumulator>, Vec<HashMap<u16, u32>>, u64, u64)> =
+            (0..n_threads).into_par_iter().map(|tid| {
+                let start = 2 + tid * chunk_size;
+                let end = (start + chunk_size).min(n - 1);
 
-        for t in 2..n - 1 {
-            let trigram = self.make_trigram(data, t);
-            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
-            let correct = data[t + 1];
+                let mut err_accs: Vec<BundleAccumulator> = (0..n_error_buckets)
+                    .map(|_| BundleAccumulator::new(dim)).collect();
+                let mut err_toks: Vec<HashMap<u16, u32>> = (0..n_error_buckets)
+                    .map(|_| HashMap::new()).collect();
+                let mut errors = 0u64;
+                let mut checked = 0u64;
 
-            // What does phrase memory predict? (multi-probe)
-            let mut best_tok: Option<u16> = self.phrase_buckets[hash].top1();
-            let best_count = self.phrase_buckets[hash].successors
-                .get(&best_tok.unwrap_or(u16::MAX)).copied().unwrap_or(0);
+                for t in start..end {
+                    if t < 2 { continue; }
+                    let a = &codebook[data[t] as usize];
+                    let b = codebook[data[t-1] as usize].permute(1);
+                    let c = codebook[data[t-2] as usize].permute(2);
+                    let trigram = a.bind(&b).bind(&c);
+                    let hash = lsh_hash(&trigram, lsh_bits) as usize;
+                    let correct = data[t + 1];
 
-            // Check neighbors for better predictions
-            for bit in 0..self.config.lsh_bits {
-                let neighbor = hash ^ (1 << bit);
-                if let Some(ntok) = self.phrase_buckets[neighbor].top1() {
-                    let ncnt = self.phrase_buckets[neighbor].successors
-                        .get(&ntok).copied().unwrap_or(0);
-                    if ncnt > best_count {
-                        best_tok = Some(ntok);
+                    let predicted = phrase_buckets[hash].top1();
+                    checked += 1;
+
+                    if predicted != Some(correct) {
+                        let correction = trigram.bind(&codebook[correct as usize]);
+                        let err_hash = lsh_hash(&correction, 14) as usize;
+                        err_accs[err_hash].add(&correction);
+                        *err_toks[err_hash].entry(correct).or_insert(0) += 1;
+                        errors += 1;
                     }
                 }
-            }
+                (err_accs, err_toks, errors, checked)
+            }).collect();
 
-            let predicted = best_tok;
-            total_checked += 1;
+        // Merge
+        let mut error_accumulators: Vec<BundleAccumulator> = (0..n_error_buckets)
+            .map(|_| BundleAccumulator::new(dim)).collect();
+        let mut error_tokens: Vec<HashMap<u16, u32>> = (0..n_error_buckets)
+            .map(|_| HashMap::new()).collect();
+        let mut total_errors = 0u64;
+        let mut total_checked = 0u64;
 
-            if predicted != Some(correct) {
-                // Error! Compute correction vector
-                let correction = trigram.bind(&self.codebook[correct as usize]);
-                let err_hash = lsh_hash(&correction, 14) as usize;
-                error_accumulators[err_hash].add(&correction);
-                *error_tokens[err_hash].entry(correct).or_insert(0) += 1;
-                total_errors += 1;
-            }
-
-            if (t - 2) % report_every == 0 {
-                let pct = ((t - 2) as f64 / (n - 3) as f64 * 100.0) as u32;
-                print!("\r  Rules: {}% errors={}", pct, total_errors);
+        for (accs, toks, errs, checked) in &thread_results {
+            total_errors += errs;
+            total_checked += checked;
+            for i in 0..n_error_buckets {
+                for j in 0..dim {
+                    error_accumulators[i].counters[j] += accs[i].counters[j];
+                }
+                error_accumulators[i].count += accs[i].count;
+                for (&tok, &cnt) in &toks[i] {
+                    *error_tokens[i].entry(tok).or_insert(0) += cnt;
+                }
             }
         }
+        drop(thread_results);
 
         let error_rate = total_errors as f64 / total_checked as f64 * 100.0;
-        println!("\r  Rule discovery: {} errors / {} checked ({:.1}%)",
-                 total_errors, total_checked, error_rate);
+        println!("  Rules: {} errors / {} ({:.1}%) (parallel {}T)",
+                 total_errors, total_checked, error_rate, n_threads);
 
         // Step 2: Error clusters with many entries → rules
         let mut candidates: Vec<(BinaryVec, u32, f32)> = Vec::new();
