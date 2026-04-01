@@ -251,11 +251,15 @@ impl HDCBrainV17 {
     /// Bundle (majority vote) вместо bind — сохраняет все токены, не только комбинацию.
     pub fn make_broad_context(&self, tokens: &[u16], t: usize) -> BinaryVec {
         let mut acc = BundleAccumulator::new(self.config.hdc_dim);
-        let window = 5.min(t + 1);
+        let window = 50.min(t + 1); // 50 words of context
         for offset in 0..window {
             let tok_vec = &self.codebook[tokens[t - offset] as usize];
-            let permuted = tok_vec.permute(offset);
-            let weight = window - offset; // closer = heavier
+            let permuted = tok_vec.permute(offset % 16); // 16 unique positions, then wrap
+            // Exponential decay: recent words much heavier
+            let weight = if offset < 3 { 8 }
+                        else if offset < 10 { 4 }
+                        else if offset < 25 { 2 }
+                        else { 1 };
             for _ in 0..weight {
                 acc.add(&permuted);
             }
@@ -745,12 +749,15 @@ impl HDCBrainV17 {
                 for t in start..end {
                     // Build broad context inline (can't call &self in parallel)
                     acc.reset();
-                    let window = 5.min(t + 1);
+                    let window = 50.min(t + 1);
                     for offset in 0..window {
                         let tok_idx = data[t - offset] as usize;
                         if tok_idx < codebook.len() {
-                            let permuted = codebook[tok_idx].permute(offset);
-                            let weight = window - offset;
+                            let permuted = codebook[tok_idx].permute(offset % 16);
+                            let weight = if offset < 3 { 8 }
+                                        else if offset < 10 { 4 }
+                                        else if offset < 25 { 2 }
+                                        else { 1 };
                             for _ in 0..weight { acc.add(&permuted); }
                         }
                     }
