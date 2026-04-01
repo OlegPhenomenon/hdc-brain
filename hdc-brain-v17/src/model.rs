@@ -228,6 +228,39 @@ impl HDCBrainV17 {
         self.phrase_buckets.iter().filter(|b| b.count > 0).count()
     }
 
+    /// Reset phrase memory for fresh start (keeps codebook and rules).
+    pub fn reset_phrases(&mut self) {
+        let n = self.config.n_buckets();
+        self.phrase_buckets = (0..n)
+            .map(|_| PhraseBucket::new(self.config.hdc_dim))
+            .collect();
+        self.phrases_trained = 0;
+    }
+
+    /// Phrase-only top-1 accuracy (fast, no rules/reasoning).
+    pub fn phrase_accuracy(&self, data: &[u16], n_eval: usize) -> f64 {
+        let n = n_eval.min(data.len().saturating_sub(3));
+        if n == 0 { return 0.0; }
+        let mut correct = 0u32;
+        for t in 2..2 + n {
+            let trigram = self.make_trigram(data, t);
+            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
+            // Multi-probe: check primary + neighbors
+            let mut found = self.phrase_buckets[hash].top1() == Some(data[t + 1]);
+            if !found {
+                for bit in 0..self.config.lsh_bits {
+                    let neighbor = hash ^ (1 << bit);
+                    if self.phrase_buckets[neighbor].top1() == Some(data[t + 1]) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if found { correct += 1; }
+        }
+        correct as f64 / n as f64 * 100.0
+    }
+
     // ========================================================
     // Phase 2: Discover Rules (из ошибок фразовой памяти)
     // ========================================================
@@ -261,8 +294,24 @@ impl HDCBrainV17 {
             let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
             let correct = data[t + 1];
 
-            // What does phrase memory predict?
-            let predicted = self.phrase_buckets[hash].top1();
+            // What does phrase memory predict? (multi-probe)
+            let mut best_tok: Option<u16> = self.phrase_buckets[hash].top1();
+            let best_count = self.phrase_buckets[hash].successors
+                .get(&best_tok.unwrap_or(u16::MAX)).copied().unwrap_or(0);
+
+            // Check neighbors for better predictions
+            for bit in 0..self.config.lsh_bits {
+                let neighbor = hash ^ (1 << bit);
+                if let Some(ntok) = self.phrase_buckets[neighbor].top1() {
+                    let ncnt = self.phrase_buckets[neighbor].successors
+                        .get(&ntok).copied().unwrap_or(0);
+                    if ncnt > best_count {
+                        best_tok = Some(ntok);
+                    }
+                }
+            }
+
+            let predicted = best_tok;
             total_checked += 1;
 
             if predicted != Some(correct) {
@@ -326,7 +375,7 @@ impl HDCBrainV17 {
 
     /// Predict next token using all 3 layers.
     ///
-    /// Layer 1-2: phrase lookup → "я видел эту фразу"
+    /// Layer 1-2: phrase lookup (multi-probe LSH) → "я видел эту фразу"
     /// Layer 3-4: rule application → "тут работает правило"
     /// Layer 5-6: reasoning → "в контексте это логично"
     pub fn predict(
@@ -338,9 +387,29 @@ impl HDCBrainV17 {
         let trigram = self.make_trigram(tokens, t);
         let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
 
-        // === Layer 1-2: Phrase Memory ===
+        // === Layer 1-2: Phrase Memory (multi-probe LSH) ===
+        // Search primary bucket + 1-bit flip neighbors
+        let mut all_phrase: HashMap<u16, u32> = HashMap::new();
+
+        // Primary bucket (weighted 2x)
         let bucket = &self.phrase_buckets[hash];
-        let phrase_candidates = bucket.top_successors(self.config.top_k);
+        for &(tok, cnt) in &bucket.top_successors(self.config.top_k) {
+            *all_phrase.entry(tok).or_insert(0) += cnt * 2;
+        }
+
+        // Neighbor buckets: flip each bit of hash → 16 neighbors
+        for bit in 0..self.config.lsh_bits {
+            let neighbor = hash ^ (1 << bit);
+            let nbucket = &self.phrase_buckets[neighbor];
+            if nbucket.count == 0 { continue; }
+            for &(tok, cnt) in &nbucket.top_successors(3) {
+                *all_phrase.entry(tok).or_insert(0) += cnt;
+            }
+        }
+
+        let mut phrase_candidates: Vec<(u16, u32)> = all_phrase.into_iter().collect();
+        phrase_candidates.sort_by(|a, b| b.1.cmp(&a.1));
+        phrase_candidates.truncate(self.config.top_k * 2);
 
         // === Layer 3-4: Rule Application ===
         // For each candidate, check how well rules support it

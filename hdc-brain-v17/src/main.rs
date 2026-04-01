@@ -172,36 +172,62 @@ fn cmd_train(args: &[String]) {
 
     let mut model = HDCBrainV17::new(config);
 
-    // Phase 1: Learn Phrases
-    println!("\n--- Phase 1: Learning Phrases ---");
-    let t0 = Instant::now();
-    model.train_phrases(train_data);
-    let elapsed = t0.elapsed().as_secs_f64();
-    let tok_per_sec = train_data.len() as f64 / elapsed;
-    println!("  Time: {:.1}s ({:.0} tok/s)", elapsed, tok_per_sec);
+    // === Curriculum Learning ===
+    // Как ребёнок: мало слов → правила → больше слов → лучшие правила
+    let stages: Vec<(f64, &str)> = vec![
+        (0.01, "first words"),
+        (0.05, "basic phrases"),
+        (0.20, "grammar patterns"),
+        (0.50, "vocabulary growth"),
+        (1.00, "full knowledge"),
+    ];
 
-    // Quick phrase accuracy on val
-    println!("\n--- Phrase-only eval (quick) ---");
-    let n_quick = 10000.min(val_data.len() - 3);
-    let mut correct = 0u32;
-    for t in 2..2 + n_quick {
-        let trigram = model.make_trigram(val_data, t);
-        let hash = binary::lsh_hash(&trigram, model.config.lsh_bits) as usize;
-        if model.phrase_buckets[hash].top1() == Some(val_data[t + 1]) {
-            correct += 1;
-        }
+    let eval_n = 10000.min(val_data.len().saturating_sub(3));
+    let mut prev_end = 2; // start after first 2 tokens (for trigram)
+
+    for (i, &(frac, name)) in stages.iter().enumerate() {
+        let end = ((train_data.len() - 1) as f64 * frac) as usize;
+        if end <= prev_end { continue; }
+
+        let new_chunk = &train_data[prev_end..end];
+        println!("\n{}", "=".repeat(60));
+        println!("=== Stage {}/{}: {} ({:.0}%, +{} tokens, total {}) ===",
+                 i + 1, stages.len(), name, frac * 100.0,
+                 new_chunk.len(), end);
+
+        // Phase 1: Learn new phrases (incremental — adds to existing memory)
+        let t0 = Instant::now();
+        model.train_phrases(new_chunk);
+        let phrase_time = t0.elapsed().as_secs_f64();
+
+        // Quick phrase accuracy
+        let phrase_acc = model.phrase_accuracy(val_data, eval_n);
+        println!("  Phrase accuracy: {:.2}% (multi-probe LSH)", phrase_acc);
+
+        // Phase 2: Discover rules from ALL data so far
+        let t0 = Instant::now();
+        model.discover_rules(&train_data[..end]);
+        let rule_time = t0.elapsed().as_secs_f64();
+
+        // Phase 3: Full evaluation (all 3 layers)
+        let t0 = Instant::now();
+        let eval_data_slice = if val_data.len() > eval_n + 3 {
+            &val_data[..eval_n + 3]
+        } else { val_data };
+        let result = model.evaluate(eval_data_slice);
+        let eval_time = t0.elapsed().as_secs_f64();
+
+        println!("  --- Stage {} results ---", i + 1);
+        result.print();
+        println!("  Time: phrases {:.1}s, rules {:.1}s, eval {:.1}s",
+                 phrase_time, rule_time, eval_time);
+
+        prev_end = end;
     }
-    println!("  Phrase-only top-1: {:.2}% ({}/{})",
-             correct as f64 / n_quick as f64 * 100.0, correct, n_quick);
 
-    // Phase 2: Discover Rules
-    println!("\n--- Phase 2: Discovering Rules ---");
-    let t0 = Instant::now();
-    model.discover_rules(train_data);
-    println!("  Time: {:.1}s", t0.elapsed().as_secs_f64());
-
-    // Phase 3: Full Evaluation with all layers
-    println!("\n--- Phase 3: Full Evaluation (all layers) ---");
+    // Final comprehensive evaluation
+    println!("\n{}", "=".repeat(60));
+    println!("=== Final Evaluation (full val set) ===");
     let t0 = Instant::now();
     let eval_data = if val_data.len() > 50000 { &val_data[..50000] } else { val_data };
     let result = model.evaluate(eval_data);
