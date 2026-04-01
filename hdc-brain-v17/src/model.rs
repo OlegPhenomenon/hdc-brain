@@ -251,15 +251,11 @@ impl HDCBrainV17 {
     /// Bundle (majority vote) вместо bind — сохраняет все токены, не только комбинацию.
     pub fn make_broad_context(&self, tokens: &[u16], t: usize) -> BinaryVec {
         let mut acc = BundleAccumulator::new(self.config.hdc_dim);
-        let window = 50.min(t + 1); // 50 words of context
+        let window = 5.min(t + 1);
         for offset in 0..window {
             let tok_vec = &self.codebook[tokens[t - offset] as usize];
-            let permuted = tok_vec.permute(offset % 16); // 16 unique positions, then wrap
-            // Exponential decay: recent words much heavier
-            let weight = if offset < 3 { 8 }
-                        else if offset < 10 { 4 }
-                        else if offset < 25 { 2 }
-                        else { 1 };
+            let permuted = tok_vec.permute(offset);
+            let weight = window - offset;
             for _ in 0..weight {
                 acc.add(&permuted);
             }
