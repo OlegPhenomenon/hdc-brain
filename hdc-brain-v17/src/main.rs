@@ -297,38 +297,38 @@ fn cmd_train(args: &[String]) {
         }
     }
 
-    // === Multi-pass with Collapse: accumulate → collapse → repeat ===
-    // Как AccCollapse в v15: каждый проход уточняет предыдущий.
+    // === Multi-pass: самоанализ → работа над ошибками ===
+    // Не перечитываем весь учебник, а работаем над ошибками.
     let mut pass = 1;
     while train_start.elapsed().as_secs_f64() < max_secs * 0.85 {
         pass += 1;
         println!("\n{}", "=".repeat(60));
         let elapsed_min = train_start.elapsed().as_secs_f64() / 60.0;
-        println!("=== Pass {} (collapse + retrain, {:.1}min elapsed) ===", pass, elapsed_min);
+        println!("=== Pass {} (self-analysis, {:.1}min elapsed) ===", pass, elapsed_min);
 
-        // COLLAPSE: сжать бакеты, сбросить счётчики
-        // Это ключ: следующий проход уточняет, а не дублирует
-        model.collapse_all();
-        println!("  Collapsed all buckets");
-
-        // Re-train phrases on all data (builds ПОВЕРХ collapsed)
+        // САМОАНАЛИЗ: найти где ошибаемся
         let t0 = Instant::now();
-        model.train_phrases(train_data);
-        println!("  Phrases: {:.1}s", t0.elapsed().as_secs_f64());
+        let errors = model.find_errors(train_data);
+        let error_rate = errors.len() as f64 / (train_data.len() - 3) as f64 * 100.0;
+        println!("  Self-analysis: {} errors ({:.1}%) in {:.1}s",
+                 errors.len(), error_rate, t0.elapsed().as_secs_f64());
+
+        if errors.is_empty() {
+            println!("  No errors — perfect knowledge!");
+            break;
+        }
+
+        // РАБОТА НАД ОШИБКАМИ: учить только непонятное
+        let t0 = Instant::now();
+        model.train_on_errors(train_data, &errors);
+        println!("  Error training: {:.1}s", t0.elapsed().as_secs_f64());
 
         if train_start.elapsed().as_secs_f64() > max_secs * 0.85 { break; }
 
-        // Rebuild fact memory
+        // Обновить факты из ошибок
         let t0 = Instant::now();
-        model.build_fact_memory(train_data);
-        println!("  Facts: {:.1}s", t0.elapsed().as_secs_f64());
-
-        if train_start.elapsed().as_secs_f64() > max_secs * 0.85 { break; }
-
-        // Rebuild contexts
-        let t0 = Instant::now();
-        model.learn_contexts(train_data);
-        println!("  Contexts: {:.1}s", t0.elapsed().as_secs_f64());
+        model.build_facts_on_errors(train_data, &errors);
+        println!("  Error facts: {:.1}s", t0.elapsed().as_secs_f64());
 
         // Eval
         let eval_data_slice = if val_data.len() > eval_n + 3 {

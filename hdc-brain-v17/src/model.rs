@@ -461,7 +461,6 @@ impl HDCBrainV17 {
     }
 
     /// Collapse all buckets: сжать → сбросить → готово к новому проходу.
-    /// Как AccCollapse в v15: каждый проход уточняет предыдущий.
     pub fn collapse_all(&mut self) {
         for bucket in &mut self.phrase_buckets {
             bucket.collapse();
@@ -469,6 +468,62 @@ impl HDCBrainV17 {
         for bucket in &mut self.context_buckets {
             bucket.collapse();
         }
+    }
+
+    /// Самоанализ: найти позиции где модель ОШИБАЕТСЯ.
+    /// Возвращает индексы позиций с ошибками — учить только их.
+    pub fn find_errors(&self, data: &[u16]) -> Vec<usize> {
+        let n = data.len();
+        if n < 4 { return Vec::new(); }
+
+        let mut errors = Vec::new();
+        for t in 2..n - 1 {
+            let trigram = self.make_trigram(data, t);
+            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
+            let correct = data[t + 1];
+
+            if self.phrase_buckets[hash].top1() != Some(correct) {
+                errors.push(t);
+            }
+        }
+        errors
+    }
+
+    /// Учить ТОЛЬКО на ошибках: подать данные только для позиций где модель не угадала.
+    pub fn train_on_errors(&mut self, data: &[u16], error_positions: &[usize]) {
+        for &t in error_positions {
+            if t < 2 || t + 1 >= data.len() { continue; }
+            let trigram = self.make_trigram(data, t);
+            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
+            self.phrase_buckets[hash].add(&trigram, data[t + 1]);
+        }
+        println!("  Trained on {} errors", error_positions.len());
+    }
+
+    /// Build fact memory ТОЛЬКО из ошибок.
+    pub fn build_facts_on_errors(&mut self, data: &[u16], error_positions: &[usize]) {
+        let dim = self.config.hdc_dim;
+        let n_buckets = self.config.n_buckets();
+        let mut fact_accs: Vec<BundleAccumulator> = (0..n_buckets)
+            .map(|_| BundleAccumulator::new(dim))
+            .collect();
+
+        for &t in error_positions {
+            if t < 2 || t + 1 >= data.len() { continue; }
+            let trigram = self.make_trigram(data, t);
+            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
+            let fact = trigram.bind(&self.codebook[data[t + 1] as usize]);
+            fact_accs[hash].add(&fact);
+        }
+
+        let mut updated = 0;
+        for i in 0..n_buckets {
+            if fact_accs[i].count >= 2 {
+                self.phrase_buckets[i].fact_vec = Some(fact_accs[i].to_binary());
+                updated += 1;
+            }
+        }
+        println!("  Facts from errors: {} buckets", updated);
     }
 
     /// Reset phrase memory for fresh start (keeps codebook and rules).
