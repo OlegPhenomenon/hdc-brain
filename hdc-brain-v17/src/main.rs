@@ -178,7 +178,12 @@ fn cmd_train(args: &[String]) {
     println!("=== Phase 0: Semantic Codebook ===");
     let t0 = Instant::now();
     model.learn_codebook(train_data);
-    println!("  Time: {:.1}s", t0.elapsed().as_secs_f64());
+    println!("  Codebook time: {:.1}s", t0.elapsed().as_secs_f64());
+
+    // Build semantic neighbors for Layer 5-6 improvisation
+    let t0 = Instant::now();
+    model.build_neighbors(5);
+    println!("  Neighbors time: {:.1}s", t0.elapsed().as_secs_f64());
 
     // Show similar pairs with real words
     let pairs = model.find_similar_pairs();
@@ -189,6 +194,24 @@ fn cmd_train(args: &[String]) {
             let w2 = if j < vocab.len() { &vocab[j] } else { "?" };
             let pct = sim as f64 / model.config.hdc_dim as f64 * 100.0;
             println!("    '{}' ≈ '{}'  ({:.0}%)", w1, w2, pct);
+        }
+    }
+
+    // Show word neighbor examples
+    let example_words = ["▁город", "▁Россия", "▁большой", "▁был"];
+    println!("  Word neighbors (for improvisation):");
+    for word in &example_words {
+        if let Some(idx) = vocab.iter().position(|v| v == word) {
+            if idx < model.codebook_neighbors.len() && !model.codebook_neighbors[idx].is_empty() {
+                let neighbors: Vec<String> = model.codebook_neighbors[idx].iter()
+                    .take(5)
+                    .map(|&(t, s)| {
+                        let name = if (t as usize) < vocab.len() { &vocab[t as usize] } else { "?" };
+                        format!("{}({:.0}%)", name, s as f64 / model.config.hdc_dim as f64 * 100.0)
+                    })
+                    .collect();
+                println!("    '{}' → [{}]", word, neighbors.join(", "));
+            }
         }
     }
 

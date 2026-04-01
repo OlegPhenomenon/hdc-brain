@@ -157,7 +157,10 @@ pub struct HDCBrainV17 {
     pub context_buckets: Vec<PhraseBucket>,
     pub context_lsh_bits: usize,
 
-    // Layer 5-6: Discovered Rules
+    // Layer 5-6: Improvisation (semantic substitution)
+    pub codebook_neighbors: Vec<Vec<(u16, i32)>>,  // per token: top-K similar + similarity
+
+    // Layer 5-6 (additional): Discovered Rules
     pub rules: Vec<Rule>,
 
     // Stats
@@ -194,6 +197,7 @@ impl HDCBrainV17 {
             phrase_buckets,
             context_buckets,
             context_lsh_bits,
+            codebook_neighbors: Vec::new(),
             rules: Vec::new(),
             phrases_trained: 0,
             contexts_trained: 0,
@@ -345,6 +349,42 @@ impl HDCBrainV17 {
         }
 
         best_pairs
+    }
+
+    // ========================================================
+    // Phase 0b: Build Codebook Neighbors (for improvisation)
+    // ========================================================
+
+    /// Для каждого токена найти top-K семантически похожих.
+    /// "город" → ["деревня", "село", "посёлок", ...]
+    /// Это позволяет слою 5-6 подставлять похожие слова.
+    pub fn build_neighbors(&mut self, top_k: usize) {
+        let vocab = self.config.vocab_size;
+        let threshold = self.config.hdc_dim as i32 / 10; // > 10% similarity
+
+        self.codebook_neighbors = Vec::with_capacity(vocab);
+
+        for i in 0..vocab {
+            let mut sims: Vec<(u16, i32)> = Vec::new();
+            for j in 0..vocab {
+                if i == j { continue; }
+                let sim = self.codebook[i].similarity(&self.codebook[j]);
+                if sim > threshold {
+                    sims.push((j as u16, sim));
+                }
+            }
+            sims.sort_by(|a, b| b.1.cmp(&a.1));
+            sims.truncate(top_k);
+            self.codebook_neighbors.push(sims);
+
+            if i % 2000 == 0 && i > 0 {
+                print!("\r  Neighbors: {}%", i * 100 / vocab);
+            }
+        }
+
+        let with_neighbors = self.codebook_neighbors.iter()
+            .filter(|n| !n.is_empty()).count();
+        println!("\r  Neighbors: {} / {} tokens have similar words", with_neighbors, vocab);
     }
 
     // ========================================================
@@ -652,33 +692,52 @@ impl HDCBrainV17 {
             }
         }
 
-        // === Layer 5-6: Rules + Reasoning ===
+        // === Layer 5-6: Improvisation (semantic word substitution) ===
+        // "Не знаю 'в деревне' → но 'деревня ≈ город' → знаю 'в городе' → использую!"
+        //
+        // Для каждого из 3 слов в trigram: подставляем семантически похожее,
+        // ищем результат в phrase memory, берём ответ со скидкой.
         let dim = self.config.hdc_dim as f64;
 
-        // Rules: only for uncertain cases (when phrase and context disagree)
-        if scored.len() > 1 {
-            let top_score = scored.iter().map(|s| s.1).fold(0.0f64, f64::max);
-            let second_score = scored.iter().filter(|s| s.1 < top_score)
-                .map(|s| s.1).fold(0.0f64, f64::max);
-            let confidence_gap = if top_score > 0.0 {
-                (top_score - second_score) / top_score
-            } else { 0.0 };
+        if t >= 2 && !self.codebook_neighbors.is_empty() {
+            let toks = [tokens[t] as usize, tokens[t-1] as usize, tokens[t-2] as usize];
+            let perms = [0usize, 1, 2]; // permutation shifts for each position
 
-            if confidence_gap < 0.5 { // uncertain → apply rules
-                for item in scored.iter_mut() {
-                    for rule in self.rules.iter().take(20) {
-                        let conclusion = trigram.unbind(&rule.pattern);
-                        let sim = conclusion.similarity(&self.codebook[item.0 as usize]);
-                        let norm_sim = sim as f64 / dim;
-                        if norm_sim > 0.0 {
-                            item.1 += norm_sim * rule.confidence as f64 * 0.5;
+            for pos in 0..3 { // substitute each of the 3 trigram positions
+                let original_tok = toks[pos];
+                if original_tok >= self.codebook_neighbors.len() { continue; }
+
+                for &(similar_tok, sim) in &self.codebook_neighbors[original_tok] {
+                    // Build alternative trigram with substituted word
+                    let mut alt_toks = toks;
+                    alt_toks[pos] = similar_tok as usize;
+
+                    let alt_a = &self.codebook[alt_toks[0]];
+                    let alt_b = self.codebook[alt_toks[1]].permute(1);
+                    let alt_c = self.codebook[alt_toks[2]].permute(2);
+                    let alt_trigram = alt_a.bind(&alt_b).bind(&alt_c);
+
+                    let alt_hash = lsh_hash(&alt_trigram, self.config.lsh_bits) as usize;
+                    let alt_bucket = &self.phrase_buckets[alt_hash];
+
+                    if alt_bucket.count < 3 { continue; } // skip near-empty
+
+                    // Discount by similarity: closer word → higher weight
+                    let weight = (sim as f64 / dim) * 30.0;
+
+                    for &(succ_tok, cnt) in &alt_bucket.top_successors(3) {
+                        let sub_score = cnt as f64 * weight;
+                        if let Some(existing) = scored.iter_mut().find(|s| s.0 == succ_tok) {
+                            existing.1 += sub_score; // boost existing candidate
+                        } else {
+                            scored.push((succ_tok, sub_score)); // new candidate from improv
                         }
                     }
                 }
             }
         }
 
-        // Reasoning: context consistency (light touch)
+        // Reasoning: context consistency (light touch — boost, never suppress)
         if let Some(facts) = fact_mem {
             for item in scored.iter_mut() {
                 let consistency = facts.consistency(&self.codebook[item.0 as usize]);
@@ -694,16 +753,18 @@ impl HDCBrainV17 {
         scored.truncate(self.config.top_k);
 
         // Determine which layer was decisive
-        let layer = if bucket.count > 0 && !phrase_candidates.is_empty() {
-            if scored[0].0 == phrase_candidates[0].0 {
-                PredictionLayer::Phrase
-            } else {
-                PredictionLayer::Rule
-            }
-        } else if !self.rules.is_empty() {
-            PredictionLayer::Rule
+        let top_pred = scored.first().map(|s| s.0);
+        let phrase_top = phrase_candidates.first().map(|c| c.0);
+        let context_top = context_scores.iter()
+            .max_by_key(|(_, &v)| v)
+            .map(|(&k, _)| k);
+
+        let layer = if top_pred == phrase_top && phrase_top.is_some() {
+            PredictionLayer::Phrase           // Layer 1-2 won
+        } else if top_pred == context_top && context_top.is_some() {
+            PredictionLayer::Rule             // Layer 3-4 (context) won
         } else {
-            PredictionLayer::Reasoning
+            PredictionLayer::Reasoning        // Layer 5-6 (improvisation) won!
         };
 
         PredictionResult {
@@ -989,17 +1050,21 @@ impl HDCBrainV17 {
             .map(|_| PhraseBucket::new(hdc_dim))
             .collect();
 
-        Ok(HDCBrainV17 {
+        let mut model = HDCBrainV17 {
             config,
             codebook,
             phrase_buckets,
             context_buckets,
             context_lsh_bits,
+            codebook_neighbors: Vec::new(),
             rules,
             phrases_trained: 0,
             contexts_trained: 0,
             rules_discovered: n_rules,
-        })
+        };
+        // Rebuild neighbors from loaded codebook
+        model.build_neighbors(5);
+        Ok(model)
     }
 }
 
