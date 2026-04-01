@@ -47,6 +47,10 @@ pub struct PhraseBucket {
     pub accumulator: BundleAccumulator,
     pub successors: HashMap<u16, u32>,
     pub count: u32,
+    /// Logical fact memory: bundle of bind(trigram, codebook[successor]).
+    /// unbind(fact_vec, query_trigram) → answer vector → nearest token.
+    /// Это чистая логика, не статистика.
+    pub fact_vec: Option<BinaryVec>,
 }
 
 impl PhraseBucket {
@@ -55,6 +59,7 @@ impl PhraseBucket {
             accumulator: BundleAccumulator::new(dim),
             successors: HashMap::new(),
             count: 0,
+            fact_vec: None,
         }
     }
 
@@ -455,6 +460,60 @@ impl HDCBrainV17 {
     }
 
     // ========================================================
+    // Phase A2: Build Logical Fact Memory
+    // ========================================================
+
+    /// Построить логическую память фактов.
+    /// Для каждой позиции: fact = bind(trigram, codebook[successor])
+    /// Бакет хранит bundle всех фактов → unbind(facts, query) = логический вывод.
+    ///
+    /// Это НЕ подсчёт частот. Это хранение СВЯЗЕЙ через HDC bind.
+    /// Предсказание = unbind (извлечение), не argmax(счётчик).
+    pub fn build_fact_memory(&mut self, data: &[u16]) {
+        let n = data.len();
+        if n < 4 { return; }
+
+        let n_buckets = self.config.n_buckets();
+        let dim = self.config.hdc_dim;
+
+        // Temporary accumulators for fact bundles
+        let mut fact_accs: Vec<BundleAccumulator> = (0..n_buckets)
+            .map(|_| BundleAccumulator::new(dim))
+            .collect();
+
+        let total = n - 3;
+        let report_every = total / 10 + 1;
+
+        for t in 2..n - 1 {
+            let trigram = self.make_trigram(data, t);
+            let hash = lsh_hash(&trigram, self.config.lsh_bits) as usize;
+            let successor = data[t + 1] as usize;
+
+            // ФАКТ = bind(контекст, ответ)
+            // "в этом контексте → этот токен" записано как ЛОГИЧЕСКАЯ СВЯЗЬ
+            let fact = trigram.bind(&self.codebook[successor]);
+            fact_accs[hash].add(&fact);
+
+            if (t - 2) % report_every == 0 {
+                let pct = ((t - 2) as f64 / total as f64 * 100.0) as u32;
+                print!("\r  Facts: {}%", pct);
+            }
+        }
+
+        // Collapse accumulators to binary and store
+        let mut stored = 0;
+        for i in 0..n_buckets {
+            if fact_accs[i].count >= 3 { // need at least 3 facts for stable bundle
+                self.phrase_buckets[i].fact_vec = Some(fact_accs[i].to_binary());
+                stored += 1;
+            }
+        }
+
+        println!("\r  Facts: {} buckets with logical memory ({} total facts)",
+                 stored, total);
+    }
+
+    // ========================================================
     // Phase B: Learn Contexts (Layer 3-4)
     // "В каких ситуациях заученные фразы работают?"
     // ========================================================
@@ -689,6 +748,30 @@ impl HDCBrainV17 {
         for (&tok, &cnt) in &context_scores {
             if !scored.iter().any(|&(t, _)| t == tok) {
                 scored.push((tok, cnt as f64 * 5.0)); // lower weight than phrase+context
+            }
+        }
+
+        // === Logical Inference: unbind(facts, trigram) → answer ===
+        // Чистая логика: если в бакете есть fact_vec = bundle(bind(ctx,succ)...),
+        // то unbind(fact_vec, trigram) ≈ codebook[correct_successor].
+        // Это modus ponens: знаю связь (ctx→succ), вижу ctx, извлекаю succ.
+        if let Some(ref fact_vec) = bucket.fact_vec {
+            let answer_vec = fact_vec.unbind(&trigram);
+
+            // Find nearest codebook entries to the logical answer
+            // (only top-5, and only if significantly similar)
+            let threshold = self.config.hdc_dim as i32 / 6;
+            for j in 0..self.config.vocab_size {
+                let sim = answer_vec.similarity(&self.codebook[j]);
+                if sim > threshold {
+                    let logical_score = sim as f64 * 2.0; // logical inference = strong signal
+                    let tok = j as u16;
+                    if let Some(existing) = scored.iter_mut().find(|s| s.0 == tok) {
+                        existing.1 += logical_score;
+                    } else {
+                        scored.push((tok, logical_score));
+                    }
+                }
             }
         }
 

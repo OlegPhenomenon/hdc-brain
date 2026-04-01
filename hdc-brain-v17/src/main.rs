@@ -243,6 +243,11 @@ fn cmd_train(args: &[String]) {
         model.train_phrases(new_chunk);
         let phrase_time = t0.elapsed().as_secs_f64();
 
+        // Phase A2: Build logical fact memory — "записать связи"
+        let t0 = Instant::now();
+        model.build_fact_memory(&train_data[..end]);
+        let fact_time = t0.elapsed().as_secs_f64();
+
         // Quick phrase accuracy
         let phrase_acc = model.phrase_accuracy(val_data, eval_n);
         println!("  Phrase accuracy: {:.2}%", phrase_acc);
@@ -267,8 +272,8 @@ fn cmd_train(args: &[String]) {
 
         println!("  --- Stage {} results ---", i + 1);
         result.print();
-        println!("  Time: phrases {:.1}s, contexts {:.1}s, rules {:.1}s, eval {:.1}s",
-                 phrase_time, context_time, rule_time, eval_time);
+        println!("  Time: phrases {:.1}s, facts {:.1}s, ctx {:.1}s, rules {:.1}s, eval {:.1}s",
+                 phrase_time, fact_time, context_time, rule_time, eval_time);
 
         prev_end = end;
     }
