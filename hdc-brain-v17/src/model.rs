@@ -253,40 +253,56 @@ impl HDCBrainV17 {
         let n = data.len();
         if n < 5 { return; }
 
-        println!("  Building semantic codebook...");
+        println!("  Building semantic codebook (parallel)...");
 
-        // Для каждого токена: накапливаем контекстные вектора
         let vocab = self.config.vocab_size;
         let dim = self.config.hdc_dim;
+
+        // Parallel: split data into chunks, each thread builds local accumulators
+        use rayon::prelude::*;
+        let n_threads = rayon::current_num_threads();
+        let chunk_size = (n - 4) / n_threads + 1;
+
+        let codebook = &self.codebook;
+        let thread_results: Vec<Vec<BundleAccumulator>> = (0..n_threads).into_par_iter().map(|tid| {
+            let mut local: Vec<BundleAccumulator> = (0..vocab)
+                .map(|_| BundleAccumulator::new(dim))
+                .collect();
+
+            let start = 2 + tid * chunk_size;
+            let end = (start + chunk_size).min(n - 2);
+
+            for t in start..end {
+                let tok = data[t] as usize;
+                if tok >= vocab { continue; }
+
+                let prev1 = codebook[data[t - 1] as usize].permute(1);
+                let prev2 = codebook[data[t - 2] as usize].permute(2);
+                let next1 = codebook[data[t + 1] as usize].permute(3);
+                let next2 = codebook[data[t + 2] as usize].permute(4);
+
+                local[tok].add(&prev1);
+                local[tok].add(&prev2);
+                local[tok].add(&next1);
+                local[tok].add(&next2);
+            }
+            local
+        }).collect();
+
+        // Merge thread results
         let mut token_contexts: Vec<BundleAccumulator> = (0..vocab)
             .map(|_| BundleAccumulator::new(dim))
             .collect();
 
-        let report_every = (n - 4) / 10 + 1;
-
-        for t in 2..n - 2 {
-            let tok = data[t] as usize;
-            if tok >= vocab { continue; }
-
-            // Контекст = соседние слова с позиционным кодированием
-            // Предыдущие: perm(1), perm(2)
-            // Следующие: perm(3), perm(4)
-            // Разные permutations чтобы "слово слева" ≠ "слово справа"
-            let prev1 = &self.codebook[data[t - 1] as usize].permute(1);
-            let prev2 = &self.codebook[data[t - 2] as usize].permute(2);
-            let next1 = &self.codebook[data[t + 1] as usize].permute(3);
-            let next2 = &self.codebook[data[t + 2] as usize].permute(4);
-
-            token_contexts[tok].add(prev1);
-            token_contexts[tok].add(prev2);
-            token_contexts[tok].add(next1);
-            token_contexts[tok].add(next2);
-
-            if (t - 2) % report_every == 0 {
-                let pct = ((t - 2) as f64 / (n - 4) as f64 * 100.0) as u32;
-                print!("\r  Codebook: {}%", pct);
+        for thread_local in &thread_results {
+            for tok in 0..vocab {
+                for i in 0..dim {
+                    token_contexts[tok].counters[i] += thread_local[tok].counters[i];
+                }
+                token_contexts[tok].count += thread_local[tok].count;
             }
         }
+        drop(thread_results);
 
         // Blend: семантический вектор MIX с оригинальным случайным.
         // Частые слова (> 50K контекстов) слишком "размазаны" → больше random.
@@ -364,32 +380,28 @@ impl HDCBrainV17 {
     /// "город" → ["деревня", "село", "посёлок", ...]
     /// Это позволяет слою 5-6 подставлять похожие слова.
     pub fn build_neighbors(&mut self, top_k: usize) {
+        use rayon::prelude::*;
+
         let vocab = self.config.vocab_size;
-        let threshold = self.config.hdc_dim as i32 / 10; // > 10% similarity
+        let threshold = self.config.hdc_dim as i32 / 10;
+        let codebook = &self.codebook;
 
-        self.codebook_neighbors = Vec::with_capacity(vocab);
-
-        for i in 0..vocab {
-            let mut sims: Vec<(u16, i32)> = Vec::new();
-            for j in 0..vocab {
-                if i == j { continue; }
-                let sim = self.codebook[i].similarity(&self.codebook[j]);
-                if sim > threshold {
-                    sims.push((j as u16, sim));
-                }
-            }
+        self.codebook_neighbors = (0..vocab).into_par_iter().map(|i| {
+            let mut sims: Vec<(u16, i32)> = (0..vocab)
+                .filter(|&j| j != i)
+                .filter_map(|j| {
+                    let sim = codebook[i].similarity(&codebook[j]);
+                    if sim > threshold { Some((j as u16, sim)) } else { None }
+                })
+                .collect();
             sims.sort_by(|a, b| b.1.cmp(&a.1));
             sims.truncate(top_k);
-            self.codebook_neighbors.push(sims);
-
-            if i % 2000 == 0 && i > 0 {
-                print!("\r  Neighbors: {}%", i * 100 / vocab);
-            }
-        }
+            sims
+        }).collect();
 
         let with_neighbors = self.codebook_neighbors.iter()
             .filter(|n| !n.is_empty()).count();
-        println!("\r  Neighbors: {} / {} tokens have similar words", with_neighbors, vocab);
+        println!("  Neighbors: {} / {} tokens (parallel)", with_neighbors, vocab);
     }
 
     // ========================================================

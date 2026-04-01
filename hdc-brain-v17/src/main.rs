@@ -149,9 +149,22 @@ fn cmd_train(args: &[String]) {
     let dim: usize = parse_arg(args, "--dim")
         .and_then(|s| s.parse().ok())
         .unwrap_or(4096);
+    let n_threads: usize = parse_arg(args, "--threads")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(4);
+    let max_minutes: f64 = parse_arg(args, "--time")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(25.0);
+
+    // Set thread pool
+    rayon::ThreadPoolBuilder::new().num_threads(n_threads).build_global()
+        .unwrap_or_else(|_| ());
+
+    let train_start = Instant::now();
+    let max_secs = max_minutes * 60.0;
 
     println!("=== HDC-Brain v17: Train ===");
-    println!("  dim={}, data={}", dim, data_path);
+    println!("  dim={}, threads={}, time_limit={:.0}min, data={}", dim, n_threads, max_minutes, data_path);
 
     let vocab = load_vocab(&vocab_path);
     let data = load_tokens(&data_path);
@@ -276,7 +289,52 @@ fn cmd_train(args: &[String]) {
                  phrase_time, fact_time, context_time, rule_time, eval_time);
 
         prev_end = end;
+
+        // Check timer
+        if train_start.elapsed().as_secs_f64() > max_secs * 0.9 {
+            println!("  ⏰ Time limit approaching, stopping curriculum");
+            break;
+        }
     }
+
+    // === Multi-pass: repeat full data to strengthen facts ===
+    let mut pass = 1;
+    while train_start.elapsed().as_secs_f64() < max_secs * 0.85 {
+        pass += 1;
+        println!("\n{}", "=".repeat(60));
+        let elapsed_min = train_start.elapsed().as_secs_f64() / 60.0;
+        println!("=== Pass {} (all data, {:.1}min elapsed) ===", pass, elapsed_min);
+
+        // Re-train phrases on all data (accumulates — stronger signals)
+        let t0 = Instant::now();
+        model.train_phrases(train_data);
+        println!("  Phrases: {:.1}s", t0.elapsed().as_secs_f64());
+
+        if train_start.elapsed().as_secs_f64() > max_secs * 0.85 { break; }
+
+        // Rebuild fact memory (overwrites with better facts from more evidence)
+        let t0 = Instant::now();
+        model.build_fact_memory(train_data);
+        println!("  Facts: {:.1}s", t0.elapsed().as_secs_f64());
+
+        if train_start.elapsed().as_secs_f64() > max_secs * 0.85 { break; }
+
+        // Rebuild contexts
+        let t0 = Instant::now();
+        model.learn_contexts(train_data);
+        println!("  Contexts: {:.1}s", t0.elapsed().as_secs_f64());
+
+        // Quick eval
+        let eval_data_slice = if val_data.len() > eval_n + 3 {
+            &val_data[..eval_n + 3]
+        } else { val_data };
+        let result = model.evaluate(eval_data_slice);
+        println!("  --- Pass {} results ---", pass);
+        result.print();
+    }
+
+    let total_min = train_start.elapsed().as_secs_f64() / 60.0;
+    println!("\n  Total training: {:.1} min, {} passes", total_min, pass);
 
     // Final comprehensive evaluation
     println!("\n{}", "=".repeat(60));
