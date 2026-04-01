@@ -85,6 +85,28 @@ impl PhraseBucket {
             .max_by_key(|(_, &cnt)| cnt)
             .map(|(&tok, _)| tok)
     }
+
+    /// Collapse: сжать accumulator в бинарный, сбросить счётчики.
+    /// Следующий проход будет строить ПОВЕРХ сжатого, уточняя.
+    /// Successor counts делим пополам (затухание старых данных).
+    pub fn collapse(&mut self) {
+        if self.count == 0 { return; }
+
+        // Collapse accumulator: binary → seed for next pass
+        let collapsed = self.accumulator.to_binary();
+        self.accumulator.reset();
+        // Seed: добавить collapsed один раз как "память" прошлого прохода
+        self.accumulator.add(&collapsed);
+
+        // Successor counts: decay (старые данные менее важны)
+        for cnt in self.successors.values_mut() {
+            *cnt = (*cnt / 2).max(1); // halve, keep at least 1
+        }
+        // Remove near-zero entries
+        self.successors.retain(|_, cnt| *cnt >= 2);
+
+        self.count = 1; // reset count but mark as non-empty
+    }
 }
 
 // ============================================================
@@ -436,6 +458,17 @@ impl HDCBrainV17 {
 
     fn active_buckets(&self) -> usize {
         self.phrase_buckets.iter().filter(|b| b.count > 0).count()
+    }
+
+    /// Collapse all buckets: сжать → сбросить → готово к новому проходу.
+    /// Как AccCollapse в v15: каждый проход уточняет предыдущий.
+    pub fn collapse_all(&mut self) {
+        for bucket in &mut self.phrase_buckets {
+            bucket.collapse();
+        }
+        for bucket in &mut self.context_buckets {
+            bucket.collapse();
+        }
     }
 
     /// Reset phrase memory for fresh start (keeps codebook and rules).

@@ -297,22 +297,28 @@ fn cmd_train(args: &[String]) {
         }
     }
 
-    // === Multi-pass: repeat full data to strengthen facts ===
+    // === Multi-pass with Collapse: accumulate → collapse → repeat ===
+    // Как AccCollapse в v15: каждый проход уточняет предыдущий.
     let mut pass = 1;
     while train_start.elapsed().as_secs_f64() < max_secs * 0.85 {
         pass += 1;
         println!("\n{}", "=".repeat(60));
         let elapsed_min = train_start.elapsed().as_secs_f64() / 60.0;
-        println!("=== Pass {} (all data, {:.1}min elapsed) ===", pass, elapsed_min);
+        println!("=== Pass {} (collapse + retrain, {:.1}min elapsed) ===", pass, elapsed_min);
 
-        // Re-train phrases on all data (accumulates — stronger signals)
+        // COLLAPSE: сжать бакеты, сбросить счётчики
+        // Это ключ: следующий проход уточняет, а не дублирует
+        model.collapse_all();
+        println!("  Collapsed all buckets");
+
+        // Re-train phrases on all data (builds ПОВЕРХ collapsed)
         let t0 = Instant::now();
         model.train_phrases(train_data);
         println!("  Phrases: {:.1}s", t0.elapsed().as_secs_f64());
 
         if train_start.elapsed().as_secs_f64() > max_secs * 0.85 { break; }
 
-        // Rebuild fact memory (overwrites with better facts from more evidence)
+        // Rebuild fact memory
         let t0 = Instant::now();
         model.build_fact_memory(train_data);
         println!("  Facts: {:.1}s", t0.elapsed().as_secs_f64());
@@ -324,7 +330,7 @@ fn cmd_train(args: &[String]) {
         model.learn_contexts(train_data);
         println!("  Contexts: {:.1}s", t0.elapsed().as_secs_f64());
 
-        // Quick eval
+        // Eval
         let eval_data_slice = if val_data.len() > eval_n + 3 {
             &val_data[..eval_n + 3]
         } else { val_data };
