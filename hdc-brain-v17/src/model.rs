@@ -391,19 +391,26 @@ impl HDCBrainV17 {
         // Search primary bucket + 1-bit flip neighbors
         let mut all_phrase: HashMap<u16, u32> = HashMap::new();
 
-        // Primary bucket (weighted 2x)
+        // Primary bucket (weighted heavily — exact match)
         let bucket = &self.phrase_buckets[hash];
-        for &(tok, cnt) in &bucket.top_successors(self.config.top_k) {
-            *all_phrase.entry(tok).or_insert(0) += cnt * 2;
+        let primary_top = bucket.top_successors(self.config.top_k);
+        for &(tok, cnt) in &primary_top {
+            *all_phrase.entry(tok).or_insert(0) += cnt * 10; // primary = 10x weight
         }
 
         // Neighbor buckets: flip each bit of hash → 16 neighbors
+        // Weight by how similar neighbor's representative is to our trigram
         for bit in 0..self.config.lsh_bits {
             let neighbor = hash ^ (1 << bit);
             let nbucket = &self.phrase_buckets[neighbor];
-            if nbucket.count == 0 { continue; }
+            if nbucket.count < 5 { continue; }
+            // Check actual similarity between trigram and bucket representative
+            let rep = nbucket.accumulator.to_binary();
+            let sim = trigram.similarity(&rep);
+            if sim <= 0 { continue; } // skip dissimilar neighbors
+            let weight = (sim as u32 / 100).max(1); // proportional to similarity
             for &(tok, cnt) in &nbucket.top_successors(3) {
-                *all_phrase.entry(tok).or_insert(0) += cnt;
+                *all_phrase.entry(tok).or_insert(0) += cnt * weight;
             }
         }
 
@@ -412,42 +419,51 @@ impl HDCBrainV17 {
         phrase_candidates.truncate(self.config.top_k * 2);
 
         // === Layer 3-4: Rule Application ===
-        // For each candidate, check how well rules support it
+        // PRINCIPLE: фразы — основа, правила — только для неуверенных случаев.
+        // Если top phrase candidate уверен (count >> 2nd), не трогаем.
+
+        let top_count = phrase_candidates.first().map(|c| c.1).unwrap_or(0);
+        let second_count = phrase_candidates.get(1).map(|c| c.1).unwrap_or(0);
+        let phrase_confidence = if top_count > 0 {
+            (top_count - second_count) as f64 / top_count as f64
+        } else { 0.0 };
+
+        // Rule weight: inversely proportional to phrase confidence
+        // Confident phrase (gap > 50%) → rules almost ignored
+        // Uncertain phrase (gap < 20%) → rules have more influence
+        let rule_weight = (1.0 - phrase_confidence).max(0.0).min(1.0) * 0.5;
+
+        let dim = self.config.hdc_dim as f64;
         let mut scored: Vec<(u16, f64)> = phrase_candidates.iter()
             .map(|&(tok, count)| {
-                let mut score = count as f64;
+                let mut score = count as f64 * 100.0; // phrase score dominates
 
-                // Apply each rule: unbind(trigram, rule) → how similar to codebook[tok]?
-                for rule in &self.rules {
-                    let conclusion = trigram.unbind(&rule.pattern);
-                    let sim = conclusion.similarity(&self.codebook[tok as usize]);
-                    // Positive sim → rule supports this token
-                    score += sim as f64 * rule.confidence as f64 * 0.01;
+                // Apply rules only if phrase is uncertain
+                if rule_weight > 0.05 {
+                    for rule in self.rules.iter().take(50) { // top-50 rules
+                        let conclusion = trigram.unbind(&rule.pattern);
+                        let sim = conclusion.similarity(&self.codebook[tok as usize]);
+                        // Normalize to [-1, 1], only add positive support
+                        let norm_sim = sim as f64 / dim;
+                        if norm_sim > 0.0 {
+                            score += norm_sim * rule.confidence as f64 * rule_weight;
+                        }
+                    }
                 }
 
                 (tok, score)
             })
             .collect();
 
-        // Also check: do any rules predict tokens NOT in phrase candidates?
-        // (This is the "improvisation" part — rules can suggest new tokens)
-        for rule in self.rules.iter().take(20) { // top-20 rules only
-            let conclusion = trigram.unbind(&rule.pattern);
-            // Find nearest codebook entry
-            let (best_tok, best_sim) = self.nearest_codebook(&conclusion, 1)[0];
-            if best_sim > self.config.hdc_dim as i32 / 8 { // significant similarity
-                if !scored.iter().any(|&(t, _)| t == best_tok) {
-                    scored.push((best_tok, best_sim as f64 * rule.confidence as f64 * 0.005));
-                }
-            }
-        }
-
         // === Layer 5-6: Reasoning (context consistency) ===
+        // Light touch: only boost, never suppress
         if let Some(facts) = fact_mem {
             for item in scored.iter_mut() {
                 let consistency = facts.consistency(&self.codebook[item.0 as usize]);
-                // Boost tokens consistent with recent context
-                item.1 += consistency as f64 * 0.1;
+                let norm_cons = consistency as f64 / dim;
+                if norm_cons > 0.0 {
+                    item.1 += norm_cons * 0.5; // small positive boost only
+                }
             }
         }
 
