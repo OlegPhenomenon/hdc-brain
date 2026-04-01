@@ -473,19 +473,39 @@ impl HDCBrainV17 {
         }
     }
 
-    /// Предсказание по ВСЕМ уровням каскада.
-    /// Каскад: level 0 (основа) → level 1 (ошибки level 0) → level 2 → ...
+    /// Предсказание по каскаду: trust shallow first, go deeper only if uncertain.
     pub fn cascade_predict(&self, trigram: &BinaryVec) -> Vec<(u16, u32)> {
-        let mut combined: HashMap<u16, u32> = HashMap::new();
         let hash = lsh_hash(trigram, self.config.lsh_bits) as usize;
 
-        for (level, buckets) in self.cascade.iter().enumerate() {
+        // Try level 0 first
+        let l0 = &self.cascade[0][hash];
+        let l0_top = l0.top_successors(5);
+
+        if !l0_top.is_empty() {
+            let top_count = l0_top[0].1;
+            let second = l0_top.get(1).map(|c| c.1).unwrap_or(0);
+            let confidence = if top_count > 0 {
+                (top_count - second) as f64 / top_count as f64
+            } else { 0.0 };
+
+            // If level 0 is confident (gap > 30%) → trust it, don't ask deeper
+            if confidence > 0.3 {
+                return l0_top;
+            }
+        }
+
+        // Level 0 uncertain → ask deeper levels for help
+        let mut combined: HashMap<u16, u32> = HashMap::new();
+        for &(tok, cnt) in &l0_top {
+            *combined.entry(tok).or_insert(0) += cnt * 10; // level 0 = base weight
+        }
+
+        for (level, buckets) in self.cascade.iter().enumerate().skip(1) {
             let bucket = &buckets[hash];
             if bucket.count == 0 { continue; }
-            // Deeper levels = more specialized, higher weight
-            let level_weight = (level as u32 + 1) * 2;
-            for &(tok, cnt) in &bucket.top_successors(5) {
-                *combined.entry(tok).or_insert(0) += cnt * level_weight;
+            // Deeper levels get moderate weight (help but don't overpower)
+            for &(tok, cnt) in &bucket.top_successors(3) {
+                *combined.entry(tok).or_insert(0) += cnt * 5;
             }
         }
 
@@ -494,7 +514,7 @@ impl HDCBrainV17 {
         result
     }
 
-    /// Cascade top1: лучший ответ из всех уровней.
+    /// Cascade top1.
     pub fn cascade_top1(&self, trigram: &BinaryVec) -> Option<u16> {
         self.cascade_predict(trigram).first().map(|&(tok, _)| tok)
     }
@@ -899,28 +919,40 @@ impl HDCBrainV17 {
         // === Layer 1-2: CASCADE Phrase Memory (all levels + multi-probe) ===
         let mut all_phrase: HashMap<u16, u32> = HashMap::new();
 
-        for (level, buckets) in self.cascade.iter().enumerate() {
-            let level_weight = (level as u32 + 1) * 3; // deeper = more specialized
-
-            // Primary bucket
-            let bucket = &buckets[hash];
+        // Level 0: primary + multi-probe neighbors
+        {
+            let bucket = &self.cascade[0][hash];
             for &(tok, cnt) in &bucket.top_successors(self.config.top_k) {
-                *all_phrase.entry(tok).or_insert(0) += cnt * 10 * level_weight;
+                *all_phrase.entry(tok).or_insert(0) += cnt * 10;
             }
+            for bit in 0..self.config.lsh_bits {
+                let neighbor = hash ^ (1 << bit);
+                let nbucket = &self.cascade[0][neighbor];
+                if nbucket.count < 5 { continue; }
+                let rep = nbucket.accumulator.to_binary();
+                let sim = trigram.similarity(&rep);
+                if sim <= 0 { continue; }
+                let weight = (sim as u32 / 100).max(1);
+                for &(tok, cnt) in &nbucket.top_successors(3) {
+                    *all_phrase.entry(tok).or_insert(0) += cnt * weight;
+                }
+            }
+        }
 
-            // Multi-probe neighbors (only for level 0 to save time)
-            if level == 0 {
-                for bit in 0..self.config.lsh_bits {
-                    let neighbor = hash ^ (1 << bit);
-                    let nbucket = &buckets[neighbor];
-                    if nbucket.count < 5 { continue; }
-                    let rep = nbucket.accumulator.to_binary();
-                    let sim = trigram.similarity(&rep);
-                    if sim <= 0 { continue; }
-                    let weight = (sim as u32 / 100).max(1);
-                    for &(tok, cnt) in &nbucket.top_successors(3) {
-                        *all_phrase.entry(tok).or_insert(0) += cnt * weight;
-                    }
+        // Deeper levels: only if level 0 is uncertain
+        let l0_top_count = self.cascade[0][hash].top_successors(1)
+            .first().map(|c| c.1).unwrap_or(0);
+        let l0_second = self.cascade[0][hash].top_successors(2)
+            .get(1).map(|c| c.1).unwrap_or(0);
+        let l0_confident = l0_top_count > 0
+            && (l0_top_count - l0_second) as f64 / l0_top_count as f64 > 0.3;
+
+        if !l0_confident {
+            for buckets in self.cascade.iter().skip(1) {
+                let bucket = &buckets[hash];
+                if bucket.count == 0 { continue; }
+                for &(tok, cnt) in &bucket.top_successors(3) {
+                    *all_phrase.entry(tok).or_insert(0) += cnt * 5;
                 }
             }
         }
