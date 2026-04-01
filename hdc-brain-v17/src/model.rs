@@ -230,7 +230,125 @@ impl HDCBrainV17 {
     }
 
     // ========================================================
-    // Phase 1: Learn Phrases (один проход по данным)
+    // Phase 0: Learn Semantic Codebook
+    // ========================================================
+
+    /// Построить смысловой codebook: слова в одинаковых контекстах → похожие вектора.
+    ///
+    /// Для каждого токена собираем ВСЕ контексты (соседние слова).
+    /// bundle(контексты) → "смысл" слова.
+    ///
+    /// После этого: "город" ≈ "деревня" (оба после "в", перед "было").
+    /// Это даёт импровизацию: "в деревне" → тот же бакет что "в городе".
+    pub fn learn_codebook(&mut self, data: &[u16]) {
+        let n = data.len();
+        if n < 5 { return; }
+
+        println!("  Building semantic codebook...");
+
+        // Для каждого токена: накапливаем контекстные вектора
+        let vocab = self.config.vocab_size;
+        let dim = self.config.hdc_dim;
+        let mut token_contexts: Vec<BundleAccumulator> = (0..vocab)
+            .map(|_| BundleAccumulator::new(dim))
+            .collect();
+
+        let report_every = (n - 4) / 10 + 1;
+
+        for t in 2..n - 2 {
+            let tok = data[t] as usize;
+            if tok >= vocab { continue; }
+
+            // Контекст = соседние слова с позиционным кодированием
+            // Предыдущие: perm(1), perm(2)
+            // Следующие: perm(3), perm(4)
+            // Разные permutations чтобы "слово слева" ≠ "слово справа"
+            let prev1 = &self.codebook[data[t - 1] as usize].permute(1);
+            let prev2 = &self.codebook[data[t - 2] as usize].permute(2);
+            let next1 = &self.codebook[data[t + 1] as usize].permute(3);
+            let next2 = &self.codebook[data[t + 2] as usize].permute(4);
+
+            token_contexts[tok].add(prev1);
+            token_contexts[tok].add(prev2);
+            token_contexts[tok].add(next1);
+            token_contexts[tok].add(next2);
+
+            if (t - 2) % report_every == 0 {
+                let pct = ((t - 2) as f64 / (n - 4) as f64 * 100.0) as u32;
+                print!("\r  Codebook: {}%", pct);
+            }
+        }
+
+        // Blend: семантический вектор MIX с оригинальным случайным.
+        // Частые слова (> 50K контекстов) слишком "размазаны" → больше random.
+        // Редкие слова (< 10 контекстов) → оставляем random.
+        // Средние (10-50K) → максимум semantic.
+        let mut updated = 0;
+        for tok in 0..vocab {
+            let count = token_contexts[tok].count;
+            if count < 10 { continue; } // слишком редкий
+
+            let semantic = token_contexts[tok].to_binary();
+
+            // Частые слова: blend с random чтобы не потерять уникальность
+            // count > 50K → 50% semantic, 50% random
+            // count 10-50K → 90% semantic, 10% random
+            let semantic_weight = if count > 50000 { 3 } else if count > 10000 { 5 } else { 7 };
+            let random_weight = 8 - semantic_weight; // total = 8
+
+            let mut acc = BundleAccumulator::new(dim);
+            for _ in 0..semantic_weight {
+                acc.add(&semantic);
+            }
+            for _ in 0..random_weight {
+                acc.add(&self.codebook[tok]); // original random
+            }
+            self.codebook[tok] = acc.to_binary();
+            updated += 1;
+        }
+
+        println!("\r  Codebook: updated {}/{} tokens (kept {} rare as random)",
+                 updated, vocab, vocab - updated);
+
+        // Проверка: найдём пары похожих слов
+        self.find_similar_pairs();
+    }
+
+    /// Найти пары семантически похожих слов в codebook.
+    pub fn find_similar_pairs(&self) -> Vec<(usize, usize, i32)> {
+        let vocab = self.config.vocab_size;
+        let mut best_pairs: Vec<(usize, usize, i32)> = Vec::new();
+        let threshold = self.config.hdc_dim as i32 / 4; // > 25% similar
+
+        // Sample: первые 1000 токенов (обычно самые частые)
+        let check = 1000.min(vocab);
+        for i in 1..check { // skip 0 (<unk>)
+            for j in i + 1..check {
+                let sim = self.codebook[i].similarity(&self.codebook[j]);
+                if sim > threshold {
+                    best_pairs.push((i, j, sim));
+                }
+            }
+        }
+
+        best_pairs.sort_by(|a, b| b.2.cmp(&a.2));
+        best_pairs.truncate(20);
+
+        if !best_pairs.is_empty() {
+            println!("  Top similar word pairs:");
+            for &(i, j, sim) in best_pairs.iter().take(10) {
+                let pct = sim as f64 / self.config.hdc_dim as f64 * 100.0;
+                println!("    [{}] ≈ [{}]  ({:.0}%)", i, j, pct);
+            }
+        } else {
+            println!("  No highly similar pairs found (threshold {})", threshold);
+        }
+
+        best_pairs
+    }
+
+    // ========================================================
+    // Phase A: Learn Phrases (один проход по данным)
     // ========================================================
 
     /// Заучить фразы: для каждой позиции записать trigram → successor.

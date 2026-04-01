@@ -172,8 +172,28 @@ fn cmd_train(args: &[String]) {
 
     let mut model = HDCBrainV17::new(config);
 
+    // === Phase 0: Build Semantic Codebook ===
+    // Сначала понимаем СМЫСЛ слов, потом учим фразы на осмысленных векторах
+    println!("\n{}", "=".repeat(60));
+    println!("=== Phase 0: Semantic Codebook ===");
+    let t0 = Instant::now();
+    model.learn_codebook(train_data);
+    println!("  Time: {:.1}s", t0.elapsed().as_secs_f64());
+
+    // Show similar pairs with real words
+    let pairs = model.find_similar_pairs();
+    if !pairs.is_empty() {
+        println!("  With vocab names:");
+        for &(i, j, sim) in pairs.iter().take(10) {
+            let w1 = if i < vocab.len() { &vocab[i] } else { "?" };
+            let w2 = if j < vocab.len() { &vocab[j] } else { "?" };
+            let pct = sim as f64 / model.config.hdc_dim as f64 * 100.0;
+            println!("    '{}' ≈ '{}'  ({:.0}%)", w1, w2, pct);
+        }
+    }
+
     // === Curriculum Learning ===
-    // Как ребёнок: мало слов → правила → больше слов → лучшие правила
+    // Теперь учим фразы на СМЫСЛОВОМ codebook
     let stages: Vec<(f64, &str)> = vec![
         (0.01, "first words"),
         (0.05, "basic phrases"),
@@ -183,7 +203,7 @@ fn cmd_train(args: &[String]) {
     ];
 
     let eval_n = 10000.min(val_data.len().saturating_sub(3));
-    let mut prev_end = 2; // start after first 2 tokens (for trigram)
+    let mut prev_end = 2;
 
     for (i, &(frac, name)) in stages.iter().enumerate() {
         let end = ((train_data.len() - 1) as f64 * frac) as usize;
