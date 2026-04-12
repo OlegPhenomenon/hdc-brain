@@ -44,10 +44,11 @@ class HybridModel(torch.nn.Module):
         # Бинарный кодбук — НЕ участвует в backprop
         self.binary_cb = BinaryVotingCodebook(vocab_size, hdc_dim, threshold)
 
-        # Float блоки — участвуют в backprop
+        # Блоки с BinaryController — минимум float
         from hdc_brain_v14_2 import HDCBlock, ThoughtLoop
         self.blocks = torch.nn.ModuleList([
-            HDCBlock(hdc_dim, controller_dim, n_rules, dropout)
+            HDCBlock(hdc_dim, controller_dim, n_rules, n_filters=8,
+                     dropout=dropout, use_binary_controller=True)
             for _ in range(n_blocks)
         ])
         self.thought_loop = ThoughtLoop(hdc_dim, max_thoughts)

@@ -167,7 +167,7 @@ class LogicLayer(nn.Module):
 
 
 class ControllerBlock(nn.Module):
-    """Residual: LN → down → GELU → up."""
+    """Residual: LN → down → GELU → up. (Float версия, для совместимости)"""
     def __init__(self, hdc_dim, inner_dim, dropout=0.1):
         super().__init__()
         self.ln = nn.LayerNorm(hdc_dim)
@@ -182,14 +182,65 @@ class ControllerBlock(nn.Module):
         return x + h
 
 
+class BinaryController(nn.Module):
+    """Бинарный контроллер — замена float GELU на binding.
+
+    Вместо Linear→GELU→Linear (сжатие→нелинейность→расширение):
+      Bind с N обучаемыми фильтрами → взвешенная комбинация.
+
+    Каждый фильтр = биполярный вектор {-1, +1}.
+    Bind(вход, фильтр) = поэлементное умножение = XOR в бинарном мире.
+    Результат: вход "пропущенный через призму" этого фильтра.
+    Несколько фильтров = несколько "точек зрения" на один вход.
+
+    Это бинарный аналог multi-head: каждый фильтр — как "голова",
+    которая видит вход по-своему.
+    """
+    def __init__(self, hdc_dim, n_filters=8):
+        super().__init__()
+        self.hdc_dim = hdc_dim
+        self.n_filters = n_filters
+
+        # Биполярные фильтры — обучаются через STE или голосование
+        self.filters = nn.Parameter(torch.randn(n_filters, hdc_dim) * 0.5)
+
+        # Веса фильтров — какой фильтр сколько вкладывает
+        self.filter_weights = nn.Parameter(torch.zeros(n_filters))
+
+        # Gate — насколько сильно контроллер влияет
+        self.gate = nn.Parameter(torch.tensor(0.0))  # sigmoid(0)=0.5
+
+    def forward(self, x):
+        B, T, D = x.shape
+
+        # Бинаризуем фильтры
+        filters = _ste_sign(self.filters)  # (n_filters, D)
+
+        # Bind вход с каждым фильтром — нелинейная трансформация
+        # (B, T, 1, D) * (n_filters, D) → (B, T, n_filters, D)
+        bound = x.unsqueeze(2) * filters.unsqueeze(0).unsqueeze(0)
+
+        # Взвешенная сумма фильтров
+        weights = torch.softmax(self.filter_weights, dim=0)  # (n_filters,)
+        # (B, T, n_filters, D) * (n_filters, 1) → sum → (B, T, D)
+        mixed = (bound * weights.view(1, 1, -1, 1)).sum(dim=2)
+
+        gate = torch.sigmoid(self.gate)
+        return x + gate * (mixed - x)
+
+
 class HDCBlock(nn.Module):
-    """Memory + Attention + Logic + Controller."""
-    def __init__(self, hdc_dim, controller_dim, n_rules=32, dropout=0.1):
+    """Memory + Attention + Logic + BinaryController."""
+    def __init__(self, hdc_dim, controller_dim, n_rules=32, n_filters=8,
+                 dropout=0.1, use_binary_controller=True):
         super().__init__()
         self.memory = HDCMemoryEMA(hdc_dim)
         self.attention = HDCAttention(hdc_dim)
         self.logic = LogicLayer(hdc_dim, n_rules)
-        self.controller = ControllerBlock(hdc_dim, controller_dim, dropout)
+        if use_binary_controller:
+            self.controller = BinaryController(hdc_dim, n_filters)
+        else:
+            self.controller = ControllerBlock(hdc_dim, controller_dim, dropout)
         self.ln_mem = nn.LayerNorm(hdc_dim)
         self.ln_attn = nn.LayerNorm(hdc_dim)
         self.ln_logic = nn.LayerNorm(hdc_dim)
@@ -435,6 +486,7 @@ CONFIGS = {
         "n_blocks": 3,
         "controller_dim": 128,
         "n_rules": 16,
+        "n_filters": 8,
         "max_thoughts": 2,
         "dropout": 0.1,
     },
@@ -444,6 +496,7 @@ CONFIGS = {
         "n_blocks": 4,
         "controller_dim": 256,
         "n_rules": 32,
+        "n_filters": 8,
         "max_thoughts": 3,
         "dropout": 0.1,
     },
@@ -453,6 +506,7 @@ CONFIGS = {
         "n_blocks": 4,
         "controller_dim": 512,
         "n_rules": 32,
+        "n_filters": 16,
         "max_thoughts": 3,
         "dropout": 0.1,
     },
