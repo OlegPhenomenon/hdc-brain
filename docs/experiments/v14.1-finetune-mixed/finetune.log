@@ -1,0 +1,933 @@
+Data: train=28,445,946 val=755,503
+Loaded base: BPB 5.434
+Initializing CogitLayer...
+  Pre-seeding CogitLayer from 2,000,000 tokens on GPU...
+    pos_mem[0]: 22499/32000 tokens have data
+    pos_mem[1]: 22499/32000 tokens have data
+    pos_mem[2]: 22499/32000 tokens have data
+  Pre-seed done.
+  CogitLayer: 1500.4MB, active=[22499, 22499, 22499]
+
+Starting finetune+CogitLayer: 15000 iters, LR=0.0001
+iter    25 | loss 5.1937 | lr 1.30e-05 | grad 8.72 | 697ms/step
+iter    50 | loss 3.8223 | lr 2.55e-05 | grad 4.16 | 683ms/step
+iter    75 | loss 3.4509 | lr 3.80e-05 | grad 3.66 | 681ms/step
+iter   100 | loss 3.2626 | lr 5.05e-05 | grad 5.00 | 681ms/step
+iter   125 | loss 3.2199 | lr 6.30e-05 | grad 12.66 | 681ms/step
+iter   150 | loss 3.1923 | lr 7.55e-05 | grad 3.13 | 682ms/step
+iter   175 | loss 3.1973 | lr 8.80e-05 | grad 3.59 | 682ms/step
+iter   200 | loss 3.1844 | lr 1.00e-04 | grad 3.64 | 683ms/step
+iter   225 | loss 3.1874 | lr 1.00e-04 | grad 3.23 | 683ms/step
+iter   250 | loss 3.1763 | lr 1.00e-04 | grad 7.69 | 684ms/step
+iter   275 | loss 3.2105 | lr 1.00e-04 | grad 3.04 | 684ms/step
+iter   300 | loss 3.1387 | lr 1.00e-04 | grad 3.59 | 685ms/step
+iter   325 | loss 3.1243 | lr 1.00e-04 | grad 3.04 | 685ms/step
+iter   350 | loss 3.0366 | lr 1.00e-04 | grad 2.77 | 685ms/step
+iter   375 | loss 3.1312 | lr 1.00e-04 | grad 3.38 | 685ms/step
+iter   400 | loss 3.0437 | lr 1.00e-04 | grad 2.97 | 686ms/step
+iter   425 | loss 3.0661 | lr 9.99e-05 | grad 3.34 | 686ms/step
+iter   450 | loss 3.0002 | lr 9.99e-05 | grad 3.01 | 686ms/step
+iter   475 | loss 3.0495 | lr 9.99e-05 | grad 3.03 | 686ms/step
+iter   500 | loss 3.1024 | lr 9.99e-05 | grad 2.95 | 686ms/step
+============================================================
+[0.1h, iter 500] Train:3.0386 Val:3.2733 BPB:4.723 >>> BEST!
+============================================================
+iter   525 | loss 3.0927 | lr 9.99e-05 | grad 2.86 | 700ms/step
+iter   550 | loss 3.0864 | lr 9.99e-05 | grad 3.08 | 699ms/step
+iter   575 | loss 3.0528 | lr 9.99e-05 | grad 3.19 | 699ms/step
+iter   600 | loss 2.9979 | lr 9.98e-05 | grad 8.08 | 698ms/step
+iter   625 | loss 3.0229 | lr 9.98e-05 | grad 2.71 | 698ms/step
+iter   650 | loss 3.0205 | lr 9.98e-05 | grad 3.09 | 698ms/step
+iter   675 | loss 3.0201 | lr 9.98e-05 | grad 2.91 | 697ms/step
+iter   700 | loss 3.0197 | lr 9.97e-05 | grad 3.18 | 697ms/step
+iter   725 | loss 3.0217 | lr 9.97e-05 | grad 2.99 | 697ms/step
+iter   750 | loss 2.9417 | lr 9.97e-05 | grad 3.15 | 697ms/step
+iter   775 | loss 2.9604 | lr 9.97e-05 | grad 2.94 | 696ms/step
+iter   800 | loss 2.9786 | lr 9.96e-05 | grad 2.96 | 696ms/step
+iter   825 | loss 3.0254 | lr 9.96e-05 | grad 3.37 | 696ms/step
+iter   850 | loss 2.9755 | lr 9.96e-05 | grad 2.76 | 696ms/step
+iter   875 | loss 2.9661 | lr 9.95e-05 | grad 3.39 | 696ms/step
+iter   900 | loss 2.9818 | lr 9.95e-05 | grad 3.31 | 695ms/step
+iter   925 | loss 3.0062 | lr 9.95e-05 | grad 4.37 | 695ms/step
+iter   950 | loss 2.9675 | lr 9.94e-05 | grad 3.27 | 695ms/step
+iter   975 | loss 3.0024 | lr 9.94e-05 | grad 3.92 | 695ms/step
+iter  1000 | loss 2.9217 | lr 9.94e-05 | grad 3.25 | 695ms/step
+============================================================
+[0.2h, iter 1000] Train:2.9074 Val:3.2443 BPB:4.681 >>> BEST!
+============================================================
+
+--- Gen (iter 1000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to the process by which a human-like computer or speech chip, and its ability to speak out with a range of tasks such as text, images and video conferencing that allow for quick reaction times. AI can also be used 
+
+  Q: t is the capital of France?
+  A: France has a population density in place due to its population size and its spread over several regions. In Switzerland, it can be estimated that there are approximately 32 million residents, while in other parts like Germany, the total population is
+
+  Q: te a short poem about the ocean.
+  A: The ocean is an incredibly beautiful and vibrant marine ecosystem, with many unique features that make up our planet for centuries. In this setting, there are often several distinct groups of organisms to form their own respective communities or cont
+
+  Q:  does a car engine work?
+  A: Yes, the second question is for the first time. Step 1: Read
+
+---
+iter  1025 | loss 2.9237 | lr 9.93e-05 | grad 3.26 | 716ms/step
+iter  1050 | loss 2.9276 | lr 9.93e-05 | grad 3.16 | 716ms/step
+iter  1075 | loss 2.9575 | lr 9.92e-05 | grad 2.82 | 715ms/step
+iter  1100 | loss 2.9179 | lr 9.92e-05 | grad 3.08 | 714ms/step
+iter  1125 | loss 2.9446 | lr 9.91e-05 | grad 2.96 | 714ms/step
+iter  1150 | loss 2.9136 | lr 9.91e-05 | grad 3.73 | 713ms/step
+iter  1175 | loss 2.9375 | lr 9.90e-05 | grad 2.81 | 713ms/step
+iter  1200 | loss 2.9705 | lr 9.90e-05 | grad 3.24 | 712ms/step
+iter  1225 | loss 2.9293 | lr 9.89e-05 | grad 2.89 | 712ms/step
+iter  1250 | loss 2.9355 | lr 9.89e-05 | grad 3.02 | 711ms/step
+iter  1275 | loss 2.8822 | lr 9.88e-05 | grad 3.05 | 711ms/step
+iter  1300 | loss 2.9324 | lr 9.88e-05 | grad 3.49 | 711ms/step
+iter  1325 | loss 2.8978 | lr 9.87e-05 | grad 3.36 | 710ms/step
+iter  1350 | loss 2.9229 | lr 9.87e-05 | grad 3.67 | 710ms/step
+iter  1375 | loss 2.9472 | lr 9.86e-05 | grad 3.27 | 709ms/step
+iter  1400 | loss 2.8966 | lr 9.85e-05 | grad 5.08 | 709ms/step
+iter  1425 | loss 2.9357 | lr 9.85e-05 | grad 3.72 | 709ms/step
+iter  1450 | loss 2.9121 | lr 9.84e-05 | grad 3.27 | 708ms/step
+iter  1475 | loss 2.9033 | lr 9.84e-05 | grad 3.16 | 708ms/step
+iter  1500 | loss 2.9391 | lr 9.83e-05 | grad 3.29 | 708ms/step
+============================================================
+[0.3h, iter 1500] Train:2.8127 Val:3.1879 BPB:4.600 >>> BEST!
+============================================================
+iter  1525 | loss 2.8880 | lr 9.82e-05 | grad 2.78 | 712ms/step
+iter  1550 | loss 2.9470 | lr 9.82e-05 | grad 2.76 | 712ms/step
+iter  1575 | loss 2.8732 | lr 9.81e-05 | grad 3.30 | 712ms/step
+iter  1600 | loss 2.8594 | lr 9.80e-05 | grad 12.63 | 711ms/step
+iter  1625 | loss 2.8952 | lr 9.80e-05 | grad 3.09 | 711ms/step
+iter  1650 | loss 2.9156 | lr 9.79e-05 | grad 3.28 | 711ms/step
+iter  1675 | loss 2.9340 | lr 9.78e-05 | grad 3.15 | 710ms/step
+iter  1700 | loss 2.9664 | lr 9.77e-05 | grad 2.93 | 710ms/step
+iter  1725 | loss 2.8804 | lr 9.77e-05 | grad 3.39 | 710ms/step
+iter  1750 | loss 2.8272 | lr 9.76e-05 | grad 3.16 | 709ms/step
+iter  1775 | loss 2.8833 | lr 9.75e-05 | grad 2.91 | 709ms/step
+iter  1800 | loss 2.9109 | lr 9.74e-05 | grad 3.13 | 709ms/step
+iter  1825 | loss 2.8465 | lr 9.73e-05 | grad 3.07 | 709ms/step
+iter  1850 | loss 2.8998 | lr 9.73e-05 | grad 2.96 | 708ms/step
+iter  1875 | loss 2.8912 | lr 9.72e-05 | grad 3.10 | 708ms/step
+iter  1900 | loss 2.8679 | lr 9.71e-05 | grad 3.20 | 708ms/step
+iter  1925 | loss 2.8474 | lr 9.70e-05 | grad 2.70 | 708ms/step
+iter  1950 | loss 2.9259 | lr 9.69e-05 | grad 2.84 | 708ms/step
+iter  1975 | loss 2.9360 | lr 9.68e-05 | grad 2.90 | 707ms/step
+iter  2000 | loss 2.7978 | lr 9.68e-05 | grad 2.88 | 707ms/step
+============================================================
+[0.4h, iter 2000] Train:2.8450 Val:3.1680 BPB:4.571 >>> BEST!
+============================================================
+
+--- Gen (iter 2000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial intelligence is a branch of computer science that deals with the ability to analyze, interpret and improve human behavior, and make predictions in an attempt to understand or manipulate certain categories of information, such as social med
+
+  Q: t is the capital of France?
+  A: The capital of Europe, Austria
+
+  Q: te a short poem about the ocean.
+  A: The sea is like an elephant and its rays, A serenade of its depths and its vastness and beauty. The oceans are filled with lush green grass that captivates as they move on to their peaceful path.
+
+  Q:  does a car engine work?
+  A: A vehicle is an electronic device, which can be used to power electronics. It takes about 10% of the energy within a given time frame and produces electricity for homes or businesses that need to use it. The type of fuel being produced uses in the ve
+
+---
+iter  2025 | loss 2.8311 | lr 9.67e-05 | grad 2.82 | 714ms/step
+iter  2050 | loss 2.8612 | lr 9.66e-05 | grad 2.90 | 714ms/step
+iter  2075 | loss 2.8843 | lr 9.65e-05 | grad 2.83 | 714ms/step
+iter  2100 | loss 2.8249 | lr 9.64e-05 | grad 3.05 | 713ms/step
+iter  2125 | loss 2.8194 | lr 9.63e-05 | grad 3.47 | 713ms/step
+iter  2150 | loss 2.8793 | lr 9.62e-05 | grad 3.25 | 713ms/step
+iter  2175 | loss 2.8507 | lr 9.61e-05 | grad 3.85 | 713ms/step
+iter  2200 | loss 2.8378 | lr 9.60e-05 | grad 2.92 | 712ms/step
+iter  2225 | loss 2.8112 | lr 9.59e-05 | grad 2.75 | 712ms/step
+iter  2250 | loss 2.7837 | lr 9.58e-05 | grad 3.31 | 712ms/step
+iter  2275 | loss 2.8520 | lr 9.57e-05 | grad 2.93 | 712ms/step
+iter  2300 | loss 2.8320 | lr 9.56e-05 | grad 3.38 | 711ms/step
+iter  2325 | loss 2.7606 | lr 9.55e-05 | grad 2.62 | 711ms/step
+iter  2350 | loss 2.7935 | lr 9.54e-05 | grad 3.28 | 711ms/step
+iter  2375 | loss 2.7850 | lr 9.53e-05 | grad 2.88 | 711ms/step
+iter  2400 | loss 2.8006 | lr 9.52e-05 | grad 3.19 | 710ms/step
+iter  2425 | loss 2.7701 | lr 9.51e-05 | grad 2.78 | 710ms/step
+iter  2450 | loss 2.8674 | lr 9.50e-05 | grad 2.88 | 710ms/step
+iter  2475 | loss 2.9050 | lr 9.49e-05 | grad 3.20 | 710ms/step
+iter  2500 | loss 2.8656 | lr 9.47e-05 | grad 3.44 | 710ms/step
+============================================================
+[0.5h, iter 2500] Train:2.8427 Val:3.1840 BPB:4.594 
+============================================================
+iter  2525 | loss 2.8103 | lr 9.46e-05 | grad 3.04 | 712ms/step
+iter  2550 | loss 2.8226 | lr 9.45e-05 | grad 2.90 | 712ms/step
+iter  2575 | loss 2.8481 | lr 9.44e-05 | grad 4.07 | 711ms/step
+iter  2600 | loss 2.8324 | lr 9.43e-05 | grad 3.19 | 711ms/step
+iter  2625 | loss 2.8885 | lr 9.42e-05 | grad 2.95 | 711ms/step
+iter  2650 | loss 2.8125 | lr 9.41e-05 | grad 2.89 | 711ms/step
+iter  2675 | loss 2.8052 | lr 9.39e-05 | grad 2.94 | 711ms/step
+iter  2700 | loss 2.8139 | lr 9.38e-05 | grad 2.67 | 710ms/step
+iter  2725 | loss 2.8395 | lr 9.37e-05 | grad 2.98 | 710ms/step
+iter  2750 | loss 2.8385 | lr 9.36e-05 | grad 3.06 | 710ms/step
+iter  2775 | loss 2.8234 | lr 9.34e-05 | grad 3.00 | 710ms/step
+iter  2800 | loss 2.8501 | lr 9.33e-05 | grad 2.92 | 710ms/step
+iter  2825 | loss 2.7903 | lr 9.32e-05 | grad 3.55 | 709ms/step
+iter  2850 | loss 2.8441 | lr 9.31e-05 | grad 3.19 | 709ms/step
+iter  2875 | loss 2.8133 | lr 9.29e-05 | grad 2.70 | 709ms/step
+iter  2900 | loss 2.7430 | lr 9.28e-05 | grad 3.43 | 709ms/step
+iter  2925 | loss 2.7741 | lr 9.27e-05 | grad 3.06 | 709ms/step
+iter  2950 | loss 2.8555 | lr 9.25e-05 | grad 3.59 | 709ms/step
+iter  2975 | loss 2.8303 | lr 9.24e-05 | grad 2.73 | 709ms/step
+iter  3000 | loss 2.8166 | lr 9.23e-05 | grad 3.70 | 708ms/step
+============================================================
+[0.6h, iter 3000] Train:2.7646 Val:3.0735 BPB:4.434 >>> BEST!
+============================================================
+
+--- Gen (iter 3000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) is a branch of computer science that focuses on providing an efficient and accurate solution to the problem. It involves developing algorithms for understanding complex tasks such as classification, problem solving, and t
+
+  Q: t is the capital of France?
+  A: A good customer service representative could be "The best restaurant with all your needs." Here are some guidelines to follow while using a friendly service such as a friend, experienced staffing or singing professional service team for their excelle
+
+  Q: te a short poem about the ocean.
+  A: The sun slowly shines its rays and crevices, As weaves dance together in the night sky, A gentle breeze so full of wonders that brings us newfound hope for our dreams Our hearts will bring you closer to each other.
+
+  Q:  does a car engine work?
+  A: A vehicle typically uses a plane and an engine attached to the car. It is designed for general use when making or using cars on horseback riding, while a motorcycle provides more lift than an ordinary motorcycles. The main difference between the two 
+
+---
+iter  3025 | loss 2.7939 | lr 9.21e-05 | grad 3.15 | 715ms/step
+iter  3050 | loss 2.8604 | lr 9.20e-05 | grad 3.37 | 715ms/step
+iter  3075 | loss 2.7604 | lr 9.19e-05 | grad 2.85 | 715ms/step
+iter  3100 | loss 2.9049 | lr 9.17e-05 | grad 3.31 | 714ms/step
+iter  3125 | loss 2.7869 | lr 9.16e-05 | grad 3.63 | 714ms/step
+iter  3150 | loss 2.7801 | lr 9.15e-05 | grad 3.04 | 714ms/step
+iter  3175 | loss 2.8331 | lr 9.13e-05 | grad 2.94 | 714ms/step
+iter  3200 | loss 2.7615 | lr 9.12e-05 | grad 3.16 | 714ms/step
+iter  3225 | loss 2.7962 | lr 9.10e-05 | grad 4.65 | 713ms/step
+iter  3250 | loss 2.8028 | lr 9.09e-05 | grad 3.16 | 713ms/step
+iter  3275 | loss 2.7927 | lr 9.07e-05 | grad 2.89 | 713ms/step
+iter  3300 | loss 2.8058 | lr 9.06e-05 | grad 3.48 | 713ms/step
+iter  3325 | loss 2.7390 | lr 9.05e-05 | grad 2.76 | 713ms/step
+iter  3350 | loss 2.7788 | lr 9.03e-05 | grad 2.75 | 712ms/step
+iter  3375 | loss 2.7788 | lr 9.02e-05 | grad 3.21 | 712ms/step
+iter  3400 | loss 2.7797 | lr 9.00e-05 | grad 2.85 | 712ms/step
+iter  3425 | loss 2.8553 | lr 8.99e-05 | grad 3.08 | 712ms/step
+iter  3450 | loss 2.8411 | lr 8.97e-05 | grad 3.51 | 712ms/step
+iter  3475 | loss 2.7814 | lr 8.96e-05 | grad 3.20 | 712ms/step
+iter  3500 | loss 2.7851 | lr 8.94e-05 | grad 2.83 | 711ms/step
+============================================================
+[0.7h, iter 3500] Train:2.6860 Val:3.0688 BPB:4.428 >>> BEST!
+============================================================
+iter  3525 | loss 2.8024 | lr 8.92e-05 | grad 5.13 | 713ms/step
+iter  3550 | loss 2.7596 | lr 8.91e-05 | grad 3.00 | 713ms/step
+iter  3575 | loss 2.7501 | lr 8.89e-05 | grad 3.10 | 713ms/step
+iter  3600 | loss 2.8288 | lr 8.88e-05 | grad 2.90 | 713ms/step
+iter  3625 | loss 2.7423 | lr 8.86e-05 | grad 2.90 | 713ms/step
+iter  3650 | loss 2.7797 | lr 8.85e-05 | grad 4.28 | 713ms/step
+iter  3675 | loss 2.7423 | lr 8.83e-05 | grad 3.06 | 712ms/step
+iter  3700 | loss 2.7775 | lr 8.81e-05 | grad 3.13 | 712ms/step
+iter  3725 | loss 2.7391 | lr 8.80e-05 | grad 3.23 | 712ms/step
+iter  3750 | loss 2.7701 | lr 8.78e-05 | grad 3.21 | 712ms/step
+iter  3775 | loss 2.7673 | lr 8.77e-05 | grad 3.49 | 712ms/step
+iter  3800 | loss 2.7480 | lr 8.75e-05 | grad 3.11 | 712ms/step
+iter  3825 | loss 2.7389 | lr 8.73e-05 | grad 3.22 | 712ms/step
+iter  3850 | loss 2.7208 | lr 8.72e-05 | grad 3.35 | 711ms/step
+iter  3875 | loss 2.7311 | lr 8.70e-05 | grad 3.08 | 711ms/step
+iter  3900 | loss 2.7226 | lr 8.68e-05 | grad 3.10 | 711ms/step
+iter  3925 | loss 2.7533 | lr 8.67e-05 | grad 3.52 | 711ms/step
+iter  3950 | loss 2.7803 | lr 8.65e-05 | grad 4.41 | 711ms/step
+iter  3975 | loss 2.7669 | lr 8.63e-05 | grad 2.81 | 711ms/step
+iter  4000 | loss 2.7078 | lr 8.61e-05 | grad 3.17 | 711ms/step
+============================================================
+[0.8h, iter 4000] Train:2.7534 Val:3.0451 BPB:4.393 >>> BEST!
+============================================================
+
+--- Gen (iter 4000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial intelligence (AI) refers to the ability of machines, sensors and other devices that are capable of performing tasks such as reasoning, problem solving, decision-making, or understanding between human agents. AI technologies include machine
+
+  Q: t is the capital of France?
+  A: The capital of Australia has 325,067.1 million crowns.
+
+  Q: te a short poem about the ocean.
+  A: The ocean is like an ocean, and there's nothing more than life here to make it out of this vast world, full of grace, With every day we take turns us up in its own place. It comes from the sun #Sanelse #The Ocean is like a big ocean because there's n
+
+  Q:  does a car engine work?
+  A: An airplane vehicle is used to drive the vehicle by moving on as much as possible, and it can improve performance when it reaches its destination. It works great in several ways, including making sure that the vehicle does not have a direct connectio
+
+---
+iter  4025 | loss 2.7687 | lr 8.60e-05 | grad 2.95 | 714ms/step
+iter  4050 | loss 2.7545 | lr 8.58e-05 | grad 3.47 | 714ms/step
+iter  4075 | loss 2.7125 | lr 8.56e-05 | grad 2.99 | 714ms/step
+iter  4100 | loss 2.7101 | lr 8.54e-05 | grad 3.24 | 714ms/step
+iter  4125 | loss 2.7722 | lr 8.53e-05 | grad 2.97 | 713ms/step
+iter  4150 | loss 2.7744 | lr 8.51e-05 | grad 3.30 | 713ms/step
+iter  4175 | loss 2.7724 | lr 8.49e-05 | grad 3.00 | 713ms/step
+iter  4200 | loss 2.7511 | lr 8.47e-05 | grad 3.16 | 713ms/step
+iter  4225 | loss 2.6808 | lr 8.46e-05 | grad 3.38 | 713ms/step
+iter  4250 | loss 2.7340 | lr 8.44e-05 | grad 2.90 | 713ms/step
+iter  4275 | loss 2.7267 | lr 8.42e-05 | grad 3.37 | 713ms/step
+iter  4300 | loss 2.7316 | lr 8.40e-05 | grad 3.09 | 712ms/step
+iter  4325 | loss 2.7471 | lr 8.38e-05 | grad 3.15 | 712ms/step
+iter  4350 | loss 2.7542 | lr 8.36e-05 | grad 3.30 | 712ms/step
+iter  4375 | loss 2.6761 | lr 8.35e-05 | grad 2.83 | 712ms/step
+iter  4400 | loss 2.6827 | lr 8.33e-05 | grad 2.90 | 712ms/step
+iter  4425 | loss 2.7378 | lr 8.31e-05 | grad 3.05 | 712ms/step
+iter  4450 | loss 2.7686 | lr 8.29e-05 | grad 3.90 | 712ms/step
+iter  4475 | loss 2.7392 | lr 8.27e-05 | grad 3.80 | 712ms/step
+iter  4500 | loss 2.6927 | lr 8.25e-05 | grad 2.87 | 711ms/step
+============================================================
+[0.9h, iter 4500] Train:2.6541 Val:3.1134 BPB:4.492 
+============================================================
+iter  4525 | loss 2.7110 | lr 8.23e-05 | grad 3.05 | 713ms/step
+iter  4550 | loss 2.7812 | lr 8.21e-05 | grad 3.11 | 713ms/step
+iter  4575 | loss 2.7256 | lr 8.20e-05 | grad 2.91 | 712ms/step
+iter  4600 | loss 2.8008 | lr 8.18e-05 | grad 2.95 | 712ms/step
+iter  4625 | loss 2.7358 | lr 8.16e-05 | grad 2.85 | 712ms/step
+iter  4650 | loss 2.7785 | lr 8.14e-05 | grad 2.90 | 712ms/step
+iter  4675 | loss 2.7050 | lr 8.12e-05 | grad 3.17 | 712ms/step
+iter  4700 | loss 2.6765 | lr 8.10e-05 | grad 2.88 | 712ms/step
+iter  4725 | loss 2.7822 | lr 8.08e-05 | grad 3.34 | 712ms/step
+iter  4750 | loss 2.7889 | lr 8.06e-05 | grad 2.88 | 712ms/step
+iter  4775 | loss 2.7695 | lr 8.04e-05 | grad 2.95 | 711ms/step
+iter  4800 | loss 2.7511 | lr 8.02e-05 | grad 3.44 | 711ms/step
+iter  4825 | loss 2.7827 | lr 8.00e-05 | grad 3.00 | 711ms/step
+iter  4850 | loss 2.7030 | lr 7.98e-05 | grad 4.03 | 711ms/step
+iter  4875 | loss 2.7163 | lr 7.96e-05 | grad 3.34 | 711ms/step
+iter  4900 | loss 2.7623 | lr 7.94e-05 | grad 3.04 | 711ms/step
+iter  4925 | loss 2.6992 | lr 7.92e-05 | grad 3.27 | 711ms/step
+iter  4950 | loss 2.6591 | lr 7.90e-05 | grad 2.86 | 711ms/step
+iter  4975 | loss 2.7007 | lr 7.88e-05 | grad 3.13 | 711ms/step
+iter  5000 | loss 2.7045 | lr 7.86e-05 | grad 3.50 | 710ms/step
+============================================================
+[1.0h, iter 5000] Train:2.7355 Val:3.0404 BPB:4.387 >>> BEST!
+============================================================
+
+--- Gen (iter 5000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial neural networks (ANNs) are a type of computer system that perform tasks such as convolutional Neural Networks, pre-processing and recursive input data processing. Supervised learning algorithms used to process large amounts of data quickly
+
+  Q: t is the capital of France?
+  A: The capital of France was Paris.
+
+  Q: te a short poem about the ocean.
+  A: Yes, you think right answer to the question "catchy enough," which implies that their thoughts have a positive opinion about an event or situation. The person mentioned they
+
+  Q:  does a car engine work?
+  A: A car engine is a type of vehicle that performs tasks such as communication, problem solving and decision making. It can also involve having to perform repetitive activities quickly or without the need for manual information or data entry into an ext
+
+---
+iter  5025 | loss 2.6463 | lr 7.84e-05 | grad 3.34 | 714ms/step
+iter  5050 | loss 2.6693 | lr 7.82e-05 | grad 2.83 | 713ms/step
+iter  5075 | loss 2.6859 | lr 7.80e-05 | grad 3.26 | 713ms/step
+iter  5100 | loss 2.6851 | lr 7.78e-05 | grad 3.16 | 713ms/step
+iter  5125 | loss 2.6619 | lr 7.76e-05 | grad 4.00 | 713ms/step
+iter  5150 | loss 2.7059 | lr 7.74e-05 | grad 3.19 | 713ms/step
+iter  5175 | loss 2.6443 | lr 7.72e-05 | grad 2.87 | 713ms/step
+iter  5200 | loss 2.6982 | lr 7.69e-05 | grad 3.23 | 713ms/step
+iter  5225 | loss 2.7107 | lr 7.67e-05 | grad 2.80 | 713ms/step
+iter  5250 | loss 2.7216 | lr 7.65e-05 | grad 3.09 | 713ms/step
+iter  5275 | loss 2.7035 | lr 7.63e-05 | grad 3.11 | 712ms/step
+iter  5300 | loss 2.7240 | lr 7.61e-05 | grad 3.04 | 712ms/step
+iter  5325 | loss 2.6662 | lr 7.59e-05 | grad 3.09 | 712ms/step
+iter  5350 | loss 2.7246 | lr 7.57e-05 | grad 4.55 | 712ms/step
+iter  5375 | loss 2.7108 | lr 7.55e-05 | grad 2.82 | 712ms/step
+iter  5400 | loss 2.6935 | lr 7.53e-05 | grad 2.87 | 712ms/step
+iter  5425 | loss 2.7737 | lr 7.50e-05 | grad 2.94 | 712ms/step
+iter  5450 | loss 2.6994 | lr 7.48e-05 | grad 3.02 | 712ms/step
+iter  5475 | loss 2.6697 | lr 7.46e-05 | grad 3.08 | 712ms/step
+iter  5500 | loss 2.6512 | lr 7.44e-05 | grad 2.64 | 712ms/step
+============================================================
+[1.1h, iter 5500] Train:2.6711 Val:3.0395 BPB:4.385 >>> BEST!
+============================================================
+iter  5525 | loss 2.6504 | lr 7.42e-05 | grad 3.26 | 713ms/step
+iter  5550 | loss 2.7095 | lr 7.40e-05 | grad 2.99 | 713ms/step
+iter  5575 | loss 2.6282 | lr 7.38e-05 | grad 2.86 | 713ms/step
+iter  5600 | loss 2.6382 | lr 7.35e-05 | grad 2.83 | 712ms/step
+iter  5625 | loss 2.6935 | lr 7.33e-05 | grad 3.14 | 712ms/step
+iter  5650 | loss 2.6805 | lr 7.31e-05 | grad 3.47 | 712ms/step
+iter  5675 | loss 2.6499 | lr 7.29e-05 | grad 3.31 | 712ms/step
+iter  5700 | loss 2.7031 | lr 7.27e-05 | grad 3.04 | 712ms/step
+iter  5725 | loss 2.6981 | lr 7.24e-05 | grad 2.87 | 712ms/step
+iter  5750 | loss 2.7254 | lr 7.22e-05 | grad 3.40 | 712ms/step
+iter  5775 | loss 2.6955 | lr 7.20e-05 | grad 3.18 | 712ms/step
+iter  5800 | loss 2.6846 | lr 7.18e-05 | grad 3.35 | 712ms/step
+iter  5825 | loss 2.6742 | lr 7.16e-05 | grad 2.89 | 712ms/step
+iter  5850 | loss 2.6908 | lr 7.13e-05 | grad 3.01 | 712ms/step
+iter  5875 | loss 2.6579 | lr 7.11e-05 | grad 3.02 | 711ms/step
+iter  5900 | loss 2.6526 | lr 7.09e-05 | grad 3.09 | 711ms/step
+iter  5925 | loss 2.6137 | lr 7.07e-05 | grad 2.78 | 711ms/step
+iter  5950 | loss 2.6722 | lr 7.04e-05 | grad 3.50 | 711ms/step
+iter  5975 | loss 2.6422 | lr 7.02e-05 | grad 3.45 | 711ms/step
+iter  6000 | loss 2.7267 | lr 7.00e-05 | grad 2.95 | 711ms/step
+============================================================
+[1.2h, iter 6000] Train:2.5742 Val:3.0757 BPB:4.438 
+============================================================
+
+--- Gen (iter 6000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to a wide range of technologies that can interact with computers and systems, from healthcare to diagnosis, natural language processing tasks, identify patterns in data sets or through the use of algorithms such as
+
+  Q: t is the capital of France?
+  A: The capital of France was Paris.
+
+  Q: te a short poem about the ocean.
+  A: The sky is blue, A gentle breeze with a view of day's worth, As it moves from one star to its depths. There are only four days in sight that can be seen by all living beings.
+
+  Q:  does a car engine work?
+  A: A car engine is designed to be self-tested, meaning it can take control of the vehicle's interior. It is powered by renewable energy sources such as solar and wind power which uses these cells to convert sunlight into electricity while still maintain
+
+---
+iter  6025 | loss 2.6505 | lr 6.98e-05 | grad 21.16 | 713ms/step
+iter  6050 | loss 2.6741 | lr 6.95e-05 | grad 3.07 | 713ms/step
+iter  6075 | loss 2.7178 | lr 6.93e-05 | grad 3.02 | 713ms/step
+iter  6100 | loss 2.6451 | lr 6.91e-05 | grad 16.13 | 713ms/step
+iter  6125 | loss 2.6484 | lr 6.89e-05 | grad 3.31 | 713ms/step
+iter  6150 | loss 2.6828 | lr 6.86e-05 | grad 3.28 | 713ms/step
+iter  6175 | loss 2.6179 | lr 6.84e-05 | grad 3.15 | 712ms/step
+iter  6200 | loss 2.6430 | lr 6.82e-05 | grad 3.32 | 712ms/step
+iter  6225 | loss 2.6943 | lr 6.79e-05 | grad 3.95 | 712ms/step
+iter  6250 | loss 2.6817 | lr 6.77e-05 | grad 3.27 | 712ms/step
+iter  6275 | loss 2.6120 | lr 6.75e-05 | grad 3.23 | 712ms/step
+iter  6300 | loss 2.6447 | lr 6.73e-05 | grad 3.26 | 712ms/step
+iter  6325 | loss 2.6198 | lr 6.70e-05 | grad 3.15 | 712ms/step
+iter  6350 | loss 2.6992 | lr 6.68e-05 | grad 3.36 | 712ms/step
+iter  6375 | loss 2.6100 | lr 6.66e-05 | grad 2.73 | 712ms/step
+iter  6400 | loss 2.5972 | lr 6.63e-05 | grad 3.31 | 712ms/step
+iter  6425 | loss 2.6273 | lr 6.61e-05 | grad 2.79 | 712ms/step
+iter  6450 | loss 2.6758 | lr 6.59e-05 | grad 3.60 | 711ms/step
+iter  6475 | loss 2.6384 | lr 6.56e-05 | grad 2.90 | 711ms/step
+iter  6500 | loss 2.6060 | lr 6.54e-05 | grad 3.66 | 711ms/step
+============================================================
+[1.3h, iter 6500] Train:2.6082 Val:3.0379 BPB:4.383 >>> BEST!
+============================================================
+iter  6525 | loss 2.5707 | lr 6.52e-05 | grad 2.90 | 712ms/step
+iter  6550 | loss 2.6200 | lr 6.49e-05 | grad 4.49 | 712ms/step
+iter  6575 | loss 2.6242 | lr 6.47e-05 | grad 3.04 | 712ms/step
+iter  6600 | loss 2.5862 | lr 6.45e-05 | grad 3.10 | 712ms/step
+iter  6625 | loss 2.6158 | lr 6.42e-05 | grad 2.83 | 712ms/step
+iter  6650 | loss 2.7097 | lr 6.40e-05 | grad 3.20 | 712ms/step
+iter  6675 | loss 2.6199 | lr 6.38e-05 | grad 3.10 | 712ms/step
+iter  6700 | loss 2.6309 | lr 6.35e-05 | grad 3.37 | 712ms/step
+iter  6725 | loss 2.5984 | lr 6.33e-05 | grad 3.09 | 712ms/step
+iter  6750 | loss 2.6585 | lr 6.31e-05 | grad 3.24 | 712ms/step
+iter  6775 | loss 2.6409 | lr 6.28e-05 | grad 3.12 | 712ms/step
+iter  6800 | loss 2.6263 | lr 6.26e-05 | grad 3.10 | 711ms/step
+iter  6825 | loss 2.5838 | lr 6.24e-05 | grad 3.07 | 711ms/step
+iter  6850 | loss 2.6482 | lr 6.21e-05 | grad 2.77 | 711ms/step
+iter  6875 | loss 2.6476 | lr 6.19e-05 | grad 2.97 | 711ms/step
+iter  6900 | loss 2.6285 | lr 6.17e-05 | grad 2.69 | 711ms/step
+iter  6925 | loss 2.6589 | lr 6.14e-05 | grad 3.03 | 711ms/step
+iter  6950 | loss 2.6422 | lr 6.12e-05 | grad 3.22 | 711ms/step
+iter  6975 | loss 2.5908 | lr 6.10e-05 | grad 3.08 | 711ms/step
+iter  7000 | loss 2.6172 | lr 6.07e-05 | grad 3.44 | 711ms/step
+============================================================
+[1.4h, iter 7000] Train:2.4875 Val:2.9061 BPB:4.193 >>> BEST!
+============================================================
+
+--- Gen (iter 7000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) has been a field of computer science which consists of an AI system that allows machines to learn from experience, without being explicitly programmed or by humans. These technologies are used in various fields such as im
+
+  Q: t is the capital of France?
+  A: The capital city of France is Germany.
+
+  Q: te a short poem about the ocean.
+  A: The sea, vast and mysterious, On the horizon I found its light, With serene beauty, My heart fills with joy from all my worries And within me shall never forget the moment of life in this moment Chorus: Where ever I do, the world is a source of wonde
+
+  Q:  does a car engine work?
+  A: i. The best answer for this question would be "What will happen when you ask about the
+
+---
+iter  7025 | loss 2.6605 | lr 6.05e-05 | grad 2.95 | 713ms/step
+iter  7050 | loss 2.5814 | lr 6.02e-05 | grad 3.02 | 713ms/step
+iter  7075 | loss 2.6141 | lr 6.00e-05 | grad 2.88 | 713ms/step
+iter  7100 | loss 2.6077 | lr 5.98e-05 | grad 2.84 | 713ms/step
+iter  7125 | loss 2.6534 | lr 5.95e-05 | grad 3.18 | 713ms/step
+iter  7150 | loss 2.5717 | lr 5.93e-05 | grad 2.97 | 713ms/step
+iter  7175 | loss 2.5689 | lr 5.91e-05 | grad 3.30 | 713ms/step
+iter  7200 | loss 2.6215 | lr 5.88e-05 | grad 3.48 | 713ms/step
+iter  7225 | loss 2.6101 | lr 5.86e-05 | grad 2.85 | 712ms/step
+iter  7250 | loss 2.6135 | lr 5.83e-05 | grad 3.06 | 712ms/step
+iter  7275 | loss 2.6174 | lr 5.81e-05 | grad 3.49 | 712ms/step
+iter  7300 | loss 2.5618 | lr 5.79e-05 | grad 3.09 | 712ms/step
+iter  7325 | loss 2.6200 | lr 5.76e-05 | grad 3.02 | 712ms/step
+iter  7350 | loss 2.6272 | lr 5.74e-05 | grad 3.13 | 712ms/step
+iter  7375 | loss 2.6297 | lr 5.71e-05 | grad 3.01 | 712ms/step
+iter  7400 | loss 2.5866 | lr 5.69e-05 | grad 3.04 | 712ms/step
+iter  7425 | loss 2.5430 | lr 5.67e-05 | grad 2.89 | 712ms/step
+iter  7450 | loss 2.5941 | lr 5.64e-05 | grad 11.68 | 712ms/step
+iter  7475 | loss 2.6419 | lr 5.62e-05 | grad 2.74 | 712ms/step
+iter  7500 | loss 2.5812 | lr 5.60e-05 | grad 2.97 | 712ms/step
+============================================================
+[1.5h, iter 7500] Train:2.5804 Val:3.0588 BPB:4.413 
+============================================================
+iter  7525 | loss 2.5971 | lr 5.57e-05 | grad 3.05 | 712ms/step
+iter  7550 | loss 2.5582 | lr 5.55e-05 | grad 8.01 | 712ms/step
+iter  7575 | loss 2.6121 | lr 5.52e-05 | grad 3.26 | 712ms/step
+iter  7600 | loss 2.6142 | lr 5.50e-05 | grad 2.88 | 712ms/step
+iter  7625 | loss 2.6357 | lr 5.48e-05 | grad 9.80 | 712ms/step
+iter  7650 | loss 2.6512 | lr 5.45e-05 | grad 3.19 | 712ms/step
+iter  7675 | loss 2.6264 | lr 5.43e-05 | grad 2.83 | 712ms/step
+iter  7700 | loss 2.5594 | lr 5.40e-05 | grad 2.99 | 712ms/step
+iter  7725 | loss 2.5864 | lr 5.38e-05 | grad 2.85 | 712ms/step
+iter  7750 | loss 2.5073 | lr 5.36e-05 | grad 2.83 | 712ms/step
+iter  7775 | loss 2.5568 | lr 5.33e-05 | grad 2.95 | 712ms/step
+iter  7800 | loss 2.6078 | lr 5.31e-05 | grad 2.98 | 712ms/step
+iter  7825 | loss 2.5655 | lr 5.29e-05 | grad 2.99 | 711ms/step
+iter  7850 | loss 2.5844 | lr 5.26e-05 | grad 3.02 | 711ms/step
+iter  7875 | loss 2.6217 | lr 5.24e-05 | grad 2.96 | 711ms/step
+iter  7900 | loss 2.5496 | lr 5.21e-05 | grad 3.33 | 711ms/step
+iter  7925 | loss 2.5494 | lr 5.19e-05 | grad 2.85 | 711ms/step
+iter  7950 | loss 2.5513 | lr 5.17e-05 | grad 4.08 | 711ms/step
+iter  7975 | loss 2.5665 | lr 5.14e-05 | grad 3.28 | 711ms/step
+iter  8000 | loss 2.5794 | lr 5.12e-05 | grad 3.26 | 711ms/step
+============================================================
+[1.6h, iter 8000] Train:2.5102 Val:2.9701 BPB:4.285 
+============================================================
+
+--- Gen (iter 8000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial intelligence (AI) refers to the ability of computers that utilize data, such as text-based decision making and visual perception from a given set of instructions. It involves using algorithms which have knowledge or can be used for tasks l
+
+  Q: t is the capital of France?
+  A: The capital of Belgium is the country of Switzerland.
+
+  Q: te a short poem about the ocean.
+  A: The ocean is vast and breathtaking, With beauty ever-changing so grand and never fading for its beauty!
+
+  Q:  does a car engine work?
+  A: Machine Learning is the process of finding patterns in data, and it requires careful planning by using algorithms that can understand complex instructions. It involves collecting data from various sources such as sensors, cameras, microphones, and vi
+
+---
+iter  8025 | loss 2.6450 | lr 5.09e-05 | grad 2.98 | 712ms/step
+iter  8050 | loss 2.5703 | lr 5.07e-05 | grad 2.96 | 712ms/step
+iter  8075 | loss 2.5748 | lr 5.05e-05 | grad 6.57 | 712ms/step
+iter  8100 | loss 2.4895 | lr 5.02e-05 | grad 3.02 | 712ms/step
+iter  8125 | loss 2.5695 | lr 5.00e-05 | grad 2.73 | 712ms/step
+iter  8150 | loss 2.6138 | lr 4.98e-05 | grad 3.08 | 712ms/step
+iter  8175 | loss 2.4917 | lr 4.95e-05 | grad 3.12 | 712ms/step
+iter  8200 | loss 2.5962 | lr 4.93e-05 | grad 2.81 | 712ms/step
+iter  8225 | loss 2.6102 | lr 4.90e-05 | grad 3.06 | 712ms/step
+iter  8250 | loss 2.5762 | lr 4.88e-05 | grad 3.06 | 712ms/step
+iter  8275 | loss 2.6334 | lr 4.86e-05 | grad 3.40 | 712ms/step
+iter  8300 | loss 2.6451 | lr 4.83e-05 | grad 3.18 | 711ms/step
+iter  8325 | loss 2.5280 | lr 4.81e-05 | grad 3.02 | 711ms/step
+iter  8350 | loss 2.5862 | lr 4.79e-05 | grad 3.21 | 711ms/step
+iter  8375 | loss 2.5539 | lr 4.76e-05 | grad 3.14 | 711ms/step
+iter  8400 | loss 2.5720 | lr 4.74e-05 | grad 2.83 | 711ms/step
+iter  8425 | loss 2.5753 | lr 4.72e-05 | grad 2.83 | 711ms/step
+iter  8450 | loss 2.5537 | lr 4.69e-05 | grad 2.81 | 711ms/step
+iter  8475 | loss 2.5716 | lr 4.67e-05 | grad 2.99 | 711ms/step
+iter  8500 | loss 2.5178 | lr 4.65e-05 | grad 3.10 | 711ms/step
+============================================================
+[1.7h, iter 8500] Train:2.5266 Val:2.9816 BPB:4.302 
+============================================================
+iter  8525 | loss 2.5791 | lr 4.62e-05 | grad 3.44 | 712ms/step
+iter  8550 | loss 2.5468 | lr 4.60e-05 | grad 2.87 | 712ms/step
+iter  8575 | loss 2.5125 | lr 4.58e-05 | grad 3.05 | 711ms/step
+iter  8600 | loss 2.5522 | lr 4.55e-05 | grad 3.45 | 711ms/step
+iter  8625 | loss 2.5533 | lr 4.53e-05 | grad 2.77 | 711ms/step
+iter  8650 | loss 2.5371 | lr 4.51e-05 | grad 3.11 | 711ms/step
+iter  8675 | loss 2.5140 | lr 4.48e-05 | grad 3.24 | 711ms/step
+iter  8700 | loss 2.5245 | lr 4.46e-05 | grad 3.07 | 711ms/step
+iter  8725 | loss 2.5597 | lr 4.44e-05 | grad 3.28 | 711ms/step
+iter  8750 | loss 2.5803 | lr 4.41e-05 | grad 3.07 | 711ms/step
+iter  8775 | loss 2.5010 | lr 4.39e-05 | grad 3.03 | 711ms/step
+iter  8800 | loss 2.5209 | lr 4.37e-05 | grad 3.22 | 711ms/step
+iter  8825 | loss 2.5414 | lr 4.34e-05 | grad 3.43 | 711ms/step
+iter  8850 | loss 2.5131 | lr 4.32e-05 | grad 2.87 | 711ms/step
+iter  8875 | loss 2.5824 | lr 4.30e-05 | grad 3.64 | 711ms/step
+iter  8900 | loss 2.5566 | lr 4.27e-05 | grad 3.41 | 711ms/step
+iter  8925 | loss 2.5363 | lr 4.25e-05 | grad 3.30 | 711ms/step
+iter  8950 | loss 2.4746 | lr 4.23e-05 | grad 3.23 | 711ms/step
+iter  8975 | loss 2.5016 | lr 4.21e-05 | grad 2.84 | 711ms/step
+iter  9000 | loss 2.5424 | lr 4.18e-05 | grad 3.53 | 710ms/step
+============================================================
+[1.8h, iter 9000] Train:2.4863 Val:2.9345 BPB:4.234 
+============================================================
+
+--- Gen (iter 9000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to the ability of a computer system to perform tasks that would normally be done on time, such as data entry or in response and speech recognition systems. AI algorithms can also process large amounts of data by an
+
+  Q: t is the capital of France?
+  A: The capital of Germany isue River Germany.
+
+  Q: te a short poem about the ocean.
+  A: The sun rises, A gentle sea breeze so cool down like a blanket of stars above.
+
+  Q:  does a car engine work?
+  A: A car engine is an ideal vehicle for controlling the movement of gases such as nitrogen, iron and helium. It has several stages in the development process of driving. When it reaches its intended altitude, it can be used to make adjustments when movi
+
+---
+iter  9025 | loss 2.5281 | lr 4.16e-05 | grad 2.88 | 712ms/step
+iter  9050 | loss 2.5771 | lr 4.14e-05 | grad 3.01 | 712ms/step
+iter  9075 | loss 2.5508 | lr 4.11e-05 | grad 2.92 | 712ms/step
+iter  9100 | loss 2.5552 | lr 4.09e-05 | grad 3.05 | 712ms/step
+iter  9125 | loss 2.5220 | lr 4.07e-05 | grad 3.33 | 712ms/step
+iter  9150 | loss 2.5303 | lr 4.05e-05 | grad 3.42 | 711ms/step
+iter  9175 | loss 2.5318 | lr 4.02e-05 | grad 3.33 | 711ms/step
+iter  9200 | loss 2.5784 | lr 4.00e-05 | grad 3.08 | 711ms/step
+iter  9225 | loss 2.5290 | lr 3.98e-05 | grad 2.90 | 711ms/step
+iter  9250 | loss 2.4902 | lr 3.96e-05 | grad 2.67 | 711ms/step
+iter  9275 | loss 2.5276 | lr 3.93e-05 | grad 5.08 | 711ms/step
+iter  9300 | loss 2.5971 | lr 3.91e-05 | grad 3.15 | 711ms/step
+iter  9325 | loss 2.5415 | lr 3.89e-05 | grad 2.90 | 711ms/step
+iter  9350 | loss 2.5411 | lr 3.87e-05 | grad 3.31 | 711ms/step
+iter  9375 | loss 2.5422 | lr 3.84e-05 | grad 3.18 | 711ms/step
+iter  9400 | loss 2.5388 | lr 3.82e-05 | grad 3.25 | 711ms/step
+iter  9425 | loss 2.6094 | lr 3.80e-05 | grad 3.39 | 711ms/step
+iter  9450 | loss 2.4853 | lr 3.78e-05 | grad 3.19 | 711ms/step
+iter  9475 | loss 2.5252 | lr 3.76e-05 | grad 3.04 | 711ms/step
+iter  9500 | loss 2.5657 | lr 3.73e-05 | grad 2.94 | 711ms/step
+============================================================
+[1.9h, iter 9500] Train:2.4663 Val:3.0184 BPB:4.355 
+============================================================
+iter  9525 | loss 2.4848 | lr 3.71e-05 | grad 3.17 | 711ms/step
+iter  9550 | loss 2.4808 | lr 3.69e-05 | grad 2.99 | 711ms/step
+iter  9575 | loss 2.5378 | lr 3.67e-05 | grad 7.91 | 711ms/step
+iter  9600 | loss 2.4865 | lr 3.65e-05 | grad 3.04 | 711ms/step
+iter  9625 | loss 2.5305 | lr 3.62e-05 | grad 3.20 | 711ms/step
+iter  9650 | loss 2.5586 | lr 3.60e-05 | grad 3.10 | 711ms/step
+iter  9675 | loss 2.4980 | lr 3.58e-05 | grad 2.87 | 711ms/step
+iter  9700 | loss 2.5147 | lr 3.56e-05 | grad 3.16 | 711ms/step
+iter  9725 | loss 2.5063 | lr 3.54e-05 | grad 3.12 | 711ms/step
+iter  9750 | loss 2.4752 | lr 3.52e-05 | grad 3.12 | 711ms/step
+iter  9775 | loss 2.4511 | lr 3.50e-05 | grad 2.72 | 711ms/step
+iter  9800 | loss 2.4985 | lr 3.47e-05 | grad 3.07 | 711ms/step
+iter  9825 | loss 2.5182 | lr 3.45e-05 | grad 3.06 | 711ms/step
+iter  9850 | loss 2.4885 | lr 3.43e-05 | grad 3.11 | 711ms/step
+iter  9875 | loss 2.5351 | lr 3.41e-05 | grad 3.04 | 711ms/step
+iter  9900 | loss 2.4817 | lr 3.39e-05 | grad 2.87 | 710ms/step
+iter  9925 | loss 2.5146 | lr 3.37e-05 | grad 3.37 | 710ms/step
+iter  9950 | loss 2.5426 | lr 3.35e-05 | grad 3.37 | 710ms/step
+iter  9975 | loss 2.4682 | lr 3.33e-05 | grad 3.30 | 710ms/step
+iter 10000 | loss 2.5263 | lr 3.31e-05 | grad 2.88 | 710ms/step
+============================================================
+[2.0h, iter 10000] Train:2.4741 Val:2.8630 BPB:4.131 >>> BEST!
+============================================================
+
+--- Gen (iter 10000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) and Machine Learning (ML) are increasingly being used in everyday life to automate tasks such as speech recognition, natural language processing, robotics-driven decision making, autonomous vehicles, and more. AI is also 
+
+  Q: t is the capital of France?
+  A: The capital of France is Paris.
+
+  Q: te a short poem about the ocean.
+  A: The sun is in turmoil and chasing, A gentle breeze carries with it, With the serene beauty that comes alive within its depths. Its soft green leaves start to fall It's a deep blue-red sky, An air of wonder, From this momentren land we can feel like a
+
+  Q:  does a car engine work?
+  A: A car engine has several components. It is an essential component for the cars to carry out its own tasks, such as fueling and mechanical power, where it can be used by various vehicles like gasoline or electric engines. The vehicle also serves as a 
+
+---
+iter 10025 | loss 2.4871 | lr 3.28e-05 | grad 3.50 | 712ms/step
+iter 10050 | loss 2.5368 | lr 3.26e-05 | grad 2.86 | 712ms/step
+iter 10075 | loss 2.4726 | lr 3.24e-05 | grad 3.13 | 712ms/step
+iter 10100 | loss 2.4877 | lr 3.22e-05 | grad 3.06 | 711ms/step
+iter 10125 | loss 2.5247 | lr 3.20e-05 | grad 3.09 | 711ms/step
+iter 10150 | loss 2.4994 | lr 3.18e-05 | grad 4.60 | 711ms/step
+iter 10175 | loss 2.4887 | lr 3.16e-05 | grad 3.02 | 711ms/step
+iter 10200 | loss 2.5245 | lr 3.14e-05 | grad 2.78 | 711ms/step
+iter 10225 | loss 2.4974 | lr 3.12e-05 | grad 3.13 | 711ms/step
+iter 10250 | loss 2.5332 | lr 3.10e-05 | grad 3.22 | 711ms/step
+iter 10275 | loss 2.5103 | lr 3.08e-05 | grad 3.02 | 711ms/step
+iter 10300 | loss 2.5029 | lr 3.06e-05 | grad 3.14 | 711ms/step
+iter 10325 | loss 2.4555 | lr 3.04e-05 | grad 3.12 | 711ms/step
+iter 10350 | loss 2.4876 | lr 3.02e-05 | grad 3.15 | 711ms/step
+iter 10375 | loss 2.5237 | lr 3.00e-05 | grad 3.06 | 711ms/step
+iter 10400 | loss 2.4591 | lr 2.98e-05 | grad 3.07 | 711ms/step
+iter 10425 | loss 2.4536 | lr 2.96e-05 | grad 3.03 | 711ms/step
+iter 10450 | loss 2.4975 | lr 2.94e-05 | grad 3.10 | 711ms/step
+iter 10475 | loss 2.5303 | lr 2.92e-05 | grad 3.23 | 711ms/step
+iter 10500 | loss 2.5322 | lr 2.90e-05 | grad 2.81 | 711ms/step
+============================================================
+[2.1h, iter 10500] Train:2.3112 Val:2.9534 BPB:4.261 
+============================================================
+iter 10525 | loss 2.4620 | lr 2.88e-05 | grad 2.94 | 711ms/step
+iter 10550 | loss 2.4465 | lr 2.86e-05 | grad 2.89 | 711ms/step
+iter 10575 | loss 2.5513 | lr 2.84e-05 | grad 2.95 | 711ms/step
+iter 10600 | loss 2.4674 | lr 2.82e-05 | grad 3.00 | 711ms/step
+iter 10625 | loss 2.4491 | lr 2.80e-05 | grad 3.29 | 711ms/step
+iter 10650 | loss 2.5033 | lr 2.79e-05 | grad 3.27 | 711ms/step
+iter 10675 | loss 2.5073 | lr 2.77e-05 | grad 2.94 | 711ms/step
+iter 10700 | loss 2.4913 | lr 2.75e-05 | grad 3.02 | 711ms/step
+iter 10725 | loss 2.5391 | lr 2.73e-05 | grad 3.12 | 711ms/step
+iter 10750 | loss 2.5371 | lr 2.71e-05 | grad 2.89 | 711ms/step
+iter 10775 | loss 2.3709 | lr 2.69e-05 | grad 3.11 | 711ms/step
+iter 10800 | loss 2.5151 | lr 2.67e-05 | grad 3.03 | 711ms/step
+iter 10825 | loss 2.5258 | lr 2.65e-05 | grad 3.41 | 711ms/step
+iter 10850 | loss 2.5309 | lr 2.64e-05 | grad 2.99 | 711ms/step
+iter 10875 | loss 2.4902 | lr 2.62e-05 | grad 3.12 | 710ms/step
+iter 10900 | loss 2.4574 | lr 2.60e-05 | grad 2.84 | 710ms/step
+iter 10925 | loss 2.4582 | lr 2.58e-05 | grad 3.30 | 710ms/step
+iter 10950 | loss 2.4285 | lr 2.56e-05 | grad 3.25 | 710ms/step
+iter 10975 | loss 2.5021 | lr 2.54e-05 | grad 3.22 | 710ms/step
+iter 11000 | loss 2.4906 | lr 2.53e-05 | grad 3.03 | 710ms/step
+============================================================
+[2.2h, iter 11000] Train:2.4242 Val:2.9181 BPB:4.210 
+============================================================
+
+--- Gen (iter 11000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to the development of computer systems that can perform tasks normally associated with human input, such as natural language processing, text classification and speech recognition. AI technologies use algorithms to
+
+  Q: t is the capital of France?
+  A: The capital of France is Paris.
+
+  Q: te a short poem about the ocean.
+  A: She had a great time at work – no matter what comes from! ### Instruction: Is the sentiment of this tweet negative or positive? OPTIONS: (A). negative;
+
+  Q:  does a car engine work?
+  A: A car engine consists of several components such as fuel, electrical and thermal power. The car comes with the ability to carry out the instructions on it's time to turn off the machine when you are in need. In order for a car engine work, one must f
+
+---
+iter 11025 | loss 2.4846 | lr 2.51e-05 | grad 3.03 | 712ms/step
+iter 11050 | loss 2.4325 | lr 2.49e-05 | grad 3.36 | 712ms/step
+iter 11075 | loss 2.5153 | lr 2.47e-05 | grad 2.95 | 712ms/step
+iter 11100 | loss 2.5069 | lr 2.46e-05 | grad 3.44 | 712ms/step
+iter 11125 | loss 2.4765 | lr 2.44e-05 | grad 3.23 | 711ms/step
+iter 11150 | loss 2.4146 | lr 2.42e-05 | grad 3.22 | 711ms/step
+iter 11175 | loss 2.4177 | lr 2.40e-05 | grad 3.52 | 711ms/step
+iter 11200 | loss 2.4746 | lr 2.39e-05 | grad 3.13 | 711ms/step
+iter 11225 | loss 2.4244 | lr 2.37e-05 | grad 3.16 | 711ms/step
+iter 11250 | loss 2.4490 | lr 2.35e-05 | grad 2.88 | 711ms/step
+iter 11275 | loss 2.4825 | lr 2.33e-05 | grad 2.89 | 711ms/step
+iter 11300 | loss 2.5028 | lr 2.32e-05 | grad 3.14 | 711ms/step
+iter 11325 | loss 2.4696 | lr 2.30e-05 | grad 2.89 | 711ms/step
+iter 11350 | loss 2.4940 | lr 2.28e-05 | grad 3.38 | 711ms/step
+iter 11375 | loss 2.5038 | lr 2.27e-05 | grad 3.02 | 711ms/step
+iter 11400 | loss 2.4376 | lr 2.25e-05 | grad 3.11 | 711ms/step
+iter 11425 | loss 2.4477 | lr 2.23e-05 | grad 2.99 | 711ms/step
+iter 11450 | loss 2.4436 | lr 2.22e-05 | grad 3.08 | 711ms/step
+iter 11475 | loss 2.4486 | lr 2.20e-05 | grad 3.04 | 711ms/step
+iter 11500 | loss 2.4573 | lr 2.19e-05 | grad 2.90 | 711ms/step
+============================================================
+[2.3h, iter 11500] Train:2.3677 Val:2.8842 BPB:4.161 
+============================================================
+iter 11525 | loss 2.5075 | lr 2.17e-05 | grad 3.05 | 711ms/step
+iter 11550 | loss 2.4685 | lr 2.15e-05 | grad 3.63 | 711ms/step
+iter 11575 | loss 2.4561 | lr 2.14e-05 | grad 3.01 | 711ms/step
+iter 11600 | loss 2.4308 | lr 2.12e-05 | grad 3.07 | 711ms/step
+iter 11625 | loss 2.4552 | lr 2.11e-05 | grad 2.92 | 711ms/step
+iter 11650 | loss 2.4529 | lr 2.09e-05 | grad 3.04 | 711ms/step
+iter 11675 | loss 2.4566 | lr 2.08e-05 | grad 2.87 | 711ms/step
+iter 11700 | loss 2.4595 | lr 2.06e-05 | grad 3.03 | 711ms/step
+iter 11725 | loss 2.4757 | lr 2.04e-05 | grad 2.98 | 711ms/step
+iter 11750 | loss 2.4754 | lr 2.03e-05 | grad 2.83 | 711ms/step
+iter 11775 | loss 2.4330 | lr 2.01e-05 | grad 3.35 | 711ms/step
+iter 11800 | loss 2.3901 | lr 2.00e-05 | grad 2.65 | 711ms/step
+iter 11825 | loss 2.4415 | lr 1.98e-05 | grad 4.19 | 711ms/step
+iter 11850 | loss 2.4669 | lr 1.97e-05 | grad 3.31 | 711ms/step
+iter 11875 | loss 2.4794 | lr 1.95e-05 | grad 3.55 | 711ms/step
+iter 11900 | loss 2.4626 | lr 1.94e-05 | grad 3.30 | 711ms/step
+iter 11925 | loss 2.4501 | lr 1.93e-05 | grad 3.04 | 711ms/step
+iter 11950 | loss 2.4588 | lr 1.91e-05 | grad 2.91 | 711ms/step
+iter 11975 | loss 2.4104 | lr 1.90e-05 | grad 3.20 | 711ms/step
+iter 12000 | loss 2.4906 | lr 1.88e-05 | grad 2.78 | 711ms/step
+============================================================
+[2.4h, iter 12000] Train:2.3148 Val:2.9511 BPB:4.258 
+============================================================
+
+--- Gen (iter 12000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) applications are the field of computer science, AI and machine learning that allows machines to learn from experience in a wide range of tasks such as natural language processing or speech recognition. They also have thei
+
+  Q: t is the capital of France?
+  A: The capital of France in France is Paris.
+
+  Q: te a short poem about the ocean.
+  A: The waves crashing against the shore, A sky of sand dunes in the night. As it snowms my body and I am feeling like something is very special. From me to the sea, I feel a chill about its journey as if I were lost forever. The ocean takes place on thi
+
+  Q:  does a car engine work?
+  A: A car is typically classified as a vehicle, while an airplanes take off the land and returns to its original state. The driver lands on the ground have a low pressure or high-pressure conditions that allow it to maintain their balance with greater sp
+
+---
+iter 12025 | loss 2.4243 | lr 1.87e-05 | grad 8.39 | 712ms/step
+iter 12050 | loss 2.3991 | lr 1.85e-05 | grad 2.98 | 712ms/step
+iter 12075 | loss 2.3997 | lr 1.84e-05 | grad 3.16 | 712ms/step
+iter 12100 | loss 2.4587 | lr 1.83e-05 | grad 3.03 | 712ms/step
+iter 12125 | loss 2.4422 | lr 1.81e-05 | grad 2.98 | 712ms/step
+iter 12150 | loss 2.3951 | lr 1.80e-05 | grad 2.84 | 712ms/step
+iter 12175 | loss 2.4825 | lr 1.79e-05 | grad 3.17 | 712ms/step
+iter 12200 | loss 2.4789 | lr 1.77e-05 | grad 2.90 | 712ms/step
+iter 12225 | loss 2.5204 | lr 1.76e-05 | grad 2.92 | 712ms/step
+iter 12250 | loss 2.4786 | lr 1.75e-05 | grad 3.02 | 712ms/step
+iter 12275 | loss 2.4426 | lr 1.73e-05 | grad 2.99 | 712ms/step
+iter 12300 | loss 2.4068 | lr 1.72e-05 | grad 3.13 | 711ms/step
+iter 12325 | loss 2.4195 | lr 1.71e-05 | grad 2.82 | 711ms/step
+iter 12350 | loss 2.4714 | lr 1.69e-05 | grad 2.92 | 711ms/step
+iter 12375 | loss 2.4305 | lr 1.68e-05 | grad 3.03 | 711ms/step
+iter 12400 | loss 2.4591 | lr 1.67e-05 | grad 3.48 | 711ms/step
+iter 12425 | loss 2.4813 | lr 1.66e-05 | grad 3.40 | 711ms/step
+iter 12450 | loss 2.4191 | lr 1.64e-05 | grad 3.19 | 711ms/step
+iter 12475 | loss 2.4585 | lr 1.63e-05 | grad 2.99 | 711ms/step
+iter 12500 | loss 2.4193 | lr 1.62e-05 | grad 2.82 | 711ms/step
+============================================================
+[2.5h, iter 12500] Train:2.4054 Val:2.8990 BPB:4.183 
+============================================================
+iter 12525 | loss 2.4662 | lr 1.61e-05 | grad 3.16 | 712ms/step
+iter 12550 | loss 2.4297 | lr 1.59e-05 | grad 15.78 | 712ms/step
+iter 12575 | loss 2.4687 | lr 1.58e-05 | grad 2.94 | 712ms/step
+iter 12600 | loss 2.4558 | lr 1.57e-05 | grad 2.81 | 711ms/step
+iter 12625 | loss 2.4562 | lr 1.56e-05 | grad 2.75 | 711ms/step
+iter 12650 | loss 2.4886 | lr 1.55e-05 | grad 3.12 | 711ms/step
+iter 12675 | loss 2.4147 | lr 1.54e-05 | grad 2.85 | 711ms/step
+iter 12700 | loss 2.4840 | lr 1.53e-05 | grad 3.39 | 711ms/step
+iter 12725 | loss 2.4188 | lr 1.51e-05 | grad 2.97 | 711ms/step
+iter 12750 | loss 2.4319 | lr 1.50e-05 | grad 3.04 | 711ms/step
+iter 12775 | loss 2.3968 | lr 1.49e-05 | grad 3.47 | 711ms/step
+iter 12800 | loss 2.4173 | lr 1.48e-05 | grad 2.79 | 711ms/step
+iter 12825 | loss 2.4302 | lr 1.47e-05 | grad 3.21 | 711ms/step
+iter 12850 | loss 2.4390 | lr 1.46e-05 | grad 2.84 | 711ms/step
+iter 12875 | loss 2.4157 | lr 1.45e-05 | grad 3.15 | 711ms/step
+iter 12900 | loss 2.4132 | lr 1.44e-05 | grad 2.96 | 711ms/step
+iter 12925 | loss 2.4802 | lr 1.43e-05 | grad 3.13 | 711ms/step
+iter 12950 | loss 2.4222 | lr 1.42e-05 | grad 3.10 | 711ms/step
+iter 12975 | loss 2.4361 | lr 1.41e-05 | grad 3.08 | 711ms/step
+iter 13000 | loss 2.4726 | lr 1.40e-05 | grad 2.71 | 711ms/step
+============================================================
+[2.6h, iter 13000] Train:2.3012 Val:2.8450 BPB:4.105 >>> BEST!
+============================================================
+
+--- Gen (iter 13000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) is a branch of computer science that focuses on creating intelligent machines capable of performing tasks such as autonomous robots, summarizing information systems and understanding their context in order to solve comple
+
+  Q: t is the capital of France?
+  A: The capital of France, on the other hand, has a beautiful climate. It has an average height of 1012 feet and its elevation is around 46.8 meters (39 to 57 miles).
+
+  Q: te a short poem about the ocean.
+  A: The waves crashing against the sea, A storm surges its rays in the sky Gently dance upon my feet How I run through this night. Filled with wonder andro to find it hidden within My heart forever’s bounty, Where ever darkness is going above Chorus: It'
+
+  Q:  does a car engine work?
+  A: A car maintenance vehicle is an automated system that provides automatic transmission of data between the car and its intended destination. It consists of multiple components connected to one another on the network, which are interconnected by driver
+
+---
+iter 13025 | loss 2.4511 | lr 1.39e-05 | grad 3.12 | 712ms/step
+iter 13050 | loss 2.4086 | lr 1.38e-05 | grad 2.80 | 712ms/step
+iter 13075 | loss 2.4223 | lr 1.37e-05 | grad 2.83 | 712ms/step
+iter 13100 | loss 2.4791 | lr 1.36e-05 | grad 3.01 | 712ms/step
+iter 13125 | loss 2.4415 | lr 1.35e-05 | grad 2.77 | 712ms/step
+iter 13150 | loss 2.4437 | lr 1.34e-05 | grad 3.03 | 712ms/step
+iter 13175 | loss 2.4643 | lr 1.33e-05 | grad 3.55 | 712ms/step
+iter 13200 | loss 2.3762 | lr 1.32e-05 | grad 3.09 | 712ms/step
+iter 13225 | loss 2.4409 | lr 1.32e-05 | grad 3.22 | 712ms/step
+iter 13250 | loss 2.4078 | lr 1.31e-05 | grad 2.82 | 712ms/step
+iter 13275 | loss 2.4628 | lr 1.30e-05 | grad 3.04 | 712ms/step
+iter 13300 | loss 2.4279 | lr 1.29e-05 | grad 2.88 | 712ms/step
+iter 13325 | loss 2.4540 | lr 1.28e-05 | grad 3.84 | 712ms/step
+iter 13350 | loss 2.4104 | lr 1.27e-05 | grad 3.18 | 712ms/step
+iter 13375 | loss 2.4618 | lr 1.27e-05 | grad 3.11 | 712ms/step
+iter 13400 | loss 2.4021 | lr 1.26e-05 | grad 3.16 | 711ms/step
+iter 13425 | loss 2.3344 | lr 1.25e-05 | grad 3.17 | 711ms/step
+iter 13450 | loss 2.4114 | lr 1.24e-05 | grad 3.46 | 711ms/step
+iter 13475 | loss 2.3755 | lr 1.23e-05 | grad 2.90 | 711ms/step
+iter 13500 | loss 2.4639 | lr 1.23e-05 | grad 3.06 | 711ms/step
+============================================================
+[2.7h, iter 13500] Train:2.3328 Val:2.8524 BPB:4.115 
+============================================================
+iter 13525 | loss 2.4683 | lr 1.22e-05 | grad 2.88 | 712ms/step
+iter 13550 | loss 2.4012 | lr 1.21e-05 | grad 3.13 | 712ms/step
+iter 13575 | loss 2.4015 | lr 1.20e-05 | grad 3.14 | 712ms/step
+iter 13600 | loss 2.4222 | lr 1.20e-05 | grad 3.06 | 712ms/step
+iter 13625 | loss 2.4770 | lr 1.19e-05 | grad 3.06 | 712ms/step
+iter 13650 | loss 2.3757 | lr 1.18e-05 | grad 3.03 | 712ms/step
+iter 13675 | loss 2.4199 | lr 1.18e-05 | grad 3.11 | 712ms/step
+iter 13700 | loss 2.4176 | lr 1.17e-05 | grad 3.24 | 711ms/step
+iter 13725 | loss 2.4990 | lr 1.16e-05 | grad 2.86 | 711ms/step
+iter 13750 | loss 2.3776 | lr 1.16e-05 | grad 4.84 | 711ms/step
+iter 13775 | loss 2.4442 | lr 1.15e-05 | grad 3.03 | 711ms/step
+iter 13800 | loss 2.4295 | lr 1.15e-05 | grad 3.18 | 711ms/step
+iter 13825 | loss 2.4517 | lr 1.14e-05 | grad 3.22 | 711ms/step
+iter 13850 | loss 2.4655 | lr 1.13e-05 | grad 3.36 | 711ms/step
+iter 13875 | loss 2.3876 | lr 1.13e-05 | grad 3.01 | 711ms/step
+iter 13900 | loss 2.4772 | lr 1.12e-05 | grad 3.36 | 711ms/step
+iter 13925 | loss 2.3993 | lr 1.12e-05 | grad 3.33 | 711ms/step
+iter 13950 | loss 2.4223 | lr 1.11e-05 | grad 3.02 | 711ms/step
+iter 13975 | loss 2.4638 | lr 1.11e-05 | grad 2.89 | 711ms/step
+iter 14000 | loss 2.4167 | lr 1.10e-05 | grad 2.90 | 711ms/step
+============================================================
+[2.8h, iter 14000] Train:2.4066 Val:2.8556 BPB:4.120 
+============================================================
+
+--- Gen (iter 14000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to the ability of a computer system or program that can generate human-like responses and interactions between computers, such as humans and machines, as well as in solving complex tasks like problem solving optimi
+
+  Q: t is the capital of France?
+  A: The capital of France is Paris.
+
+  Q: te a short poem about the ocean.
+  A: The sun rises so high, Shrive through air and us all still, But when the land is shrouded in place, We take an active part of what's right to do It's time for our own.
+
+  Q:  does a car engine work?
+  A: A car works by taking off the ground and using it in order to drive or climb. It begins with driving, then taking turnsing the wheel and moving it on from one side of the vehicle to another car that needs fuel to travel through without being manually
+
+---
+iter 14025 | loss 2.3925 | lr 1.10e-05 | grad 2.86 | 712ms/step
+iter 14050 | loss 2.4532 | lr 1.09e-05 | grad 3.35 | 712ms/step
+iter 14075 | loss 2.3765 | lr 1.09e-05 | grad 3.01 | 712ms/step
+iter 14100 | loss 2.4297 | lr 1.08e-05 | grad 2.79 | 712ms/step
+iter 14125 | loss 2.4902 | lr 1.08e-05 | grad 2.97 | 712ms/step
+iter 14150 | loss 2.3631 | lr 1.07e-05 | grad 3.15 | 712ms/step
+iter 14175 | loss 2.4651 | lr 1.07e-05 | grad 3.18 | 712ms/step
+iter 14200 | loss 2.4180 | lr 1.06e-05 | grad 2.85 | 712ms/step
+iter 14225 | loss 2.3627 | lr 1.06e-05 | grad 2.89 | 712ms/step
+iter 14250 | loss 2.3744 | lr 1.06e-05 | grad 2.96 | 712ms/step
+iter 14275 | loss 2.3701 | lr 1.05e-05 | grad 3.08 | 712ms/step
+iter 14300 | loss 2.4549 | lr 1.05e-05 | grad 3.11 | 712ms/step
+iter 14325 | loss 2.3545 | lr 1.05e-05 | grad 3.03 | 712ms/step
+iter 14350 | loss 2.4483 | lr 1.04e-05 | grad 2.86 | 712ms/step
+iter 14375 | loss 2.3528 | lr 1.04e-05 | grad 2.88 | 712ms/step
+iter 14400 | loss 2.4148 | lr 1.04e-05 | grad 2.91 | 712ms/step
+iter 14425 | loss 2.4583 | lr 1.03e-05 | grad 3.05 | 712ms/step
+iter 14450 | loss 2.4980 | lr 1.03e-05 | grad 3.34 | 711ms/step
+iter 14475 | loss 2.5070 | lr 1.03e-05 | grad 3.11 | 711ms/step
+iter 14500 | loss 2.4260 | lr 1.03e-05 | grad 3.23 | 711ms/step
+============================================================
+[2.9h, iter 14500] Train:2.3303 Val:2.8938 BPB:4.175 
+============================================================
+iter 14525 | loss 2.4006 | lr 1.02e-05 | grad 2.97 | 712ms/step
+iter 14550 | loss 2.4662 | lr 1.02e-05 | grad 3.04 | 712ms/step
+iter 14575 | loss 2.4141 | lr 1.02e-05 | grad 2.95 | 712ms/step
+iter 14600 | loss 2.3360 | lr 1.02e-05 | grad 2.79 | 712ms/step
+iter 14625 | loss 2.4764 | lr 1.01e-05 | grad 3.35 | 712ms/step
+iter 14650 | loss 2.3877 | lr 1.01e-05 | grad 3.04 | 712ms/step
+iter 14675 | loss 2.3798 | lr 1.01e-05 | grad 2.96 | 712ms/step
+iter 14700 | loss 2.4154 | lr 1.01e-05 | grad 20.64 | 712ms/step
+iter 14725 | loss 2.4164 | lr 1.01e-05 | grad 2.94 | 712ms/step
+iter 14750 | loss 2.4216 | lr 1.01e-05 | grad 2.91 | 711ms/step
+iter 14775 | loss 2.4760 | lr 1.01e-05 | grad 2.91 | 711ms/step
+iter 14800 | loss 2.3756 | lr 1.00e-05 | grad 3.04 | 711ms/step
+iter 14825 | loss 2.3399 | lr 1.00e-05 | grad 2.82 | 711ms/step
+iter 14850 | loss 2.4566 | lr 1.00e-05 | grad 2.94 | 711ms/step
+iter 14875 | loss 2.4040 | lr 1.00e-05 | grad 2.82 | 711ms/step
+iter 14900 | loss 2.4723 | lr 1.00e-05 | grad 2.76 | 711ms/step
+iter 14925 | loss 2.4045 | lr 1.00e-05 | grad 3.10 | 711ms/step
+iter 14950 | loss 2.3039 | lr 1.00e-05 | grad 7.22 | 711ms/step
+iter 14975 | loss 2.4379 | lr 1.00e-05 | grad 2.83 | 711ms/step
+iter 15000 | loss 2.4220 | lr 1.00e-05 | grad 3.23 | 711ms/step
+============================================================
+[3.0h, iter 15000] Train:2.3596 Val:2.9899 BPB:4.314 
+============================================================
+
+--- Gen (iter 15000) ---
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) and machine learning are two branches of computer science that can help companies make decisions, improve their processes by making data-driven predictions or decisions based on past experiences. These algorithms work tog
+
+  Q: t is the capital of France?
+  A: The capital city of France is Paris.
+
+  Q: te a short poem about the ocean.
+  A: A sea of glistens, A warm place that is with joy and grace, Shall we go, The love of life's sight so grand, A moment to embrace new things, a serene evening stroll on the ground.
+
+  Q:  does a car engine work?
+  A: A vehicle typically has two main components, such as the transmission and storage of power plants within cities. These include an engine's fuel system (e.g., a car), fuel-efficient vehicles such aspowered automatic engines or electric cars. An engine
+
+---
+
+Done at iter 15000. Best BPB: 4.105
+omponents, such as the transmission and storage of power plants within cities. These include an engine's fuel system (e.g., a car), fuel-efficient vehicles such aspowered automatic engines or electric cars. An engine
+
+---
+
+Done at iter 15000. Best BPB: 4.105
