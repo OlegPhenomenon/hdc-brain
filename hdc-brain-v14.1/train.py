@@ -17,11 +17,19 @@ import signal
 import os
 import sys
 import math
+import random
 import numpy as np
 import torch
 import torch.nn.functional as F
 import sentencepiece as spm
 from hdc_brain_v14_1 import create_model
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 # === Unbuffered logging to file ===
 LOG_FILE = 'train.log'
@@ -141,7 +149,7 @@ elif os.path.exists(LAST_CKPT_PATH):
 
 if resume_path:
     print(f"Resuming from {resume_path}...")
-    ckpt = torch.load(resume_path, map_location=device, weights_only=False)
+    ckpt = torch.load(resume_path, map_location=device, weights_only=True)
     model.load_state_dict(ckpt['model'])
     best_val = ckpt.get('val_loss', float('inf'))
     start_iter = ckpt.get('iter', 0)

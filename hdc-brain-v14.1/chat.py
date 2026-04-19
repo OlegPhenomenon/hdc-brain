@@ -167,7 +167,7 @@ def main():
 
     print(f"[checkpoint] {ckpt_path.name}")
     t0 = time.time()
-    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=True)
 
     cfg = ckpt.get("config", {
         "hdc_dim": 4096, "max_seq_len": 512, "n_blocks": 8,

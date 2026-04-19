@@ -14,10 +14,18 @@ Usage:
 import torch
 import time
 import os
+import random
 import argparse
 import numpy as np
 import sentencepiece as spm
 from hdc_brain_v14_1 import create_model, HDCBrainV14_1
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 
 def count_params(model):
@@ -174,7 +182,7 @@ def main():
     # Load model
     if os.path.exists(args.checkpoint):
         print(f"\nLoading model from {args.checkpoint}...")
-        ckpt = torch.load(args.checkpoint, map_location=args.device, weights_only=False)
+        ckpt = torch.load(args.checkpoint, map_location=args.device, weights_only=True)
         config = ckpt['config']
         vocab_size = ckpt['vocab_size']
         model = HDCBrainV14_1(vocab_size=vocab_size, **config)

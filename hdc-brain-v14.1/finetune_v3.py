@@ -7,13 +7,20 @@ Strategy:
 - 30K iters (2x clean baseline because dataset is 4x bigger)
 - Save to best_finetune_v3_v14_1.pt
 """
-import json, time, signal, os, math
+import json, time, signal, os, math, random
 from datetime import datetime, timezone
 import numpy as np
 import torch
 import torch.nn.functional as F
 import sentencepiece as spm
 from hdc_brain_v14_1 import create_model
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 LOG_FILE = "finetune_v3.log"
 
@@ -57,7 +64,7 @@ model, cfg = create_model(V, {
 })
 model = model.to(device)
 
-ckpt = torch.load("best_hdc_brain_v14_1.pt", map_location=device, weights_only=False)
+ckpt = torch.load("best_hdc_brain_v14_1.pt", map_location=device, weights_only=True)
 model.load_state_dict(ckpt["model"])
 log(f"Loaded base: BPB {ckpt.get('val_loss', 0) / 0.6931:.3f}")
 del ckpt

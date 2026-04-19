@@ -1,0 +1,10 @@
+# Core runtime — chat.py / benchmark.py / test_memory.py
+torch>=2.4,<3.0          # weights_only=True default; tested on 2.8.0
+sentencepiece>=0.2,<0.3  # tested on 0.2.1
+numpy>=1.24,<3.0         # tested on 2.2.6
+
+# Data preparation — prepare_data.py / prep_quality_v3.py
+datasets>=2.14,<5.0      # tested on 4.5.0
+
+# Optional: faster Hugging Face uploads/downloads (HF_HUB_ENABLE_HF_TRANSFER=1)
+# hf_transfer>=0.1

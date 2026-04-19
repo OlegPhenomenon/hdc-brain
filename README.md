@@ -55,15 +55,17 @@ Pretrained weights are not committed to git — download from Hugging Face (link
 
 Download the finetuned checkpoint and chat on CPU or GPU.
 
+Requires **Python 3.10+** and **PyTorch ≥ 2.4** (for safe `weights_only=True` checkpoint loading).
+
 ```bash
 git clone https://github.com/OlegPhenomenon/hdc-brain.git
-cd hdc-brain
-pip install torch sentencepiece numpy datasets
+cd hdc-brain/hdc-brain-v14.1
+pip install -r requirements.txt
 
-# Place best_finetune_v3_v14_1.pt in hdc-brain-v14.1/weights/
-# (download from Hugging Face — see Weights section)
+# Download best_finetune_v3_v14_1.pt into ./weights/
+huggingface-cli download olegphenomenon/hdc-brain-v14.1-finetune-v3 \
+    best_finetune_v3_v14_1.pt --local-dir ./weights
 
-cd hdc-brain-v14.1
 python chat.py                  # CPU inference (default)
 python chat.py --device mps     # Apple Silicon (9–18 tok/s on M3)
 python chat.py --device cuda    # NVIDIA GPU

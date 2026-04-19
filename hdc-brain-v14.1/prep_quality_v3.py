@@ -16,11 +16,15 @@ import numpy as np
 import sentencepiece as spm
 from datasets import load_dataset
 
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+
 
 def clear_hf_cache():
-    for root in ["/root/.cache/huggingface", os.path.expanduser("~/.cache/huggingface")]:
-        if os.path.isdir(root):
-            shutil.rmtree(root, ignore_errors=True)
+    hf_home = os.environ.get("HF_HOME") or os.path.expanduser("~/.cache/huggingface")
+    if os.path.isdir(hf_home):
+        shutil.rmtree(hf_home, ignore_errors=True)
 
 sp = spm.SentencePieceProcessor(model_file="bpe_en_32k.model")
 
