@@ -5,7 +5,7 @@
 *oleg.phenomenon@gmail.com*
 
 **Code:** <https://github.com/OlegPhenomenon/hdc-brain>
-**Weights:** <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-base> (pretrain) · <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-finetune-v3> (instruction-tuned)
+**Weights:** <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-base> (pretrain) $\cdot$ <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-finetune-v3> (instruction-tuned)
 
 ---
 
@@ -26,7 +26,7 @@ Transformer-based language models have become the de-facto standard for natural 
 This work bridges HDC and language modeling. The contributions are:
 
 1. **STE Bipolar Codebook** — token embeddings are sign-constrained ±1 vectors, trained in float32 and binarized at forward pass via a straight-through estimator. This yields 1 bit per parameter at inference.
-2. **Multi-Head Binding Attention** — instead of the three learned QKV projections (3D² parameters per layer), 3 learned binding vectors per head are applied via element-wise multiply. This reduces attention parameters from 67M to 12K at hidden size 4096.
+2. **Multi-Head Binding Attention** — instead of the three learned QKV projections (3D$^2$ parameters per layer), 3 learned binding vectors per head are applied via element-wise multiply. This reduces attention parameters from 67M to 12K at hidden size 4096.
 3. **Thought Loops** — a learned multi-pass mechanism where the same block stack is applied K times with per-pass gating. Empirically, K=3 gives lowest validation loss and K=1 loses roughly 0.3 bits/token (Table 1 in §3.4); iterative refinement through shared weights is a meaningful source of effective depth under the reduced per-layer capacity of HDC-native operations.
 4. **HDC Memory** — a parallel-scan recurrence with learned per-token mass (importance) and decay (forgetting), replacing KV-cache with O(D) memory regardless of sequence length.
 
@@ -160,7 +160,7 @@ From the best pretrained checkpoint, supervised instruction tuning is performed.
 - **WizardLM Evol-Instruct** [@xu2023wizardlm]: 15K pairs — evolved Alpaca seeds
 - **Dolly-15K** [@databricks2023dolly]: 9K human-written pairs
 
-The strict filter applied to every source requires responses of 30–1000 characters, ≥92% ASCII ratio, at most one code marker, no heavy-math signatures, and no chat role-marker artifacts leaking through. The resulting 591,835 pairs tokenise to **75.5M tokens** (71.8M train, 3.8M val). Prompts are formatted as:
+The strict filter applied to every source requires responses of 30–1000 characters, $\geq$92% ASCII ratio, at most one code marker, no heavy-math signatures, and no chat role-marker artifacts leaking through. The resulting 591,835 pairs tokenise to **75.5M tokens** (71.8M train, 3.8M val). Prompts are formatted as:
 
 ```
 ### Instruction: {question}
@@ -169,7 +169,7 @@ The strict filter applied to every source requires responses of 30–1000 charac
 
 **Hyperparameters:**
 - Batch size: 4 × 2 (accumulation) = 8 effective
-- Learning rate: 1e-4 → 1e-5 cosine, 300-step warmup
+- Learning rate: 1e-4 $\to$ 1e-5 cosine, 300-step warmup
 - 30,000 iterations (~5.7 hours on a single RTX 3090)
 - Dropout 0.05 (reduced from 0.1 pretrain)
 - No gradient checkpointing
@@ -210,7 +210,7 @@ These show the model acquiring the expected conversational register, correct for
 | What is 2+2? | "The algorithm used in the problem solving is set, which are a number of different factors..." | No arithmetic capability; evasive meta-commentary |
 | How to print message in Python? | "To print the print(\"Hello World\") for print('John07) { print" | Garbled code — code examples were filtered out of training data |
 
-These are typical small-model (≤500M parameter) failure modes: weak factual recall outside heavily-represented pairs, template collapse when the correct answer is not well-anchored, refusal-mimicry from noisy SFT data, and inability to perform arithmetic or produce valid code without explicit pretraining on such content. None are specific to the HDC architecture; they are consequences of scale and of the explicit choice to filter code and math from the SFT corpus. Documenting them plainly is more useful than suppressing them.
+These are typical small-model ($\leq$500M parameter) failure modes: weak factual recall outside heavily-represented pairs, template collapse when the correct answer is not well-anchored, refusal-mimicry from noisy SFT data, and inability to perform arithmetic or produce valid code without explicit pretraining on such content. None are specific to the HDC architecture; they are consequences of scale and of the explicit choice to filter code and math from the SFT corpus. Documenting them plainly is more useful than suppressing them.
 
 ### 5.2 Inference Efficiency
 
@@ -218,9 +218,9 @@ At inference, only sign bits of the codebook and quantized controller are needed
 - Codebook: 32,000 × 4096 / 8 = **16.0 MB** (1 bit/param)
 - Controller (8 blocks, int8): **167.9 MB**
 - Memory state (HDC parallel scan): **16 KB per context** (constant in sequence length)
-- **Total: ≈ 184 MB**
+- **Total: $\approx$ 184 MB**
 
-A float16 transformer of equivalent parameter count would require ≈ 600 MB + a KV-cache that grows linearly with context.
+A float16 transformer of equivalent parameter count would require $\approx$ 600 MB + a KV-cache that grows linearly with context.
 
 **Reference inference speed.** Using the released `chat.py` harness with the `best_finetune_v3` checkpoint and the same sampling parameters as §5.1, we observe **9–18 tokens/second on an Apple M3 via the MPS backend**. This uses the reference PyTorch implementation (float matrix multiplication on sign-quantized weights) and is not edge-representative: MPS is a GPU, while edge devices typically rely on CPU or NPU execution. A CPU-only benchmark and an XNOR/POPCNT kernel benchmark are deferred to future work; these numbers are intended only as a lower bound on what is already reachable without any custom optimisation.
 
@@ -236,7 +236,7 @@ What this paper establishes is narrower: that such an architecture can be traine
 
 ### 6.2 When transformers win
 
-For maximum quality at the frontier, transformers retain the advantage: full-rank QKV projections are strictly more expressive than binding vectors, and their learned floating-point embeddings carry far more semantic structure than a 1-bit codebook. To calibrate the remaining gap we measure all models on an identical 2.02 MB (≈450 K token) slice of FineWeb-Edu sample-10BT, normalising by raw bytes so the comparison is tokenizer-agnostic:
+For maximum quality at the frontier, transformers retain the advantage: full-rank QKV projections are strictly more expressive than binding vectors, and their learned floating-point embeddings carry far more semantic structure than a 1-bit codebook. To calibrate the remaining gap we measure all models on an identical 2.02 MB ($\approx$450 K token) slice of FineWeb-Edu sample-10BT, normalising by raw bytes so the comparison is tokenizer-agnostic:
 
 | Model | Params | Bits/byte on FineWeb-Edu slice |
 |-------|:------:|:-------------------------------:|
@@ -247,7 +247,7 @@ For maximum quality at the frontier, transformers retain the advantage: full-ran
 
 At comparable parameter count our pretrained base beats GPT-2-medium by 0.13 bits/byte and trails SmolLM-360M by 0.44 bits/byte. SmolLM was pretrained on a substantially larger and better-curated corpus (Cosmopedia v2 + FineWeb-Edu) for more than an order of magnitude more compute, so the residual gap reflects both architectural and data/scale effects. The instruction-tuned checkpoint regresses on raw web text (the distribution it was tuned away from) — a standard consequence of supervised instruction tuning — while improving on instruction-format text (BPB-per-token drops from 5.434 to 3.521 on quality_v3, as reported in §4).
 
-This paper does not claim parity with the frontier; rather, it explores a different point on the efficiency–quality tradeoff where storage and operation-primitive constraints are prioritised. The 0.44 bits/byte gap is real but noticeably narrower than the order-of-magnitude estimates that would follow from a naïve comparison of architectural capacity alone.
+This paper does not claim parity with the frontier; rather, it explores a different point on the efficiency–quality tradeoff where storage and operation-primitive constraints are prioritised. The 0.44 bits/byte gap is real but noticeably narrower than the order-of-magnitude estimates that would follow from a naive comparison of architectural capacity alone.
 
 ### 6.3 Limitations
 
@@ -317,7 +317,7 @@ Bibliography is compiled from `refs.bib` via Pandoc / BibTeX. See individual `@b
 | Learning rate min | 3e-5 |
 | Warmup steps | 500 |
 | LR schedule | Cosine |
-| Optimizer | AdamW, β=(0.9, 0.95) |
+| Optimizer | AdamW, $\beta$=(0.9, 0.95) |
 | Codebook LR multiplier | 0.1 |
 | Weight decay (main) | 0.05 |
 | Weight decay (codebook) | 0.0 |
@@ -382,8 +382,8 @@ Standard transformer attention at D = 4096 uses $4D^2 = 67{,}108{,}864$ paramete
 |-----------|-----------|
 | Response length | 30–1000 characters |
 | Question length | 10–400 characters |
-| ASCII ratio | ≥ 92% |
+| ASCII ratio | $\geq$ 92% |
 | Code markers allowed | 0 (strict) |
-| `=` count in response | ≤ 3 (math filter) |
+| `=` count in response | $\leq$ 3 (math filter) |
 | `$` or `\\` in response | 0 (LaTeX / math filter) |
 | Chat-format leakage markers | None (user:/assistant:/[INST]/...) |
