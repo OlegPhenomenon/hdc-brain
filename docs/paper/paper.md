@@ -282,9 +282,7 @@ All reported numbers are obtained from a single training run; variance across ru
 - **Checkpoints**: `best_hdc_brain_v14_1.pt` (pretrained base, BPB 5.434) and `best_finetune_v3_v14_1.pt` (instruction-tuned, BPB 3.521)
 - **Training logs**: `finetune_v3.log` (iteration-by-iteration loss and BPB curves used to produce Figure 2)
 
-Source datasets retain their original licenses: FineWeb-Edu (ODC-BY), OpenHermes 2.5 (MIT), TULU-3 (ODC-BY), Alpaca (CC-BY-NC 4.0), Alpaca-GPT4 (CC-BY-NC 4.0), Dolly-15K (CC-BY-SA 3.0), WizardLM Evol-Instruct (research-only). Any downstream use of the instruction-tuned checkpoint inherits the most restrictive of these licenses. The model weights themselves and the architecture code are released under Apache-2.0.
-
-Repository and checkpoint URLs will be added upon final camera-ready submission.
+Source datasets retain their original licenses: FineWeb-Edu (ODC-BY), OpenHermes 2.5 (MIT), TULU-3 (ODC-BY), Alpaca (CC-BY-NC 4.0), Alpaca-GPT4 (CC-BY-NC 4.0), Dolly-15K (CC-BY-SA 3.0), WizardLM Evol-Instruct (research-only). **The architecture code is released under Apache-2.0 at <https://github.com/OlegPhenomenon/hdc-brain>. The model weights are released under CC BY-NC 4.0** (commercial use requires a separate license) — consistent with the most restrictive of the upstream dataset licenses. Checkpoints: <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-base> (pretrain) and <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-finetune-v3> (instruction-tuned).
 
 ---
 

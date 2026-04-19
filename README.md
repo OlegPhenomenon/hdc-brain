@@ -102,12 +102,10 @@ python make_plots.py            # regenerates fig_pretrain, fig_finetune, fig_pa
 
 ## Weights (Hugging Face)
 
-Two checkpoints will be published:
+Two checkpoints are published under **CC BY-NC 4.0** (research / non-commercial use free; commercial use requires a separate license):
 
-- `oleghasjanov/hdc-brain-v14.1-base` — pretrain checkpoint, 3.3 GB (float32)
-- `oleghasjanov/hdc-brain-v14.1-finetune-v3` — SFT checkpoint used for `chat.py`, 1.1 GB
-
-*(URLs added once upload is complete.)*
+- [`olegphenomenon/hdc-brain-v14.1-base`](https://huggingface.co/olegphenomenon/hdc-brain-v14.1-base) — pretrain checkpoint, 3.3 GB (float32)
+- [`olegphenomenon/hdc-brain-v14.1-finetune-v3`](https://huggingface.co/olegphenomenon/hdc-brain-v14.1-finetune-v3) — SFT checkpoint used by `chat.py`, 1.1 GB
 
 ## Honest limitations
 
@@ -137,7 +135,8 @@ Full discussion in paper §6.
 
 ## License
 
-Code: [Apache License 2.0](LICENSE). Weights are released separately on Hugging Face — see each model card for terms.
+Code: [Apache License 2.0](LICENSE) — unrestricted use.
+Weights: CC BY-NC 4.0 (free for research, academic, and personal non-commercial use; commercial use requires a separate license — contact `oleg.phenomenon@gmail.com`).
 
 ## Contact
 
