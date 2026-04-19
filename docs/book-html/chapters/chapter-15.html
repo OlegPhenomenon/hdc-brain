@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 15 — HDCBlock — собираем блок целиком | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item active">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция IV</span> /
+        <span>Глава 15</span>
+      </div>
+      <div class="topbar-progress">
+        <span>15 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 57%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция IV</span>
+        <span class="chapter-number">Глава 15</span>
+      </div>
+
+      <h1 class="chapter-title">HDCBlock — собираем блок целиком</h1>
+      <p class="chapter-subtitle"></p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<p>Вспомним откуда мы пришли.</p>
+
+<p>В последних главах мы разобрали три отдельных механизма:</p>
+
+<ul>
+<li><strong>HDCMemory</strong> (глава 12) — "что было раньше?" — взвешенное накопление прошлого</li>
+<li><strong>MultiHeadBindingAttention</strong> (глава 14) — "на кого обратить внимание?" — 12K параметров</li>
+<li><strong>ControllerBlock</strong> (глава 3) — "подумать над результатом" — 21M параметров</li>
+</ul>
+
+<p>Теперь нужно собрать их вместе в один рабочий блок.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Строительство дома: аналогия</h3>
+
+<p>Представь что строишь дом.</p>
+
+<p>Сначала заливаешь фундамент (Memory — стабильная база из прошлого). Потом строишь стены (Attention — структура). Потом делаешь отделку внутри (Controller — думаешь, обрабатываешь).</p>
+
+<p>Но важная деталь: <strong>каждый этап оставляет то что было</strong>. Фундамент никуда не девается. Стены строятся поверх фундамента, но фундамент остаётся. Отделка — поверх стен.</p>
+
+<p>Это называется <strong>residual connection</strong> (мы разбирали в главе 3).</p>
+
+<hr class="chapter-divider" />
+
+<h3>Поток информации через HDCBlock</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Вход x: (B, T, 4096)
+         │
+         ▼
+┌─────────────────┐
+│   HDCMemory     │  "что было в прошлом?"
+│   mass + decay  │
+└────────┬────────┘
+         │ mem_output
+         ▼
+   x = LayerNorm(x + mem_output)   ← residual + нормализация
+         │
+         ▼
+┌────────────────────────┐
+│ MultiHeadBindingAttn   │  "на кого обратить внимание?"
+│ 4 heads, sigmoid       │
+└────────────┬───────────┘
+             │ attn_output
+             ▼
+   x = LayerNorm(x + attn_output)  ← residual + нормализация
+             │
+             ▼
+┌─────────────────┐
+│  ControllerBlock│  "подумать"
+│  4096→2560→4096 │
+└────────┬────────┘
+         │
+         ▼
+  Выход: (B, T, 4096)  ← та же форма что вход</code>
+</pre>
+
+<p>Два паттерна повторяются постоянно:</p>
+
+<ol>
+<li><strong>Residual</strong>: <code>x = x + output_подблока</code> — сохраняем всё что было</li>
+<li><strong>LayerNorm</strong>: нормализуем перед следующим шагом — стабилизируем числа</li>
+</ol>
+
+<hr class="chapter-divider" />
+
+<h3>Pre-LN: нормализация ДО подблока</h3>
+
+<p>В оригинальном Transformer 2017 года нормализация шла <strong>после</strong> подблока:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Post-LN:  x → Sublayer → x + result → LayerNorm → output</code>
+</pre>
+
+<p>Это работало, но нестабильно для очень глубоких сетей.</p>
+
+<p>В GPT-2 (2019) переключились на <strong>Pre-LN</strong> — нормализация <strong>до</strong>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Pre-LN:   x → LayerNorm → Sublayer → x + result → output</code>
+</pre>
+
+<p>Почему лучше?</p>
+
+<p>При обучении нейросети важно чтобы числа не "взрывались" (не становились очень большими) и не "схлопывались" (не становились очень маленькими). LayerNorm перед каждым блоком гарантирует: вход всегда нормализован — стабильно обучается даже на 100+ слоях.</p>
+
+<p>Наш код использует Pre-LN:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def forward(self, x):
+    mem = self.memory(x)
+    x = self.ln_mem(x + mem)      # residual, потом норм ← Pre-LN!
+    attn = self.attention(x)
+    x = self.ln_attn(x + attn)    # residual, потом норм ← Pre-LN!
+    x = self.controller(x)        # controller сам содержит LN внутри
+    return x</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Полный код HDCBlock</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+import torch.nn as nn
+
+class HDCBlock(nn.Module):
+    def __init__(self, hdc_dim, controller_dim, n_heads=4, dropout=0.1):
+        super().__init__()
+
+        # Три основных компонента
+        self.memory     = HDCMemory(hdc_dim)
+        self.attention  = MultiHeadBindingAttention(hdc_dim, n_heads)
+        self.controller = ControllerBlock(hdc_dim, controller_dim, dropout)
+
+        # Нормализация после memory и attention
+        self.ln_mem  = nn.LayerNorm(hdc_dim)
+        self.ln_attn = nn.LayerNorm(hdc_dim)
+        # ControllerBlock сам содержит LayerNorm внутри — поэтому здесь нет третьего
+
+    def forward(self, x):
+        # === Memory: узнаём что было раньше ===
+        mem = self.memory(x)
+        x = self.ln_mem(x + mem)    # добавляем к текущему x, нормализуем
+
+        # === Attention: выбираем на что обратить внимание ===
+        attn = self.attention(x)
+        x = self.ln_attn(x + attn)  # снова residual + нормализация
+
+        # === Controller: думаем ===
+        x = self.controller(x)      # 4096 → 2560 → GELU → 4096 → residual
+
+        return x</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Параметры одного блока</h3>
+
+<p>Посчитаем честно:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">HDCMemory:
+  mass_proj  = 4096 × 1 = 4,096
+  decay_proj = 4096 × 1 = 4,096
+  Итого:                  8,192   (0.04% блока)
+
+MultiHeadBindingAttention:
+  bv_q + bv_k + bv_v = 3 × 4 × 1024 = 12,288   (0.06% блока)
+
+ControllerBlock:
+  ln:              4096 × 2         =  8,192
+  fc_down:         4096 × 2560      = 10,485,760
+  fc_up:           2560 × 4096      = 10,485,760
+  ln2 (residual):  4096 × 2         =  8,192
+  Итого:                            = 20,987,904  (99.9% блока!)
+
+LayerNorm (×2, внутри HDCBlock):
+  2 × 4096 × 2 = 16,384
+
+─────────────────────────────────────────────────
+Итого 1 HDCBlock: ≈ 21,024,768 ≈ 21M параметров</code>
+</pre>
+
+<p><strong>Интересный факт:</strong> ControllerBlock занимает <strong>99.9%</strong> параметров блока.</p>
+
+<p>Memory — 0.04%. Attention — 0.06%. Controller — 99.9%.</p>
+
+<p>Это не ошибка! Это дизайнерское решение. В нашей архитектуре:</p>
+
+<ul>
+<li>Memory и Attention работают <strong>дёшево</strong> — собирают контекст</li>
+<li>Controller работает <strong>дорого</strong> — глубоко обрабатывает информацию</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<h3>Восемь блоков: почему именно 8?</h3>
+
+<p>В модели 8 блоков.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">8 блоков × 21M параметров = 168M параметров
+
+Это 56% всей модели (из 299M).</code>
+</pre>
+
+<p>Почему 8, а не 4 или 16?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">4 блока:  4 × 21M = 84M    ← маловато глубины
+8 блоков: 8 × 21M = 168M   ← наш выбор (+ 3 мысли = 24 эффективных прохода)
+16 блоков: 16 × 21M = 336M ← больше чем вся модель должна быть</code>
+</pre>
+
+<p>Плюс: у нас <strong>3 мысли</strong> (ThoughtLoop, следующая глава). Каждая мысль — полный проход через все 8 блоков. Итого: 8 × 3 = <strong>24 "эффективных" прохода</strong> через данные.</p>
+
+<p>У SmolLM2: 32 слоя, 1 проход. У нас: 8 блоков, 3 прохода = 24 "эффективных слоя". Не так уж плохо.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Gradient Checkpointing: техническая деталь</h3>
+
+<p>В коде есть важная настройка:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># В конфиге модели:
+USE_CHECKPOINT = True</code>
+</pre>
+
+<p>Что это делает?</p>
+
+<p>При обычном forward pass PyTorch сохраняет в памяти <strong>все промежуточные вычисления</strong>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">x → Block1 → a1 → Block2 → a2 → Block3 → a3 → ... → loss
+         [сохр]        [сохр]        [сохр]  ...</code>
+</pre>
+
+<p>Зачем сохранять? Для backpropagation нужно знать "где были" при прямом проходе.</p>
+
+<p>При 8 блоках, батче 12, длине 512, размерности 4096 и bf16 — это ~500 МБ только активации.</p>
+
+<p>С gradient checkpointing:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">x → Block1 → (НЕ сохраняем a1) → Block2 → ...</code>
+</pre>
+
+<p>Когда при backprop нужна a1 — пересчитываем Block1 заново.</p>
+
+<p><strong>Цена:</strong> в 2 раза больше вычислений. <strong>Выгода:</strong> в 8 раз меньше памяти на активации.</p>
+
+<p>Для нас это необходимо: без checkpoint batch=12 не влезает в 24GB GPU.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">from torch.utils.checkpoint import checkpoint as torch_checkpoint
+
+def forward_blocks(h, blocks):
+    for block in blocks:
+        if USE_CHECKPOINT and training:
+            h = torch_checkpoint(block, h, use_reentrant=False)
+        else:
+            h = block(h)
+    return h</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Что происходит в разных блоках</h3>
+
+<p>Теоретически каждый блок должен "специализироваться" на чём-то своём. Исследования трансформеров показывают такую картину:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Блок 1-2 (ранние):
+  Синтаксис — части речи, базовые зависимости
+  "это глагол", "это существительное"
+
+Блок 3-5 (средние):
+  Семантика — значения слов, тематические связи
+  "это слово о Франции", "это слово о движении"
+
+Блок 6-8 (поздние):
+  Прагматика — контекст, предсказание
+  "что вероятнее всего идёт следующим?"</code>
+</pre>
+
+<p>Но в нашей архитектуре с ThoughtLoop всё сложнее — каждая из 3 "мыслей" проходит все 8 блоков. Первая мысль — базовый анализ, вторая — уточнение, третья — финальное предсказание. Но это тема следующей главы.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Задания</h3>
+
+<p><strong>Задание 15.1</strong> — Собери из компонентов</p>
+
+<p>Собери HDCBlock из трёх компонент и проверь что форма входа и выхода совпадают:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+# Параметры (маленький вариант для теста)
+hdc_dim = 64
+controller_dim = 128
+n_heads = 4
+batch = 2
+seq_len = 10
+
+block = HDCBlock(hdc_dim, controller_dim, n_heads)
+
+x = torch.randn(batch, seq_len, hdc_dim)
+out = block(x)
+
+print(f"Вход:  {x.shape}")    # (2, 10, 64)
+print(f"Выход: {out.shape}")  # должно быть (2, 10, 64) — та же форма!</code>
+</pre>
+
+<p><strong>Задание 15.2</strong> — Параметры</p>
+
+<p>Посчитай параметры каждого компонента:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">block = HDCBlock(hdc_dim=256, controller_dim=512, n_heads=4)
+
+total = 0
+for name, module in block.named_modules():
+    params = sum(p.numel() for p in module.parameters(recurse=False))
+    if params &gt; 0:
+        print(f"{name}: {params:,}")
+        total += params
+
+print(f"\nИтого: {total:,}")</code>
+</pre>
+
+<p>Что занимает наибольшую долю?</p>
+
+<p><strong>Задание 15.3</strong> — Pre-LN vs Post-LN</p>
+
+<p>Измени HDCBlock: используй Post-LN вместо Pre-LN.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Pre-LN (текущий):
+x = self.ln_mem(x + mem)
+
+# Post-LN:
+x = x + self.ln_mem(mem)</code>
+</pre>
+
+<p>Запусти обучение на 100 шагов в обоих вариантах. Чем отличается динамика loss?</p>
+
+<p><em>Теоретически Pre-LN должен быть стабильнее. Проверь на практике.</em></p>
+
+<hr class="chapter-divider" />
+
+<div class="summary-box">
+  <h4>✅ Итоги главы</h4>
+  <p>HDCBlock — комбинация трёх механизмов:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">x → [HDCMemory] → residual + LN → [BindingAttention] → residual + LN → [Controller] → output
+
+Memory:     8,192 параметров (0.04%)   — "что было"
+Attention: 12,288 параметров (0.06%)   — "на что смотреть"
+Controller: 21M параметров  (99.9%)    — "думать"</code>
+</pre>
+
+<p>Ключевые паттерны:</p>
+
+<ul>
+<li><strong>Residual</strong>: <code>x = x + sublayer_output</code> — сохраняем информацию</li>
+<li><strong>Pre-LN</strong>: нормализация перед каждым подблоком — стабильное обучение</li>
+<li><strong>8 блоков</strong>: 168M параметров (56% модели), умножается на 3 мысли</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 16 → Thought Loops — идея многопроходного мышления</em></p>
+
+      <div class="chapter-nav"><a href="chapter-14.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">HDC Binding Attention — наш главный трюк</div>
+</a><a href="chapter-16.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Thought Loops — многопроходное мышление</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Claude local state
+.claude/
+
+# Model weights (host on HuggingFace)
+*.pt
+*.bin
+*.safetensors
+
+# SentencePiece models/vocab (ship separately with release)
+*.model
+*.vocab
+
+# Large preprocessed corpora (reproduce via prep scripts)
+docs/experiments/*.bin
+docs/experiments/quality_v3_*.bin
+docs/experiments/v14.1-english/*.bin
+
+# Rust build artifacts
+target/
+
+# Editor
+*.swp
+*.swo

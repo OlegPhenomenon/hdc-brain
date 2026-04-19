@@ -1,0 +1,690 @@
+# Приложение C. Полный аннотированный код v14.1
+
+Полный код `hdc_brain_v14_1.py` с подробными комментариями.
+
+Это не справочник — это **экскурсия**. Каждый блок кода с объяснением: зачем именно так, а не иначе. Если читал главы 8-22 — всё будет узнаваемо.
+
+---
+
+## Импорты
+
+```python
+"""
+HDC-Brain v14.1: English 300M
+
+История версий:
+- v13:    103M параметров, русский язык, BPB 1.79
+- v14:    масштабирование до 300M, английский, 4 attention головы
+- v14.1:  исправлен output_scale (был 1/√4096=0.0156, стал nn.Parameter(1.0))
+          Это исправление подняло BPB с ~7.5 (плато) до нормального обучения
+"""
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint as torch_checkpoint
+# ↑ gradient checkpointing: 2× медленнее, 8× меньше памяти для активаций
+import math
+```
+
+---
+
+## ControllerBlock — основной думатель
+
+99.9% параметров каждого HDCBlock. Принимает 4096-мерный вектор и "обрабатывает" его.
+
+```python
+class ControllerBlock(nn.Module):
+    """
+    FFN (Feed-Forward Network) с Pre-LN и Residual connection.
+
+    Архитектура: вход → LayerNorm → Linear(4096→2560) → GELU → Linear(2560→4096) → вход+выход
+
+    Параметры: 4096×2560 + 2560×4096 = 10,485,760 × 2 ≈ 21M
+    """
+
+    def __init__(self, hdc_dim, inner_dim, dropout=0.1):
+        super().__init__()
+        self.ln      = nn.LayerNorm(hdc_dim)           # Pre-LN нормализация
+        self.down    = nn.Linear(hdc_dim, inner_dim)    # 4096 → 2560 ("сжимаем")
+        self.up      = nn.Linear(inner_dim, hdc_dim)    # 2560 → 4096 ("расширяем")
+        self.dropout = nn.Dropout(dropout)              # случайное обнуление
+
+    def forward(self, x):
+        h = self.ln(x)                   # 1. Нормализуем (Pre-LN)
+        h = F.gelu(self.down(h))         # 2. Сжимаем + нелинейность GELU
+        h = self.dropout(self.up(h))     # 3. Расширяем + dropout
+        return x + h                     # 4. Residual: добавляем вход к выходу!
+        # Без residual: если блок делает что-то плохое → всё испорчено
+        # С residual: если блок не знает что делать → вернём вход как есть (h≈0)
+```
+
+---
+
+## MultiHeadBindingAttention — HDC вместо матриц
+
+Стандартный MHA: 3 проекционные матрицы по `4096×4096` = 50M параметров **на один слой**.
+
+Наш подход: 3 маленьких вектора по `head_dim` = 12K параметров **на все 8 блоков**.
+
+```python
+class MultiHeadBindingAttention(nn.Module):
+    """
+    4-головое внимание через HDC Binding.
+
+    Вместо W_q: (D×D) = 16M параметров
+    Используем bv_q: (H, HD) = 4×1024 = 4096 параметров
+
+    Ключевая разница:
+      Стандартный: scores = Q @ K.T  — матрица (T×T), O(T²)
+      Наш:         scores = (q*k).sum(-1)  — вектор (T), O(T)
+    """
+
+    def __init__(self, hdc_dim, n_heads=4):
+        super().__init__()
+        assert hdc_dim % n_heads == 0, "dim должен делиться на n_heads без остатка"
+
+        self.hdc_dim  = hdc_dim               # 4096
+        self.n_heads  = n_heads               # 4
+        self.head_dim = hdc_dim // n_heads    # 1024 (каждая голова смотрит на 1024 измерения)
+        self.scale    = self.head_dim ** -0.5 # 1/√1024 = 0.03125 (масштабирование score)
+
+        # Binding векторы: обучаемые {-1,+1} через STE
+        # Маленькая инициализация 0.02 — не доминировать над входом
+        self.bv_q = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)  # (4, 1024)
+        self.bv_k = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)
+        self.bv_v = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)
+        # НЕТ W_out! В HDC каждая голова пишет в свои измерения независимо
+
+    def _ste_sign(self, w):
+        """
+        Alpha-масштабированный STE sign.
+        Вместо просто sign(w) ∈ {-1,+1}:
+        hard = alpha × sign(w) ∈ {-alpha, +alpha}
+
+        Зачем alpha? Сохраняем масштаб весов, не теряем информацию о величине.
+        XNOR-Net (Rastegari et al., 2016) показал что это лучше чем просто ±1.
+        """
+        alpha = torch.mean(torch.abs(w), dim=-1, keepdim=True)  # средняя |w|
+        hard  = alpha * torch.sign(w)                            # ±alpha
+        hard  = torch.where(hard == 0, alpha * torch.ones_like(hard), hard)
+        # Если w=0 ровно → sign=0 → hard=0, но нам нужно ±alpha
+        # torch.where: там где hard==0, заменяем на alpha
+
+        # STE: forward = hard, backward = w (gradient = 1)
+        return (hard - w).detach() + w
+
+    def forward(self, x):
+        B, T, D = x.shape
+        H  = self.n_heads    # 4
+        HD = self.head_dim   # 1024
+
+        # Бинаризуем binding векторы через STE
+        bv_q = self._ste_sign(self.bv_q)  # (4, 1024) → {-alpha, +alpha}
+        bv_k = self._ste_sign(self.bv_k)
+        bv_v = self._ste_sign(self.bv_v)
+
+        # Разбиваем x на головы: каждая голова смотрит на свои 1024 измерения
+        x_heads = x.view(B, T, H, HD)       # (B, T, 4, 1024)
+
+        # HDC Bind: поэлементное умножение токена на binding вектор головы
+        # bv_q форма (4, 1024), x_heads форма (B, T, 4, 1024)
+        # Python broadcasting: bv_q "расширяется" по B и T автоматически
+        Q = x_heads * bv_q   # (B, T, 4, 1024)
+        K = x_heads * bv_k
+        V = x_heads * bv_v
+
+        # Транспонируем: (B, T, H, HD) → (B, H, T, HD)
+        # Теперь голова — второе измерение (удобно для matmul)
+        Q = Q.permute(0, 2, 1, 3)
+        K = K.permute(0, 2, 1, 3)
+        V = V.permute(0, 2, 1, 3)
+
+        # Scores: сходство Q и K для каждой пары токенов
+        # (B, H, T, HD) × (B, H, HD, T) = (B, H, T, T)
+        scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
+
+        # Causal mask: токен i не должен видеть токен j > i (будущее)
+        causal = torch.tril(torch.ones(T, T, device=x.device, dtype=torch.bool))
+        scores = scores.masked_fill(~causal, float('-inf'))
+        # masked_fill: там где маска=False → заменяем на -∞ → после sigmoid → 0
+
+        # Sigmoid × 4 вместо softmax:
+        # - Softmax: "конкурентное внимание", сумма = 1, один токен забирает всё
+        # - Sigmoid: каждый токен независимо, нет нормировки
+        # × 4: масштаб чтобы sigmoid работал в рабочем диапазоне
+        attn = torch.sigmoid(scores * 4.0)
+        attn = attn.masked_fill(~causal, 0.0)  # нули там где -inf
+
+        # Взвешиваем значения
+        out = torch.matmul(attn, V)   # (B, H, T, HD)
+
+        # Объединяем головы: (B, H, T, HD) → (B, T, D)
+        out = out.permute(0, 2, 1, 3).contiguous().view(B, T, D)
+        # .contiguous() нужен после permute: данные перекладываются в памяти
+        # иначе .view() не работает (ожидает непрерывную память)
+
+        return out
+```
+
+---
+
+## HDCMemory — явная память
+
+8,192 параметра. Один из самых эффективных компонентов модели по соотношению параметры/вклад.
+
+```python
+class HDCMemory(nn.Module):
+    """
+    Явная память с mass и decay.
+
+    Каждый токен имеет:
+    - mass:  насколько он важен для памяти других токенов (0..1)
+    - decay: как быстро его влияние затухает со временем (0..1)
+
+    context[t] = Σ_{i≤t} decay_factor(i→t) × mass[i] × token[i]
+
+    Вычисляется параллельно через log-domain cumsum (не O(T²) цикл).
+    """
+
+    def __init__(self, hdc_dim):
+        super().__init__()
+        self.hdc_dim    = hdc_dim
+        # Две проекции: принимают вектор, выдают один скаляр
+        self.mass_proj  = nn.Linear(hdc_dim, 1, bias=False)   # 4096 параметров
+        self.decay_proj = nn.Linear(hdc_dim, 1, bias=False)   # 4096 параметров
+        # Итого: 8,192 параметра — меньше 0.003% модели!
+
+    def forward(self, tokens_bound):
+        B, T, D = tokens_bound.shape
+
+        # Вычисляем скаляры для каждого токена
+        mass  = torch.sigmoid(self.mass_proj(tokens_bound))   # (B, T, 1) ∈ (0,1)
+        decay = torch.sigmoid(self.decay_proj(tokens_bound))  # (B, T, 1) ∈ (0,1)
+        # sigmoid: любое число → (0,1). Никогда не ноль, никогда не единица.
+
+        weighted = mass * tokens_bound  # (B, T, D): взвешенные токены
+
+        # ~~~ Параллельный скан через логарифмы ~~~
+        #
+        # Нам нужно: decay_factor(i→t) = decay[i+1] × ... × decay[t]
+        # Это нарастающее произведение. Через логарифмы:
+        # log(decay_factor(i→t)) = log(decay[i+1]) + ... + log(decay[t])
+        #                         = cumlog[t] - cumlog[i]
+
+        log_decay = torch.log(decay.clamp(min=1e-6))   # (B, T, 1)
+        # clamp(min=1e-6): защита от log(0)=-∞
+
+        cum_log = torch.cumsum(log_decay, dim=1)   # (B, T, 1)
+        # cum_log[t] = log(decay[0]) + ... + log(decay[t])
+        # = log(decay[0] × ... × decay[t]) = накопленный log-decay
+
+        # Матрица: diff[b,t,i] = cum_log[b,t] - cum_log[b,i]
+        # = log(decay_factor от i до t)
+        diff = cum_log - cum_log.transpose(1, 2)   # (B, T, T)
+        # cum_log: (B, T, 1), transpose(1,2): (B, 1, T)
+        # broadcasting: вычитание для всех пар (t, i)
+
+        diff = diff.clamp(max=0)
+        # Decay должен только уменьшать, не увеличивать.
+        # Если вдруг diff > 0 (из-за численных ошибок) — обрезаем.
+
+        # Causal mask: токен t не должен смотреть в будущее (i > t)
+        causal = torch.tril(torch.ones(T, T, device=tokens_bound.device))
+        diff = diff.masked_fill(causal == 0, -1e9)
+        # -1e9 вместо -∞: после exp(-1e9) ≈ 0, безопасно
+
+        # W[b,t,i] = exp(diff[b,t,i]) ≈ decay_factor(i→t)
+        W = torch.exp(diff)   # (B, T, T)
+        # W[t,t] = exp(0) = 1 (токен видит себя без затухания)
+        # W[t,i] < 1 для i < t (затухание от прошлого)
+        # W[t,i] = 0 для i > t (будущее)
+
+        # Взвешенная сумма
+        context = torch.matmul(W, weighted)   # (B, T, T) × (B, T, D) = (B, T, D)
+
+        return context
+```
+
+---
+
+## HDCBlock — полный блок
+
+Собирает три компонента в один "слой" обработки.
+
+```python
+class HDCBlock(nn.Module):
+    """
+    Один блок HDC-Brain v14.1.
+
+    Порядок: Memory → LN+Residual → Attention → LN+Residual → Controller
+
+    Аналогия со строительством:
+    - Memory: "фундамент" — что было раньше?
+    - Attention: "стены" — на что обратить внимание?
+    - Controller: "отделка" — глубоко обработать
+
+    Pre-LN: нормализация ДО подблока (не после, как в оригинале 2017)
+    Почему? Более стабильные градиенты для глубоких сетей (GPT-2 и далее).
+    """
+
+    def __init__(self, hdc_dim, controller_dim, n_heads=4, dropout=0.1):
+        super().__init__()
+        self.memory     = HDCMemory(hdc_dim)
+        self.attention  = MultiHeadBindingAttention(hdc_dim, n_heads)
+        self.controller = ControllerBlock(hdc_dim, controller_dim, dropout)
+        self.ln_mem     = nn.LayerNorm(hdc_dim)   # нормализация после memory+residual
+        self.ln_attn    = nn.LayerNorm(hdc_dim)   # нормализация после attn+residual
+        # Нет третьего LN: ControllerBlock сам содержит внутренний LayerNorm (Pre-LN)
+
+    def forward(self, x):
+        # Шаг 1: память о контексте
+        mem = self.memory(x)          # что было до этого токена?
+        x = self.ln_mem(x + mem)      # добавляем (residual) и нормализуем
+
+        # Шаг 2: внимание
+        attn = self.attention(x)       # на что обратить внимание?
+        x = self.ln_attn(x + attn)    # residual + норм
+
+        # Шаг 3: глубокая обработка
+        x = self.controller(x)         # ControllerBlock содержит свой residual
+        return x
+```
+
+**Параметры одного блока:**
+```
+HDCMemory:           8,192 параметра  (0.04%)
+BindingAttention:   12,288 параметра  (0.06%)
+ControllerBlock: 20,971,520 параметра (99.9%)
+LayerNorms:         16,384 параметра  (0.08%)
+─────────────────────────────────────────────
+Итого:          ~21,008,384 ≈ 21M
+```
+
+---
+
+## ThoughtLoop — итеративное мышление
+
+Применяет одни и те же блоки три раза с обучаемым смешиванием.
+
+```python
+class ThoughtLoop(nn.Module):
+    """
+    Три прохода через одни и те же блоки.
+
+    Мысль 1: обязательная (всегда)
+    Мысль 2: gate_2 ≈ 0.53 (открывается быстро при обучении)
+    Мысль 3: gate_3 ≈ 0.49 (открывается медленнее)
+
+    Ключевой результат (глава 17):
+    - 1 мысль: BPB ≈ 6.8  (плохо)
+    - 2 мысли: BPB ≈ 6.4  (плато)
+    - 3 мысли: BPB ≈ 4.2  (работает!)
+
+    torch.compile НЕ работает: Python-цикл создаёт динамический граф.
+    Попытка compile → бесконечная перекомпиляция (73 минуты зависания).
+    """
+
+    def __init__(self, hdc_dim, max_thoughts=4):
+        super().__init__()
+        self.max_thoughts = max_thoughts
+
+        # Gates: обучаемые скаляры, по одному на мысль
+        # zeros → sigmoid(0) = 0.5 (нейтральный старт: пополам)
+        self.thought_gates = nn.Parameter(torch.zeros(max_thoughts))
+
+        # Позиционные сигналы: "на каком проходе мы сейчас?"
+        # Инициализация 0.01: маленькая, чтобы не испортить первый проход
+        self.thought_pos = nn.Parameter(
+            torch.randn(max_thoughts, hdc_dim) * 0.01   # (4, 4096)
+        )
+
+        self.ln = nn.LayerNorm(hdc_dim)   # нормализация перед каждым доп. проходом
+
+    def forward(self, h, blocks, n_thoughts=None, use_checkpoint=False):
+        if n_thoughts is None:
+            # При обучении: полные N мыслей
+            # При inference: 2 (быстрее, качество достаточное)
+            n_thoughts = self.max_thoughts if self.training else 2
+        n_thoughts = min(n_thoughts, self.max_thoughts)
+
+        # === Мысль 1: обязательная ===
+        # Просто прогоняем через все 8 блоков
+        for block in blocks:
+            if use_checkpoint and self.training:
+                # Gradient checkpointing: не сохраняем активации
+                # При backward пересчитываем заново
+                # 2× медленнее вычислений, 8× меньше памяти
+                h = torch_checkpoint(block, h, use_reentrant=False)
+                # use_reentrant=False: современный API, более надёжный
+            else:
+                h = block(h)
+
+        if n_thoughts <= 1:
+            return h   # ранний выход для 1 мысли
+
+        # === Мысли 2, 3, ...: с gate ===
+        for t in range(1, n_thoughts):
+            gate = torch.sigmoid(self.thought_gates[t])
+            # gate ∈ (0, 1):
+            # gate = 0 → игнорируем эту мысль, h остаётся без изменений
+            # gate = 0.5 → равный вес (начальное состояние)
+            # gate = 1 → полностью заменяем h на результат мысли
+
+            # Подготовка входа для этого прохода:
+            # LN(h) + thought_pos[t]
+            # thought_pos[t] — "метка": "ты сейчас на t-ом проходе"
+            # Блоки учатся адаптировать поведение в зависимости от этой метки
+            thought_input = self.ln(h) + self.thought_pos[t]
+
+            # Прогоняем через ТЕ ЖЕ 8 блоков
+            thought = thought_input
+            for block in blocks:
+                if use_checkpoint and self.training:
+                    thought = torch_checkpoint(block, thought, use_reentrant=False)
+                else:
+                    thought = block(thought)
+
+            # Гейтированная интерполяция:
+            # h_new = h + gate × (thought - h)
+            #       = (1 - gate) × h  +  gate × thought
+            h = h + gate * (thought - h)
+            # Если thought ≈ h → h не меняется (мысль не добавила ничего нового)
+            # Если thought отличается → обновляем h пропорционально gate
+
+        return h
+```
+
+**Параметры ThoughtLoop:**
+```
+thought_gates:   4 параметра
+thought_pos:     4 × 4096 = 16,384 параметра
+LayerNorm:       2 × 4096 = 8,192 параметра
+─────────────────────────────────────────
+ИТОГО:          24,580 параметров
+                0.008% от 299M!
+```
+
+---
+
+## HDCBrainV14_1 — полная модель
+
+```python
+class HDCBrainV14_1(nn.Module):
+    """
+    HDC-Brain v14.1: английский языковой моделью, 299M параметров.
+
+    Отличия от GPT-архитектуры:
+    - Bipolar Codebook вместо float Embedding
+    - Cyclic Permutation вместо Learned/Sinusoidal/RoPE position
+    - HDC Binding Attention вместо Standard MHA
+    - HDCMemory как явная накопленная память
+    - ThoughtLoop: 8 блоков × 3 прохода = 24 эффективных слоя
+    """
+
+    def __init__(self, vocab_size, hdc_dim=4096, max_seq_len=512,
+                 n_blocks=8, controller_dim=2560, n_heads=4,
+                 dropout=0.1, max_thoughts=4, use_checkpoint=False):
+        super().__init__()
+        self.hdc_dim        = hdc_dim
+        self.vocab_size     = vocab_size
+        self.max_seq_len    = max_seq_len
+        self.use_checkpoint = use_checkpoint
+
+        # === Bipolar Codebook ===
+        # nn.Parameter (не nn.Embedding!) — это просто матрица параметров
+        # 32768 × 4096 = 134M параметров = 44.9% всей модели
+        # std=0.02: маленькая инициализация, веса не взрываются в начале
+        self.codebook = nn.Parameter(
+            torch.randn(vocab_size, hdc_dim) * 0.02
+        )
+        # Используется и на входе (токены → векторы)
+        # И на выходе (векторы → логиты) — weight tying!
+
+        # === 8 HDCBlocks ===
+        self.blocks = nn.ModuleList([
+            HDCBlock(hdc_dim, controller_dim, n_heads, dropout)
+            for _ in range(n_blocks)
+        ])
+        # nn.ModuleList: PyTorch знает что это параметры модели
+        # (просто list не работал бы с .parameters() и .to(device))
+
+        # === ThoughtLoop ===
+        self.thought_loop = ThoughtLoop(hdc_dim, max_thoughts)
+
+        # === Финальная нормализация ===
+        self.output_ln = nn.LayerNorm(hdc_dim)
+
+        # === Output Scale ===
+        # ВАЖНО: инициализируем как 1.0, НЕ как 1/√dim!
+        # Баг v14: output_scale = 1/√4096 = 0.0156
+        # Результат: logits.std() ≈ 0.02 → softmax почти равномерный
+        #            → модель не могла учиться → loss завис на ~7.47
+        # Исправление: nn.Parameter(torch.tensor(1.0))
+        # После исправления: нормальное обучение (глава 18)
+        self.output_scale = nn.Parameter(torch.tensor(1.0))
+
+    def _ste_encode(self, idx):
+        """
+        STE-кодирование токенов: целые числа → биполярные векторы.
+
+        Используем alpha-масштабированный sign (из XNOR-Net):
+        hard = alpha × sign(weight)
+
+        Зачем alpha а не просто ±1?
+        - Сохраняет масштаб весов
+        - Точнее чем просто ±1
+        - Лучше по качеству (~3% выигрыш)
+        """
+        real  = self.codebook[idx]   # (B, T, D) — вещественные значения
+
+        # Alpha = средняя абсолютная величина вектора (масштаб)
+        alpha = torch.mean(torch.abs(real), dim=-1, keepdim=True)  # (B, T, 1)
+        # Для инициализации std=0.02: alpha ≈ 0.02 × √(2/π) ≈ 0.016
+
+        hard  = alpha * torch.sign(real)   # {-alpha, +alpha}
+        hard  = torch.where(hard == 0, alpha, hard)
+        # Edge case: если real=0 ровно, sign=0, hard=0
+        # Заменяем на +alpha (произвольный выбор)
+
+        # STE: forward возвращает hard, backward идёт через real
+        return (hard - real).detach() + real
+        # .detach() убирает hard из computational graph
+        # + real добавляет real (через которое течёт gradient с d()/d(real) = 1)
+
+    def _cyclic_position(self, x):
+        """
+        Cyclic Permutation для позиционного кодирования.
+
+        Токен на позиции t: циклически сдвигаем его вектор на t элементов.
+        Позиция 0: без изменений
+        Позиция 1: roll(x, -1) — первый элемент переходит в конец
+        Позиция 2: roll(x, -2)
+        ...
+
+        Это HDC-native решение: Permute(v, k) = уникальный вектор для позиции k.
+        0 параметров. Работает для любой длины последовательности.
+        """
+        B, T, D = x.shape
+
+        positions = torch.arange(T, device=x.device)   # [0, 1, 2, ..., T-1]
+
+        # indices[t, d] = (d - t) % D
+        # gather(x, indices[t, :]) = берём x[d] из позиции (d-t) mod D
+        # = циклический сдвиг влево на t позиций
+        indices = (
+            torch.arange(D, device=x.device).unsqueeze(0)   # (1, D)
+            - positions.unsqueeze(1)                          # (T, 1) — вычитание broadcast
+        ) % D                                                 # (T, D)
+
+        return x.gather(
+            2,                                               # по измерению D
+            indices.unsqueeze(0).expand(B, -1, -1)           # (B, T, D)
+        )
+        # gather(dim=2, index): для каждого элемента (b,t,d) берём x[b, t, indices[t,d]]
+
+    def forward(self, idx, targets=None, n_thoughts=None):
+        """
+        Прямой проход через всю модель.
+
+        idx: (B, T) — целые числа токенов
+        targets: (B, T) — целевые токены для обучения (сдвинуты на 1)
+        n_thoughts: int — сколько мыслей (по умолчанию: max при обучении, 2 при inference)
+        """
+        B, T = idx.shape
+
+        # === Шаг 1: Токены → биполярные векторы ===
+        tokens = self._ste_encode(idx)           # (B, T, D) ∈ {-alpha, +alpha}
+
+        # === Шаг 2: Позиционное кодирование ===
+        tokens = self._cyclic_position(tokens)   # (B, T, D) — форма не меняется
+
+        # === Шаг 3: ThoughtLoop (3 прохода через 8 блоков) ===
+        h = self.thought_loop(
+            tokens,
+            self.blocks,
+            n_thoughts,
+            self.use_checkpoint
+        )
+        # h: (B, T, D) — финальные представления всех токенов
+        # "Три мысли" означают: блоки обработали данные 24 раза (8 × 3)
+
+        # === Шаг 4: Декодирование ===
+        h = self.output_ln(h)   # финальная нормализация
+
+        # F.linear(x, W) = x @ W.T
+        # h: (B, T, D), self.codebook: (vocab_size, D)
+        # h @ codebook.T = (B, T, vocab_size) — схожесть с каждым токеном
+        logits = F.linear(h, self.codebook) * self.output_scale
+        # logits: (B, T, 32768) — "оценки" для каждого возможного токена
+
+        # === Шаг 5: Loss (только при обучении) ===
+        loss = None
+        if targets is not None:
+            loss = F.cross_entropy(
+                logits.view(-1, self.vocab_size),   # (B×T, 32768)
+                targets.view(-1)                     # (B×T,)
+            )
+            # F.cross_entropy: включает softmax + log + нegate
+            # = -log(P(правильный_токен))
+
+        return logits, loss
+```
+
+---
+
+## generate — генерация текста
+
+```python
+    @torch.no_grad()   # не считаем градиенты при inference
+    def generate(self, start_ids, max_len=200, temperature=0.8,
+                 top_k=40, rep_penalty=1.3, n_thoughts=None):
+        """
+        Авторегрессивная генерация: добавляем по одному токену за шаг.
+
+        temperature=0.8: чуть уверённее чем "нейтральная" температура 1.0
+        top_k=40: выбираем только из 40 наиболее вероятных токенов
+        rep_penalty=1.3: уменьшаем вероятность повторяющихся токенов на 30%
+        """
+        idx       = start_ids.clone()
+        generated = []
+
+        for _ in range(max_len):
+            # Не обрабатываем последовательность длиннее max_seq_len
+            context = idx[:, -self.max_seq_len:]
+
+            # Полный forward pass (включая все 3 мысли если n_thoughts=None)
+            logits, _ = self(context, n_thoughts=n_thoughts)
+
+            # Нас интересует только последняя позиция:
+            # "какой токен идёт ПОСЛЕ всего что мы дали?"
+            logits = logits[:, -1, :] / temperature
+            # / temperature:
+            # < 1 → логиты растянуты → softmax концентрированнее → уверенная генерация
+            # > 1 → логиты сжаты → softmax более равномерный → разнообразная генерация
+
+            # Repetition Penalty: снижаем вероятность недавних токенов
+            if rep_penalty > 1.0 and generated:
+                for token_id in set(generated[-50:]):   # последние 50 уникальных токенов
+                    if logits[0, token_id] > 0:
+                        logits[0, token_id] /= rep_penalty   # положительный → уменьшаем
+                    else:
+                        logits[0, token_id] *= rep_penalty   # отрицательный → увеличиваем |x|
+                # rep_penalty=1.3: каждый повторный токен в 1.3× менее вероятен
+
+            # Top-K sampling: отбрасываем всё кроме топ-40
+            if top_k > 0:
+                v, _ = torch.topk(logits, top_k)     # top_k наибольших значений
+                # Всё что меньше минимума из топ-k → -inf
+                logits[logits < v[:, [-1]]] = float('-inf')
+
+            # Семплирование из финального распределения
+            probs   = F.softmax(logits, dim=-1)         # вероятности
+            next_id = torch.multinomial(probs, 1)        # случайный выбор
+
+            generated.append(next_id.item())
+            idx = torch.cat([idx, next_id], dim=1)       # добавляем в контекст
+
+            if next_id.item() == 2:    # EOS токен (</s>) — конец генерации
+                break
+
+        return idx
+```
+
+---
+
+## create_model — конфигурация
+
+```python
+def create_model(vocab_size=32000, config=None):
+    """
+    Фабричная функция для создания HDC-Brain v14.1.
+    Конфигурация по умолчанию: 299M параметров.
+    """
+    if config is None:
+        config = {
+            'hdc_dim':         4096,  # размерность HDC пространства
+            'max_seq_len':      512,  # максимальная длина последовательности
+            'n_blocks':           8,  # 8 HDCBlock
+            'controller_dim':  2560,  # Controller: 4096 → 2560 → 4096
+            'n_heads':            4,  # 4 attention головы
+            'dropout':          0.1,  # 10% dropout при обучении
+            'max_thoughts':       4,  # max 4 мысли (используем 3 при обучении)
+            'use_checkpoint':  True,  # gradient checkpointing (экономия памяти)
+        }
+    model = HDCBrainV14_1(vocab_size=vocab_size, **config)
+    return model, config
+```
+
+---
+
+## Полная таблица параметров
+
+```
+Компонент                Параметры       Доля от 299M
+───────────────────────────────────────────────────────
+Codebook                134,217,728       44.9%
+8 × HDCMemory                65,536        0.02%
+8 × BindingAttention         98,304        0.03%
+8 × ControllerBlock     167,772,160       56.1%
+8 × LayerNorms (×2)         131,072        0.04%
+ThoughtLoop                  24,580        0.008%
+Output LayerNorm              8,192        0.003%
+Output Scale                      1        ≈0%
+───────────────────────────────────────────────────────
+ИТОГО                   299,165,696      ~299M
+```
+
+**Три главных наблюдения:**
+
+1. **Codebook = 44.9%**: Платим большим кодбуком за HDC пространство 4096d и квазиортогональность. Weight tying спасает: один кодбук на вход И выход.
+
+2. **ControllerBlock = 56.1%**: MLP — главный вычислитель. Memory и Attention дёшево собирают контекст, Controller дорого его обрабатывает.
+
+3. **Memory + Attention = 0.05%**: 163K параметров из 299M. Ничтожно мало — но огромный вклад в качество. Без них модель "слепая": не видит прошлого и не умеет выбирать на что смотреть.
+
+---
+
+*Конец книги.*
+
+*Если дочитал до сюда и реализовал модель из главы 23 — ты молодец.*
+*Следующий шаг: обучи на английском датасете и сравни с SmolLM2.*

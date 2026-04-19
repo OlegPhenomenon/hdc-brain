@@ -1,0 +1,63 @@
+[09:47:37] ============================================================
+[09:47:37] HDC-Brain v18: Worm-Driven + Working Memory
+[09:47:37] ============================================================
+[09:47:37] dim=4096, threads=4, chunk=100000, sample=10, checks=10000, passes=1
+[09:47:37] Data: 27474958 tokens, vocab_size=16000
+[09:47:37] ============================================================
+[09:47:37] Phase 0: Semantic Codebook
+[09:47:37] ============================================================
+[09:47:38] Codebook loaded from cache: codebook_16000_4096.bin
+[09:47:38] ============================================================
+[09:47:38] Worm Training (1 passes), chunk=100000, sample_rate=10, worm_checks=10000
+[09:47:38] ============================================================
+[09:47:38] --- Pass 1/1 ---
+[09:47:51]   18% | Memory: words=16000, facts=371029, rules=66076, abstractions=22982, meta=1 | thoughts=500
+[09:48:09]   36% | Memory: words=16000, facts=655007, rules=117321, abstractions=44030, meta=2 | thoughts=500
+[09:48:28]   54% | Memory: words=16000, facts=918638, rules=163124, abstractions=64153, meta=2 | thoughts=500
+[09:48:51]   72% | Memory: words=16000, facts=1193292, rules=208654, abstractions=84605, meta=2 | thoughts=500
+[09:49:14]   91% | Memory: words=16000, facts=1438939, rules=251953, abstractions=104765, meta=2 | thoughts=500
+[09:49:27] Final worm cycle...
+[09:49:27]   [SharedThoughts] 1 thoughts:
+[09:49:27]     Ask × 500
+[09:49:29]   [Analyst] CHECK: 34.6% agree (10383/29999), 19616 conflicts, 8153 asked, YES neighbors_by_tokens
+[09:49:31]   [Skeptic] Inbox: 11463 CONFLICT, 8653 ASK from others
+[09:49:31]   [Skeptic] RESOLVE: 7441 strengthened, 4022 asked, 1601 weak found
+[09:49:31]   [Explorer] Inbox: 17824 confirmed STRONG
+[09:49:31]   [Explorer] MAP: 10680 tokens (2491 strong, 5560 weak), 200 bigram_rules, 50 abstractions, 20 MISSING sent
+[09:49:41]   [Teacher] confirmed=630, taught new=0
+[09:49:41]   Thought summary: total=43564, STRONG=17824, CONFLICT=11463, ASK=12675, MISSING=0
+[09:49:41] Worm Report: scanned=3442992, stored=1945068, strengthened=1869687, weakened=5836, asked=265009, teacher=630c/0t
+[09:49:41] Evaluating with WormMind...
+[09:49:47]   METRIC: Top-1 = 22.14%
+[09:49:47]   METRIC: Top-5 = 36.18%
+[09:49:47]   METRIC: avg_reasoning = 30.3800
+[09:49:47]   METRIC: avg_confidence = 0.3911
+[09:49:47]   METRIC: background_updates = 6958.0000
+[09:49:47]   METRIC: no_trigram_match = 1.80%
+[09:49:47]   METRIC: avg_uncertain = 21.3106
+[09:49:47]   METRIC: avg_contradictions = 2.7564
+[09:49:47]   METRIC: need_more_data = 5090.0000
+[09:49:47] Memory: words=16000, facts=1558542, rules=272128, abstractions=117374, meta=2 | bigram_idx=1175457 | token_idx=15354 | time=129.5s
+[09:49:47] ============================================================
+[09:49:47] Training Complete (129.5s) | Memory: words=16000, facts=1558542, rules=272128, abstractions=117374, meta=2
+[09:49:47] ============================================================
+[09:49:47] ============================================================
+[09:49:47] Final Evaluation (10000 positions) with WormMind
+[09:49:47] ============================================================
+[09:49:59]   METRIC: Final Top-1 = 18.42%
+[09:49:59]   METRIC: Final Top-5 = 30.97%
+[09:49:59]   METRIC: Final avg_reasoning = 30.3338
+[09:49:59]   METRIC: Final avg_confidence = 0.3806
+[09:49:59]   METRIC: Final bg_updates = 10397.0000
+[09:49:59] ============================================================
+[09:49:59] Self-Diagnostic Report
+[09:49:59] ============================================================
+[09:49:59]   METRIC: no_trigram_match = 1.83%
+[09:49:59]   METRIC: avg_uncertain = 21.5734
+[09:49:59]   METRIC: avg_contradictions = 2.7535
+[09:49:59]   METRIC: need_more_data = 10183.0000
+[09:49:59] ============================================================
+[09:49:59] Complete in 141.9s (2.4 min)
+[09:49:59] ============================================================
+[09:49:59] Memory: words=16000, facts=1558542, rules=272128, abstractions=120175, meta=2
+[09:49:59] Log saved to: test_optimized_v7.log

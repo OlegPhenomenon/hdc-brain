@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Проект IV — Проект: Мини-HDCBrain (4M параметров) | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item active">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция IV</span> /
+        <span>Проект IV</span>
+      </div>
+      <div class="topbar-progress">
+        <span>IV из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 63%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция IV</span>
+        <span class="chapter-number">Проект IV</span>
+      </div>
+
+      <h1 class="chapter-title">Проект: Мини-HDCBrain (4M параметров)</h1>
+      <p class="chapter-subtitle">Мини-версию HDC-Brain — полноценную языковую модель на 4M параметров. Она будет предсказывать следующий токен, как GPT, но на архитектуре HDC. Обучим на коротких текстах (стихи, сказки) и увидим генер</p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<div class="section-heading" id="что-строим">
+  <h2>Что строим</h2>
+</div>
+
+<p>Мини-версию HDC-Brain — полноценную языковую модель на 4M параметров. Она будет предсказывать следующий токен, как GPT, но на архитектуре HDC. Обучим на коротких текстах (стихи, сказки) и увидим генерацию.</p>
+
+<p>Это кульминация Экспедиции IV: все блоки из глав 12–16 собираются в одну работающую модель.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="что-тебе-нужно-знать">
+  <h2>Что тебе нужно знать</h2>
+</div>
+
+<ul>
+<li><strong>HDC Memory</strong> — глава 12, секция целиком. Отвечает за "память" модели — хранение предыдущего контекста.</li>
+<li><strong>Attention</strong> — глава 13, секция "Attention — самый важный механизм в NLP". Механизм, который решает на что "смотреть".</li>
+<li><strong>HDC Binding Attention</strong> — глава 14, секция целиком. Наша версия attention через Bind — ключевое отличие от трансформера.</li>
+<li><strong>HDCBlock</strong> — глава 15, секция "HDCBlock — собираем блок целиком". Один блок = память + attention + feed-forward. Здесь складываем несколько блоков в стек.</li>
+<li><strong>Thought Loops</strong> — глава 16, секция целиком. Многопроходное мышление — модель "думает" несколько раз над одним входом.</li>
+<li><strong>Кодбук</strong> — глава 11 и проект III. Входной слой модели.</li>
+<li><strong>Loss и обучение</strong> — глава 4, секция "Полный цикл обучения". Обучаем cross-entropy loss.</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="спецификация">
+  <h2>Спецификация</h2>
+</div>
+
+<h3>Архитектура</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+import torch.nn as nn
+
+class MiniHDCBrain(nn.Module):
+    """
+    Мини-версия HDC-Brain.
+
+    Архитектура:
+    - Codebook: vocab_size → dim (bipolar через STE)
+    - Positional encoding: permute-based (глава 10)
+    - N блоков HDCBlock (глава 15)
+    - Thought loops: K проходов через блоки (глава 16)
+    - Output head: dim → vocab_size (предсказание следующего токена)
+    """
+
+    def __init__(
+        self,
+        vocab_size: int = 256,
+        dim: int = 512,
+        n_blocks: int = 2,
+        n_thoughts: int = 2,
+        context_len: int = 64,
+    ):
+        super().__init__()
+        pass
+
+    def forward(self, token_ids: torch.Tensor) -&gt; torch.Tensor:
+        """
+        token_ids: (batch, seq_len)
+        Возвращает: (batch, seq_len, vocab_size) — logits
+        """
+        pass
+
+    def generate(self, prompt: torch.Tensor, max_len: int = 50, temperature: float = 1.0) -&gt; torch.Tensor:
+        """
+        Автогрессивная генерация.
+        prompt: (1, prompt_len) — начальные токены
+        Возвращает: (1, prompt_len + generated_len)
+        """
+        pass
+
+
+class HDCBlock(nn.Module):
+    """
+    Один блок HDC-Brain (глава 15).
+
+    Содержит:
+    - HDC Memory (глава 12)
+    - HDC Binding Attention (глава 14)
+    - Feed-forward с residual connection (глава 3)
+    """
+
+    def __init__(self, dim: int):
+        super().__init__()
+        pass
+
+    def forward(self, x: torch.Tensor) -&gt; torch.Tensor:
+        pass</code>
+</pre>
+
+<h3>Обучение</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def train_mini_brain(
+    texts: list[str],
+    vocab_size: int = 256,
+    dim: int = 512,
+    n_blocks: int = 2,
+    n_thoughts: int = 2,
+    epochs: int = 20,
+    lr: float = 3e-4,
+) -&gt; MiniHDCBrain:
+    """
+    Обучает мини-HDCBrain на текстах.
+
+    1. Токенизируй тексты (символьный токенизатор или BPE из проекта III)
+    2. Нарежь на окна context_len
+    3. Loss = cross_entropy(model(tokens[:-1]), tokens[1:])
+    4. Оптимизатор: AdamW
+    5. Выводи loss каждую эпоху
+
+    Возвращает обученную модель.
+    """
+    pass</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="тесты">
+  <h2>Тесты</h2>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">model = MiniHDCBrain(vocab_size=128, dim=256, n_blocks=2, n_thoughts=2, context_len=32)
+
+# Forward pass
+x = torch.randint(0, 128, (2, 16))
+logits = model(x)
+assert logits.shape == (2, 16, 128)
+
+# Генерация
+prompt = torch.randint(0, 128, (1, 5))
+generated = model.generate(prompt, max_len=20)
+assert generated.shape[1] &gt; 5
+
+# Подсчёт параметров
+n_params = sum(p.numel() for p in model.parameters())
+print(f"Параметров: {n_params:,}")
+# Должно быть порядка 1-5M при dim=256, n_blocks=2</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="данные-для-обучения">
+  <h2>Данные для обучения</h2>
+</div>
+
+<p>Возьми что-нибудь короткое и с повторяющимися паттернами:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">texts = [
+    "Идёт бычок качается, вздыхает на ходу. Ох, доска кончается, сейчас я упаду.",
+    "Наша Таня громко плачет, уронила в речку мячик. Тише Танечка не плачь, не утонет в речке мяч.",
+    "Уронили мишку на пол, оторвали мишке лапу. Всё равно его не брошу, потому что он хороший.",
+]</code>
+</pre>
+
+<p>На таком объёме модель не станет гением, но ты увидишь что loss падает и генерация становится осмысленнее.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="улучшения">
+  <h2>Улучшения</h2>
+</div>
+
+<ul>
+<li>Обучи на большем тексте (сказки Пушкина, 50-100 КБ). Видна ли разница?</li>
+<li>Попробуй n<em>thoughts=1 vs n</em>thoughts=3. Сравни loss после 20 эпох.</li>
+<li>Визуализируй attention weights — на что модель "смотрит" при предсказании?</li>
+<li>Измерь BPB (bits per byte) — как в главе 18. Сравни с биграммной моделью из проекта I.</li>
+</ul>
+
+      <div class="chapter-nav"><a href="chapter-16.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Thought Loops — многопроходное мышление</div>
+</a><a href="chapter-17.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Доказательства: почему 3 мысли работают</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

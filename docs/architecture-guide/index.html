@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HDC-Brain v14.1 — Как работает наша модель (299M English)</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --card: #131a2b;
+    --accent: #4fc3f7;
+    --accent2: #81c784;
+    --accent3: #ffb74d;
+    --accent4: #e57373;
+    --text: #e0e0e0;
+    --dim: #78909c;
+    --border: #1e2a3f;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    scroll-behavior: smooth;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+  /* NAV */
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(10,14,23,0.95); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+  }
+  nav .container { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  nav a {
+    color: var(--dim); text-decoration:none; font-size:14px;
+    padding: 4px 10px; border-radius: 6px; transition: all 0.2s;
+  }
+  nav a:hover, nav a.active { color: var(--accent); background: rgba(79,195,247,0.1); }
+  nav .logo { color: var(--accent); font-weight:700; font-size:18px; margin-right:20px; }
+
+  /* HERO */
+  .hero {
+    padding: 120px 0 60px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(79,195,247,0.05) 0%, transparent 100%);
+  }
+  .hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 20px; color: var(--dim); max-width: 600px; margin: 0 auto; }
+
+  /* SECTIONS */
+  section { padding: 80px 0; border-top: 1px solid var(--border); }
+  section h2 {
+    font-size: 32px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  section h2 .num {
+    background: var(--accent); color: var(--bg);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; flex-shrink: 0;
+  }
+  section .subtitle { color: var(--dim); font-size: 16px; margin-bottom: 40px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px; margin-bottom: 24px;
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card h3 { font-size: 20px; margin-bottom: 12px; color: var(--accent); }
+  .card p { color: var(--dim); }
+
+  /* DIAGRAMS */
+  .diagram {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 30px; margin: 30px 0;
+    text-align: center; overflow-x: auto;
+  }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  /* FLOW */
+  .flow {
+    display: flex; flex-direction: column; gap: 0; align-items: center;
+    margin: 30px 0;
+  }
+  .flow-step {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 30px; width: 100%; max-width: 600px;
+    position: relative;
+  }
+  .flow-step h4 { color: var(--accent); margin-bottom: 6px; }
+  .flow-arrow {
+    font-size: 24px; color: var(--accent); padding: 6px 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
+
+  /* FORMULA */
+  .formula {
+    background: rgba(79,195,247,0.08); border: 1px solid rgba(79,195,247,0.2);
+    border-radius: 8px; padding: 16px 24px; margin: 16px 0;
+    font-family: 'Courier New', monospace; font-size: 16px;
+    color: var(--accent); text-align: center;
+  }
+
+  /* ANALOGY */
+  .analogy {
+    background: rgba(129,199,132,0.08); border-left: 4px solid var(--accent2);
+    border-radius: 0 8px 8px 0; padding: 16px 24px; margin: 16px 0;
+  }
+  .analogy::before { content: "Аналогия: "; font-weight: 700; color: var(--accent2); }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* BITS VIS */
+  .bits {
+    display: flex; gap: 2px; flex-wrap: wrap; margin: 10px 0;
+    justify-content: center;
+  }
+  .bit {
+    width: 14px; height: 14px; border-radius: 3px;
+    transition: all 0.3s;
+  }
+  .bit.one { background: var(--accent); }
+  .bit.zero { background: rgba(79,195,247,0.15); }
+
+  /* ANIM */
+  .anim-container {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 30px; margin: 30px 0;
+    position: relative; min-height: 200px;
+  }
+  .anim-label {
+    position: absolute; top: 10px; right: 16px;
+    color: var(--dim); font-size: 12px;
+  }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  th, td {
+    padding: 10px 16px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--accent); font-weight: 600; }
+
+  /* TAGS */
+  .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-hdc { background: rgba(79,195,247,0.15); color: var(--accent); }
+  .tag-nn { background: rgba(255,183,77,0.15); color: var(--accent3); }
+  .tag-new { background: rgba(129,199,132,0.15); color: var(--accent2); }
+
+  /* CODE */
+  code {
+    background: rgba(79,195,247,0.1); padding: 2px 8px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 14px;
+  }
+  pre {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; overflow-x: auto;
+    font-family: 'Courier New', monospace; font-size: 14px;
+    line-height: 1.5; margin: 16px 0;
+  }
+
+  /* THOUGHT LOOP ANIMATION */
+  .thought-loop-viz {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin: 20px 0; flex-wrap: wrap;
+  }
+  .thought-box {
+    padding: 12px 20px; border-radius: 8px; text-align: center;
+    font-weight: 600; font-size: 14px;
+  }
+  .thought-box.active { border: 2px solid var(--accent); animation: glow 2s infinite; }
+  @keyframes glow {
+    0%,100% { box-shadow: 0 0 5px rgba(79,195,247,0.3); }
+    50% { box-shadow: 0 0 20px rgba(79,195,247,0.6); }
+  }
+
+  footer {
+    padding: 40px 0; text-align: center; color: var(--dim);
+    border-top: 1px solid var(--border); font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <span class="logo">HDC-Brain</span>
+    <a href="#big-picture">Общая картина</a>
+    <a href="#what-is-hdc">Что такое HDC</a>
+    <a href="#codebook">Codebook</a>
+    <a href="#permute">Permute</a>
+    <a href="#memory">Memory</a>
+    <a href="#attention">Attention</a>
+    <a href="#controller">Controller</a>
+    <a href="#thoughts">Thought Loops</a>
+    <a href="#output">Output</a>
+    <a href="#training">Обучение</a>
+    <a href="#comparison">Сравнение</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <h1>HDC-Brain <span>v14.1</span></h1>
+    <p>299M параметров. English. Multi-Head Binding Attention.<br>Языковая модель на основе Hyperdimensional Computing. Объяснение от нуля до полной архитектуры.</p>
+  </div>
+</div>
+
+<!-- 0. BIG PICTURE -->
+<section id="big-picture">
+  <div class="container">
+    <h2><span class="num">0</span> Общая картина</h2>
+    <p class="subtitle">Что делает модель в одном предложении</p>
+
+    <div class="card">
+      <p style="font-size:22px; text-align:center; color:var(--text);">
+        Модель читает текст и предсказывает <strong style="color:var(--accent)">следующее слово</strong>.<br>
+        <small style="color:var(--dim)">299M params | 32K English BPE | 8 blocks | 4-head binding attention | Thought Loops</small>
+      </p>
+      <p style="text-align:center; margin-top:12px;">
+        "Мои домашние ___" &rarr; "животные" (87%) / "питомцы" (8%) / "растения" (3%)
+      </p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <h4>1. Кодирование (Codebook)</h4>
+        <p>Каждое слово &rarr; бинарный штрихкод из 4096 бит</p>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <h4>2. Позиция (Permute)</h4>
+        <p>Сдвигаем биты чтобы модель знала ПОРЯДОК слов</p>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <h4>3. Обработка (8 блоков &times; 3 мысли)</h4>
+        <p>Memory &rarr; 4-Head Attention &rarr; Controller (2560d)<br>
+        Повторяем 3 раза (Thought Loops = "размышление")</p>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-step">
+        <h4>4. Предсказание (Output)</h4>
+        <p>Сравниваем результат со ВСЕМИ 32000 словами<br>
+        Ближайший штрихкод = предсказание</p>
+      </div>
+    </div>
+
+    <!-- PARAMS TABLE -->
+    <table>
+      <tr><th>Компонент</th><th>Размер</th><th>Роль</th></tr>
+      <tr><td>Codebook (32K vocab)</td><td>131M (44%)</td><td>Словарь штрихкодов</td></tr>
+      <tr><td>8 &times; HDCBlock</td><td>168M (56%)</td><td>Memory + 4-Head Attention + Controller</td></tr>
+      <tr><td>Thought Loop</td><td>~25K</td><td>Управление "мышлением"</td></tr>
+      <tr><td><strong>ИТОГО</strong></td><td><strong>299M параметров</strong></td><td></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 1. WHAT IS HDC -->
+<section id="what-is-hdc">
+  <div class="container">
+    <h2><span class="num">1</span> Что такое HDC</h2>
+    <p class="subtitle">Hyperdimensional Computing за 5 минут</p>
+
+    <div class="card">
+      <h3>Идея</h3>
+      <p>В обычном мозге информация хранится не в одном нейроне, а <strong>размазана</strong> по тысячам нейронов.
+      HDC делает то же самое: каждый объект = длинный вектор из +1 и -1 (или битов 0 и 1).</p>
+    </div>
+
+    <div class="analogy">
+      Представь штрихкод на товаре. Каждый товар имеет уникальный штрихкод.
+      Похожие товары (молоко и кефир) имеют ПОХОЖИЕ штрихкоды &mdash; много одинаковых полосок.
+    </div>
+
+    <div class="card">
+      <h3>Три главные операции HDC</h3>
+      <div class="grid-2">
+        <div>
+          <h4 style="color:var(--accent);">Bind (связать)</h4>
+          <p>Операция: XNOR (совпадение бит)<br>
+          <code>1&oplus;1=1, 0&oplus;0=1, 1&oplus;0=0</code></p>
+          <div class="formula">bind(A, B) = A XNOR B</div>
+          <p style="margin-top:8px;">Связывает два понятия в пару.<br>
+          bind("красный", "цвет") = "красный_цвет"</p>
+        </div>
+        <div>
+          <h4 style="color:var(--accent2);">Bundle (объединить)</h4>
+          <p>Операция: Голосование большинством</p>
+          <div class="formula">bundle(A,B,C) = majority(A,B,C)</div>
+          <p style="margin-top:8px;">Объединяет несколько понятий в одно.<br>
+          bundle("яблоко","банан","вишня") &asymp; "фрукты"</p>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <h4 style="color:var(--accent3);">Permute (сдвинуть)</h4>
+        <p>Операция: Циклический сдвиг бит<br>
+        <code>[1,0,1,1,0] &rarr; сдвиг на 1 &rarr; [0,1,0,1,1]</code></p>
+        <div class="formula">permute(A, позиция) = циклический сдвиг на "позиция" бит</div>
+        <p style="margin-top:8px;">Кодирует ПОРЯДОК: permute("кошка", 1) &ne; permute("кошка", 2)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Похожесть = совпадение бит</h3>
+      <p>Два вектора похожи, если у них много одинаковых бит. Это <strong>Hamming Similarity</strong>:</p>
+      <div class="formula">
+        sim(A, B) = (кол-во совпадающих бит &times; 2) &minus; длина вектора
+      </div>
+      <p style="margin-top:8px;">
+        Если все биты совпали: sim = +4096 (максимум)<br>
+        Если половина совпала: sim &asymp; 0 (случайные вектора)<br>
+        Если ничего не совпало: sim = -4096 (противоположные)
+      </p>
+
+      <div class="analogy">
+        Как сравнение отпечатков пальцев: чем больше линий совпадает, тем вероятнее что это один человек.
+      </div>
+    </div>
+
+    <!-- INTERACTIVE BIT VIS -->
+    <div class="anim-container" id="bit-demo">
+      <span class="anim-label">Нажми "Bind" или "Bundle"</span>
+      <p style="text-align:center; margin-bottom:10px;"><strong>Вектор A:</strong></p>
+      <div class="bits" id="bitsA"></div>
+      <p style="text-align:center; margin:10px 0;"><strong>Вектор B:</strong></p>
+      <div class="bits" id="bitsB"></div>
+      <div style="text-align:center; margin:16px 0;">
+        <button onclick="doBind()" style="padding:8px 24px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-size:14px;margin:4px;">Bind (XNOR)</button>
+        <button onclick="doBundle()" style="padding:8px 24px;border-radius:8px;border:1px solid var(--accent2);background:transparent;color:var(--accent2);cursor:pointer;font-size:14px;margin:4px;">Bundle (majority)</button>
+        <button onclick="resetBits()" style="padding:8px 24px;border-radius:8px;border:1px solid var(--dim);background:transparent;color:var(--dim);cursor:pointer;font-size:14px;margin:4px;">Reset</button>
+      </div>
+      <p style="text-align:center; margin:10px 0;"><strong>Результат:</strong></p>
+      <div class="bits" id="bitsR"></div>
+      <p id="simText" style="text-align:center; margin-top:10px; color:var(--dim);"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 2. CODEBOOK -->
+<section id="codebook">
+  <div class="container">
+    <h2><span class="num">2</span> Codebook &mdash; Словарь модели</h2>
+    <p class="subtitle">Как текст превращается в числа, с которыми может работать модель</p>
+
+    <!-- 2.1 Зачем нужен -->
+    <div class="card">
+      <h3>Зачем вообще нужен Codebook?</h3>
+      <p>Компьютер не понимает слова. Он понимает только числа. Поэтому нам нужна <strong>таблица перевода</strong> &mdash;
+      словарь, который каждому слову (или кусочку слова) присваивает уникальный набор чисел.</p>
+      <p style="margin-top:12px;">Представь себе обычный словарь:</p>
+      <pre style="margin-top:8px;">
+  "кошка"  →  страница 4287
+  "собака"  →  страница 1053
+  "бежит"  →  страница 8901
+  "спит"   →  страница 2200</pre>
+      <p style="margin-top:12px;">Только вместо номера страницы у нас <strong>длинный штрихкод</strong> из нулей и единиц.</p>
+
+      <div class="analogy">
+        Codebook &mdash; это как каталог товаров в магазине. У каждого товара (слова) есть штрихкод (вектор).
+        Когда кассир сканирует штрихкод, компьютер сразу знает что это за товар. Наша модель так же &mdash;
+        "сканирует" слово через codebook и получает его числовое представление.
+      </div>
+    </div>
+
+    <!-- 2.2 Что такое BPE -->
+    <div class="card">
+      <h3>Шаг 1: BPE &mdash; разбиваем текст на кусочки</h3>
+      <p>Прежде чем искать слово в codebook, текст нужно <strong>разрезать на кусочки</strong>.
+      Это делает алгоритм <strong>BPE (Byte Pair Encoding)</strong>.</p>
+      <p style="margin-top:12px;"><strong>Зачем резать?</strong> Потому что слов бесконечно много
+      ("бежал", "бежала", "побежавший"...), а наш словарь ограничен. BPE выучивает частые кусочки:</p>
+      <pre style="margin-top:8px;">
+  "невозможность" → ["не", "возмож", "ность"]
+  "кошка"         → ["кошка"]           (частое слово &mdash; целиком)
+  "GPT"           → ["G", "PT"]          (редкое &mdash; по буквам)</pre>
+      <p style="margin-top:12px;">В нашей модели BPE знает <strong>32 000 кусочков</strong> (их называют <strong>токены</strong>).
+      Это все "слова" нашего словаря. Этого хватает для любого текста на английском.</p>
+
+      <div class="analogy">
+        BPE &mdash; как конструктор LEGO. Вместо бесконечного числа уникальных деталей
+        (слов), у нас 32 000 стандартных блоков (токенов). Из них можно собрать любое слово.
+        Частые слова &mdash; это готовые крупные блоки. Редкие &mdash; собираются из мелких.
+      </div>
+    </div>
+
+    <!-- 2.3 Как устроена таблица -->
+    <div class="card">
+      <h3>Шаг 2: Таблица перевода "токен &rarr; вектор"</h3>
+      <p>Codebook &mdash; это обычная <strong>таблица</strong>. В ней:</p>
+      <ul style="margin-left:20px; margin-top:8px;">
+        <li><strong>32 000 строк</strong> &mdash; по одной на каждый токен</li>
+        <li><strong>4 096 столбцов</strong> &mdash; это длина "штрихкода" каждого токена</li>
+      </ul>
+
+      <div class="formula">
+        Codebook = таблица 32 000 строк &times; 4 096 столбцов = 131 миллион чисел
+      </div>
+
+      <p style="margin-top:16px;">Когда модель видит токен (например "кошка", ID = 4287), она просто находит <strong>строку 4287</strong> в таблице
+      и берёт оттуда готовый вектор &mdash; массив из 4096 чисел.</p>
+
+      <pre style="margin-top:8px;">
+  Токен "кошка" (ID 4287):
+  ┌────────────────────────────────────────────────┐
+  │ +1 -1 +1 +1 -1 -1 +1 -1 +1 +1 -1 +1 ... │  4096 чисел
+  └────────────────────────────────────────────────┘
+
+  Токен "собака" (ID 1053):
+  ┌────────────────────────────────────────────────┐
+  │ -1 +1 -1 +1 +1 -1 -1 +1 -1 -1 +1 -1 ... │  4096 чисел
+  └────────────────────────────────────────────────┘</pre>
+    </div>
+
+    <!-- 2.4 Почему +1/-1 а не обычные числа -->
+    <div class="card">
+      <h3>Шаг 3: Почему +1 и &minus;1, а не обычные числа?</h3>
+      <p>В обычных нейросетях (GPT, LLaMA) каждое число в векторе &mdash; дробное: 0.273, &minus;1.85, 0.001...
+      Это называется <strong>float</strong> (число с плавающей точкой). Каждое такое число занимает 16 или 32 бита памяти.</p>
+
+      <p style="margin-top:12px;">В нашей модели каждое число &mdash; только <strong>+1 или &minus;1</strong>.
+      Это <strong>бинарный вектор</strong>. Для хранения одного числа нужен всего <strong>1 бит</strong>.</p>
+
+      <table style="margin-top:16px;">
+        <tr>
+          <th></th>
+          <th>Обычная модель (GPT)</th>
+          <th>Наша модель (HDC)</th>
+        </tr>
+        <tr>
+          <td><strong>Значения</strong></td>
+          <td>Любые дробные числа</td>
+          <td>Только +1 или -1</td>
+        </tr>
+        <tr>
+          <td><strong>Память на 1 число</strong></td>
+          <td>16&ndash;32 бита</td>
+          <td>1 бит</td>
+        </tr>
+        <tr>
+          <td><strong>Память на 1 токен</strong></td>
+          <td>4096 &times; 16 = 65 536 бит = 8 КБ</td>
+          <td>4096 &times; 1 = 4 096 бит = 0.5 КБ</td>
+        </tr>
+        <tr>
+          <td><strong>Весь codebook</strong></td>
+          <td>~128 МБ</td>
+          <td>~8 МБ</td>
+        </tr>
+        <tr>
+          <td><strong>Операции</strong></td>
+          <td>Умножение, сложение (медленно)</td>
+          <td>XNOR, POPCNT (молниеносно)</td>
+        </tr>
+      </table>
+
+      <div class="analogy">
+        Представь две системы оценок в школе. Обычная: от 1.0 до 10.0 с десятыми ("7.3 балла").
+        Наша: только "ДА" (+1) или "НЕТ" (&minus;1).
+        Кажется грубо? Но когда оценок 4096 штук, этого хватает чтобы различить все 32 000 слов!
+      </div>
+    </div>
+
+    <!-- 2.5 Как сравнивать слова -->
+    <div class="card">
+      <h3>Шаг 4: Как сравнивать слова?</h3>
+      <p>Вот главная суть codebook: <strong>похожие слова должны иметь похожие вектора</strong>.
+      А непохожие &mdash; разные.</p>
+
+      <p style="margin-top:12px;"><strong>Как измерить похожесть?</strong> Считаем, сколько позиций совпадает:</p>
+
+      <pre style="margin-top:8px;">
+  "кошка":  +1 -1 +1 +1 -1 -1 +1 -1  (8 бит для примера)
+  "котик":  +1 -1 +1 +1 -1 +1 -1 -1
+            ✓  ✓  ✓  ✓  ✓  ✗  ✗  ✓   →  6 из 8 совпали = 75% похожи
+
+  "кошка":  +1 -1 +1 +1 -1 -1 +1 -1
+  "бежит":  -1 +1 -1 +1 +1 -1 -1 +1
+            ✗  ✗  ✗  ✓  ✗  ✓  ✗  ✗   →  2 из 8 совпали = 25% похожи</pre>
+
+      <p style="margin-top:12px;">Эта операция называется <strong>Hamming similarity</strong> (похожесть по Хэммингу).
+      На процессоре она делается <strong>молниеносно</strong>:</p>
+      <ol style="margin-left:20px; margin-top:8px;">
+        <li><strong>XNOR</strong> (одна инструкция) &mdash; находит все совпавшие биты</li>
+        <li><strong>POPCNT</strong> (одна инструкция) &mdash; считает количество единиц</li>
+      </ol>
+      <p style="margin-top:8px;">Два слова, 4096 бит каждое, сравниваются за <strong>~64 инструкции</strong> процессора.
+      Для сравнения: в обычной нейросети (float) нужно ~8192 операции умножения + сложения.</p>
+
+      <div class="analogy">
+        Как два ряда лампочек (горит/не горит). Чтобы понять, насколько они похожи &mdash;
+        просто посмотри, сколько лампочек горят одинаково. Это и есть Hamming similarity.
+        Быстро, потому что процессор умеет сравнивать 64 лампочки за одну операцию.
+      </div>
+    </div>
+
+    <!-- 2.6 STE -->
+    <div class="card">
+      <h3>Шаг 5: STE &mdash; как учить бинарный codebook?</h3>
+      <p><strong>Проблема:</strong> чтобы модель стала умнее, нужно обновлять codebook.
+      Обычные нейросети делают это через <strong>градиенты</strong> &mdash; маленькие подсказки
+      "сделай это число чуть больше, а то чуть меньше".</p>
+
+      <p style="margin-top:12px;">Но у нас числа только +1 и &minus;1! Нельзя сделать "+1 чуть больше" &mdash;
+      следующее значение сразу &minus;1. Это как выключатель света: вкл или выкл, без "чуть-чуть вкл".</p>
+
+      <p style="margin-top:16px;"><strong>Решение &mdash; STE (Straight-Through Estimator):</strong></p>
+      <p>Мы ведём <strong>два набора весов</strong> одновременно:</p>
+
+      <div class="flow">
+        <div class="flow-step">
+          <h4>1. "Черновик" (float-веса)</h4>
+          <p>Настоящие веса, дробные числа: +0.73, &minus;1.2, +0.01, ...
+          <br>Эти числа можно плавно менять. Они существуют только в памяти во время обучения.</p>
+        </div>
+        <div class="flow-arrow">&darr; sign()</div>
+        <div class="flow-step">
+          <h4>2. "Чистовик" (бинарные веса)</h4>
+          <p>То, что реально используется: sign(+0.73) = <strong>+1</strong>, sign(&minus;1.2) = <strong>&minus;1</strong>, sign(+0.01) = <strong>+1</strong>
+          <br>Просто знак числа. Положительное &rarr; +1. Отрицательное &rarr; &minus;1.</p>
+        </div>
+      </div>
+
+      <p><strong>Как происходит обучение:</strong></p>
+      <ol style="margin-left:20px; margin-top:8px;">
+        <li>Берём черновик, превращаем в чистовик через sign()</li>
+        <li>Прогоняем текст через модель с чистовиком (бинарным)</li>
+        <li>Считаем ошибку: "модель предсказала 'бежит', а правильно 'спит'"</li>
+        <li>Градиент говорит: "вес #217 нужно уменьшить на 0.03"</li>
+        <li>Мы применяем это к <strong>черновику</strong>: float_weight[217] -= 0.03</li>
+        <li>Если черновик был +0.02, стал &minus;0.01 &rarr; чистовик сменится с +1 на &minus;1!</li>
+      </ol>
+
+      <div class="analogy">
+        Карандашный набросок (float) и чёрно-белая гравюра (binary).
+        Художник рисует карандашом &mdash; плавные линии, полутона. Потом с наброска делает гравюру:
+        светлое &rarr; белое, тёмное &rarr; чёрное. Критик говорит "тут нужно темнее" &mdash;
+        художник правит <em>набросок</em>, а потом снова делает гравюру.
+        Постепенно и набросок, и гравюра становятся лучше.
+      </div>
+    </div>
+
+    <!-- 2.7 Weight Tying -->
+    <div class="card">
+      <h3>Шаг 6: Weight Tying &mdash; один словарь на вход и выход</h3>
+      <p>Модель использует codebook <strong>дважды</strong>:</p>
+
+      <div class="flow">
+        <div class="flow-step" style="border-left: 4px solid var(--accent);">
+          <h4>На входе: "Какое слово я вижу?"</h4>
+          <p>Текст: "кошка спит" &rarr; берём из codebook вектора для "кошка" и "спит" &rarr; отдаём модели для обработки</p>
+        </div>
+        <div class="flow-arrow">&darr; модель обрабатывает &darr;</div>
+        <div class="flow-step" style="border-left: 4px solid var(--accent3);">
+          <h4>На выходе: "Какое слово предсказать?"</h4>
+          <p>Модель выдаёт вектор-результат &rarr; сравниваем его со ВСЕМИ 32 000 векторами в codebook &rarr;
+          самый похожий = предсказанное слово</p>
+        </div>
+      </div>
+
+      <p style="margin-top:16px;"><strong>Почему один словарь, а не два?</strong></p>
+      <ul style="margin-left:20px; margin-top:8px;">
+        <li><strong>Экономия:</strong> 65М параметров вместо 131М</li>
+        <li><strong>Логика:</strong> если "кошка" на входе выглядит как [+1,&minus;1,+1,...],
+        то и на выходе "кошка" должна выглядеть так же. Один штрихкод = одно слово</li>
+        <li><strong>Качество:</strong> codebook вынужден быть хорошим и для чтения, и для предсказания &mdash;
+        это делает его более универсальным</li>
+      </ul>
+
+      <div class="analogy">
+        Как словарь-разговорник для туриста. Одна и та же таблица используется и чтобы
+        <strong>понять</strong> что тебе сказали (вход), и чтобы <strong>сказать</strong> ответ (выход).
+        Не нужен отдельный словарь для чтения и отдельный для говорения.
+      </div>
+    </div>
+
+    <!-- 2.8 Итого -->
+    <div class="card" style="border-color: var(--accent); background: rgba(79,195,247,0.05);">
+      <h3>Итого: путь слова через Codebook</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <h4>Текст</h4>
+          <p>"Кошка спит на диване"</p>
+        </div>
+        <div class="flow-arrow">&darr; BPE токенизация</div>
+        <div class="flow-step">
+          <h4>Токены</h4>
+          <p>["кошка", "сп", "ит", "на", "диван", "е"] &mdash; ID: [4287, 891, 203, 15, 6102, 89]</p>
+        </div>
+        <div class="flow-arrow">&darr; Поиск в таблице codebook</div>
+        <div class="flow-step">
+          <h4>Бинарные вектора</h4>
+          <p>6 векторов по 4096 бит каждый, только +1 и &minus;1<br>
+          Готовы для обработки &mdash; дальше идут в Permute (позиция) и в блоки модели</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. PERMUTE -->
+<section id="permute">
+  <div class="container">
+    <h2><span class="num">3</span> Permute &mdash; Позиция слова</h2>
+    <p class="subtitle">Как модель знает порядок слов</p>
+
+    <div class="card">
+      <h3>Проблема</h3>
+      <p>"Кошка ест рыбу" и "Рыба ест кошку" &mdash; одни и те же слова, но разный смысл.
+      Модель должна знать, какое слово на какой позиции.</p>
+    </div>
+
+    <div class="card">
+      <h3>Решение: Cyclic Permutation</h3>
+      <p>Вектор каждого слова <strong>сдвигается</strong> на столько бит, какая его позиция в предложении:</p>
+      <div class="formula">
+        позиция_вектор[i] = вектор[(i &minus; позиция) mod 4096]
+      </div>
+      <pre>
+Слово "кошка" = [1, 0, 1, 1, 0, 1, ...]
+
+Позиция 0: [1, 0, 1, 1, 0, 1, ...]  (без сдвига)
+Позиция 1: [..., 1, 0, 1, 1, 0, 1]  (сдвиг на 1)
+Позиция 2: [1, ..., 1, 0, 1, 1, 0]  (сдвиг на 2)</pre>
+      <p>Теперь "кошка на позиции 0" и "кошка на позиции 5" &mdash; <strong>почти ортогональные</strong> вектора (мало общих бит). Модель их не путает.</p>
+
+      <div class="analogy">
+        Как часовая стрелка: одна и та же стрелка на "3 часа" и "6 часов" показывает разное,
+        хотя стрелка одна. Позиция = угол поворота.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. MEMORY -->
+<section id="memory">
+  <div class="container">
+    <h2><span class="num">4</span> HDC Memory &mdash; Рабочая память</h2>
+    <p class="subtitle">Как модель запоминает контекст</p>
+
+    <div class="card">
+      <h3>Проблема</h3>
+      <p>Чтобы предсказать слово, нужно помнить что было раньше.
+      "В магазине я купил ___" &mdash; нужно помнить "магазин" и "купил".</p>
+    </div>
+
+    <div class="card">
+      <h3>Как работает</h3>
+      <p>Каждое слово имеет два свойства:</p>
+      <ul style="margin-left:20px; margin-top:8px;">
+        <li><strong>mass</strong> (масса) &mdash; насколько это слово ВАЖНОЕ для контекста</li>
+        <li><strong>decay</strong> (затухание) &mdash; как быстро оно ЗАБЫВАЕТСЯ</li>
+      </ul>
+
+      <div class="formula">
+        mass = sigmoid(weight &middot; token_vector)<br>
+        decay = sigmoid(weight &middot; token_vector)
+      </div>
+
+      <p style="margin-top:12px;">Затем для каждой позиции считается <strong>взвешенная сумма</strong> всех предыдущих слов:</p>
+      <div class="formula">
+        context[t] = &sum;<sub>i&le;t</sub> mass[i] &times; decay<sup>(t-i)</sup> &times; token[i]
+      </div>
+      <p style="margin-top:8px;">Слова с большой массой вносят больше. Далёкие слова затухают.</p>
+
+      <div class="analogy">
+        Как эхо в горах. Крикни громко (большая масса) &mdash; эхо будет долго.
+        Шепни (маленькая масса) &mdash; эхо быстро затихнет.
+        Каждое новое слово &mdash; новый крик, и модель слышит сумму всех эхо.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Sigmoid &mdash; что это?</h3>
+      <p>Функция которая сжимает любое число в диапазон от 0 до 1:</p>
+      <div class="formula">
+        sigmoid(x) = 1 / (1 + e<sup>&minus;x</sup>)
+      </div>
+      <pre>
+sigmoid(-10) &asymp; 0.00    (почти ноль)
+sigmoid(0)   = 0.50    (ровно половина)
+sigmoid(10)  &asymp; 1.00    (почти единица)</pre>
+      <p>Используется когда нужно получить "вероятность" или "силу" от 0 до 1.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. ATTENTION -->
+<section id="attention">
+  <div class="container">
+    <h2><span class="num">5</span> Multi-Head Binding Attention <span class="tag tag-new">NEW in v14.1</span></h2>
+    <p class="subtitle">4 головы внимания с HDC binding &mdash; в 225 раз меньше параметров чем SmolLM2</p>
+
+    <div class="card">
+      <h3>Проблема</h3>
+      <p>Memory запоминает ВСЁ подряд. Но иногда нужно вернуться к конкретному слову далеко назад:
+      "The cat, which yesterday caught a mouse, is now ___" &mdash; нужно вернуться к "cat".</p>
+      <p style="margin-top:8px;">Кроме того, разные аспекты текста важны одновременно: грамматика, тема, ближний контекст, дальний контекст.</p>
+    </div>
+
+    <div class="card">
+      <h3>Как работает: Multi-Head Binding</h3>
+      <p>Вектор из 4096 измерений <strong>разрезается на 4 части</strong> по 1024. Каждая часть &mdash; отдельная "голова":</p>
+
+      <pre>
+Голова 1: dims [0..1023]     &rarr; Q₁ = token[0:1024] &times; bv_q₁
+                              &rarr; K₁ = token[0:1024] &times; bv_k₁
+                              &rarr; V₁ = token[0:1024] &times; bv_v₁
+
+Голова 2: dims [1024..2047]  &rarr; Q₂, K₂, V₂ (свои binding vectors)
+Голова 3: dims [2048..3071]  &rarr; Q₃, K₃, V₃
+Голова 4: dims [3072..4095]  &rarr; Q₄, K₄, V₄</pre>
+
+      <p style="margin-top:12px;"><code>&times;</code> &mdash; это <strong>поэлементное умножение</strong> (bind в HDC). Не матричное!</p>
+
+      <div class="formula">
+        Всего параметров: 4 головы &times; 3 вектора &times; 1024 = <strong>12,288</strong><br>
+        SmolLM2 (15 heads GQA): <strong>2,764,800</strong> параметров на слой<br>
+        <strong>Экономия: в 225 раз!</strong>
+      </div>
+
+      <p style="margin-top:16px;">Каждая голова считает свои attention scores и выход:</p>
+      <div class="formula">
+        score[i][j] = Q[i] &middot; K[j] / &radic;head_dim<br>
+        (только j &le; i &mdash; нельзя смотреть в будущее!)<br>
+        attention = sigmoid(score &times; 4)<br>
+        output_head = attention &times; V
+      </div>
+      <p>Выходы 4 голов просто конкатенируются обратно в вектор 4096.</p>
+
+      <div class="analogy">
+        4 человека на совещании смотрят на проблему с разных сторон:
+        финансист, инженер, маркетолог, юрист. Каждый анализирует свой аспект,
+        потом их выводы складываются в общее решение.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Почему sigmoid, а не softmax?</h3>
+      <p>В обычном Transformer используется softmax (все веса в сумме = 1).
+      У нас &mdash; sigmoid (каждый вес независимо от 0 до 1).
+      Это позволяет модели обращать внимание на <strong>несколько слов одновременно</strong> без конкуренции между ними.</p>
+    </div>
+
+    <div class="card">
+      <h3>Зачем 4 головы? (v14 имел только 1)</h3>
+      <p>Одна голова видит текст с одной "точки зрения". 4 головы позволяют:</p>
+      <ul style="margin-left:20px; margin-top:8px;">
+        <li><strong>Голова 1:</strong> может отслеживать грамматику (подлежащее &harr; сказуемое)</li>
+        <li><strong>Голова 2:</strong> тему разговора (о чём текст)</li>
+        <li><strong>Голова 3:</strong> ближние связи (предыдущее слово)</li>
+        <li><strong>Голова 4:</strong> дальние связи (начало абзаца)</li>
+      </ul>
+      <p style="margin-top:8px;">При этом каждая голова добавляет всего 3&times;1024 = 3072 параметра. Четыре головы вместе &mdash; 12K.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. CONTROLLER -->
+<section id="controller">
+  <div class="container">
+    <h2><span class="num">6</span> Controller &mdash; Нелинейная обработка</h2>
+    <p class="subtitle">Где происходит "мышление"</p>
+
+    <div class="card">
+      <h3>Структура</h3>
+      <p>Простая двухслойная сеть с остаточным соединением (residual):</p>
+      <div class="formula">
+        output = input + Up(GELU(Down(LayerNorm(input))))
+      </div>
+
+      <pre>
+input (4096) &rarr; LayerNorm &rarr; Down (4096&rarr;2560) &rarr; GELU &rarr; Up (2560&rarr;4096) &rarr; + input
+                                   (&divide;1.6)                             (&times;1.6)</pre>
+
+      <p style="margin-top:12px;">
+        <strong>Down:</strong> сжимает вектор из 4096 в 2560 (выделяет главное)<br>
+        <strong>GELU:</strong> нелинейность (пропускает позитивное, приглушает негативное)<br>
+        <strong>Up:</strong> возвращает обратно в 4096<br>
+        <em>v14.1: Controller увеличен с 768 до 2560 &mdash; в 3.3&times; больше пространства для "думания"</em><br>
+        <strong>+ input:</strong> добавляет исходный вектор (residual connection)
+      </p>
+
+      <div class="analogy">
+        Как фильтр в фотошопе: сжал фото (down), применил эффект (GELU), растянул обратно (up), наложил на оригинал (residual). Оригинал не теряется.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>GELU &mdash; что это?</h3>
+      <div class="formula">GELU(x) &asymp; x &times; sigmoid(1.702 &times; x)</div>
+      <p style="margin-top:8px;">Если x > 0: GELU(x) &asymp; x (пропускает)<br>
+      Если x < 0: GELU(x) &asymp; 0 (блокирует)<br>
+      Между &minus;1 и 0: плавный переход</p>
+    </div>
+
+    <div class="card">
+      <h3>LayerNorm &mdash; что это?</h3>
+      <p>Нормализует вектор: среднее становится 0, разброс становится 1.</p>
+      <div class="formula">LayerNorm(x) = (x &minus; mean(x)) / std(x) &times; gamma + beta</div>
+      <p style="margin-top:8px;">Зачем: без нормализации числа в векторе могут "разбежаться" &mdash; одни станут огромными, другие микроскопическими. LayerNorm держит всё в порядке.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. HDC BLOCK -->
+<section id="block">
+  <div class="container">
+    <h2><span class="num">7</span> HDCBlock &mdash; Один блок целиком</h2>
+    <p class="subtitle">Три компонента вместе</p>
+
+    <div class="flow">
+      <div class="flow-step" style="border-color:var(--accent);">
+        <h4>Memory</h4>
+        <p>Читает контекст. "Что было до этого слова?"<br>
+        <span class="tag tag-hdc">HDC</span> Параллельный скан с массой и затуханием</p>
+      </div>
+      <div class="flow-arrow">&darr; + residual + LayerNorm</div>
+      <div class="flow-step" style="border-color:var(--accent2);">
+        <h4>Attention</h4>
+        <p>Фокусируется на важном. "Какое прошлое слово самое релевантное?"<br>
+        <span class="tag tag-hdc">HDC</span> <span class="tag tag-new">4-Head</span> Bind-based Q/K/V (12K params &mdash; 225&times; less than SmolLM2)</p>
+      </div>
+      <div class="flow-arrow">&darr; + residual + LayerNorm</div>
+      <div class="flow-step" style="border-color:var(--accent3);">
+        <h4>Controller</h4>
+        <p>Обрабатывает. "Что из этого следует?"<br>
+        <span class="tag tag-nn">Neural</span> Down &rarr; GELU &rarr; Up + residual</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <p style="text-align:center; font-size:18px;">
+        Таких блоков <strong style="color:var(--accent)">8 штук</strong> подряд (было 6 в v14).<br>
+        Каждый следующий видит более "обработанный" контекст.
+      </p>
+      <div class="analogy">
+        Как 8 уровней понимания текста:
+        Блок 1-2 &mdash; слова и грамматика,
+        Блок 3-4 &mdash; фразы и связи,
+        Блок 5-6 &mdash; предложения и логика,
+        Блок 7-8 &mdash; смысл и выводы.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. THOUGHT LOOPS -->
+<section id="thoughts">
+  <div class="container">
+    <h2><span class="num">8</span> Thought Loops &mdash; "Размышление"</h2>
+    <p class="subtitle">Уникальная фича: модель ДУМАЕТ несколько раз</p>
+
+    <div class="card" style="border-color: var(--accent2);">
+      <h3>Идея</h3>
+      <p>После первого прохода через 8 блоков, модель может <strong>перечитать текст заново</strong>
+      и уточнить своё понимание. Как человек перечитывает сложное предложение.</p>
+      <p style="margin-top:8px; color:var(--accent4);"><strong>Доказано в v14:</strong> 1 thought = мусор, 2 thoughts = plateau, <strong>3 thoughts = качество</strong>. Это архитектурная необходимость, а не опция!</p>
+    </div>
+
+    <div class="thought-loop-viz">
+      <div class="thought-box active" style="background:rgba(79,195,247,0.15);">
+        Мысль 1<br><small>Первое чтение</small>
+      </div>
+      <span style="font-size:24px;">&rarr;</span>
+      <div class="thought-box" style="background:rgba(129,199,132,0.15); border:2px solid var(--accent2);">
+        Мысль 2<br><small>Перечитывание</small>
+      </div>
+      <span style="font-size:24px;">&rarr;</span>
+      <div class="thought-box" style="background:rgba(255,183,77,0.15); border:2px solid var(--accent3);">
+        Мысль 3<br><small>Уточнение</small>
+      </div>
+      <span style="font-size:24px;">&rarr;</span>
+      <div class="thought-box" style="background:rgba(229,115,115,0.15); border:2px solid var(--accent4);">
+        Мысль 4<br><small>Финальная</small>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Как работает</h3>
+      <pre>
+Мысль 1: h = blocks(input)                    # обязательная
+Мысль 2: h = h + gate_2 * (blocks(h) - h)     # опциональная
+Мысль 3: h = h + gate_3 * (blocks(h) - h)     # опциональная
+Мысль 4: h = h + gate_4 * (blocks(h) - h)     # опциональная</pre>
+
+      <p style="margin-top:16px;"><strong>gate</strong> (ворота) &mdash; число от 0 до 1, которое модель <strong>учится сама</strong>:</p>
+      <ul style="margin-left:20px; margin-top:8px;">
+        <li>gate = 0: "эта мысль не нужна" (пропуск)</li>
+        <li>gate = 0.3: "немного уточнить" (30% нового + 70% старого)</li>
+        <li>gate = 1.0: "полностью переосмыслить" (100% новая мысль)</li>
+      </ul>
+
+      <div class="formula">
+        h_new = (1 &minus; gate) &times; h_old + gate &times; thought
+      </div>
+
+      <div class="analogy">
+        Как решение задачи по математике:
+        1-й проход: "кажется, ответ 42"
+        2-й проход: "нет, подожди, тут ошибка... ответ 37"
+        3-й проход: "да, точно 37, проверил"
+        Каждый проход использует ТЕ ЖЕ блоки, но с новым "пониманием".
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Thought Position Embedding</h3>
+      <p>Каждая "мысль" получает свой <strong>номер</strong> &mdash; дополнительный вектор, который добавляется перед проходом:</p>
+      <div class="formula">
+        thought_input = LayerNorm(h) + thought_pos[номер_мысли]
+      </div>
+      <p style="margin-top:8px;">Это позволяет блокам "знать", какой это проход &mdash; первый, второй, третий.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9. OUTPUT -->
+<section id="output">
+  <div class="container">
+    <h2><span class="num">9</span> Output &mdash; Предсказание</h2>
+    <p class="subtitle">Как модель выбирает следующее слово</p>
+
+    <div class="card">
+      <h3>Формула</h3>
+      <div class="formula">
+        logits = LayerNorm(h) &times; Codebook<sup>T</sup> &times; scale
+      </div>
+      <p style="margin-top:12px;">
+        <strong>h</strong> &mdash; финальный вектор после всех блоков и мыслей (4096 чисел)<br>
+        <strong>Codebook<sup>T</sup></strong> &mdash; тот же codebook, но транспонированный (weight tying)<br>
+        <strong>scale</strong> = 1/&radic;4096 &asymp; 0.0156 &mdash; нормализация
+      </p>
+      <p style="margin-top:8px;">Результат: <strong>32000 чисел</strong> (по одному на каждое слово). Чем больше число, тем вероятнее это слово.</p>
+    </div>
+
+    <div class="card">
+      <h3>Softmax &rarr; Вероятности</h3>
+      <div class="formula">
+        P(слово) = e<sup>logit[слово]</sup> / &sum; e<sup>logit[k]</sup>
+      </div>
+      <p style="margin-top:8px;">Softmax превращает сырые числа в вероятности (сумма = 1):</p>
+      <pre>
+logits:       [2.1,  0.5,  -1.3,  0.8, ...]
+softmax:      [0.42, 0.08,  0.01, 0.11, ...]
+              "кот"  "пёс" "стол" "рыба"
+
+Предсказание: "кот" (42%)</pre>
+    </div>
+
+    <div class="card">
+      <h3>Cross-Entropy Loss</h3>
+      <p>Как модель учится: наказываем за неправильное предсказание.</p>
+      <div class="formula">
+        loss = &minus;log(P(правильное_слово))
+      </div>
+      <p style="margin-top:8px;">
+        Если P("кот") = 0.9 и правильный ответ "кот": loss = &minus;log(0.9) = 0.1 (мало, хорошо!)<br>
+        Если P("кот") = 0.01 и правильный ответ "кот": loss = &minus;log(0.01) = 4.6 (много, плохо!)
+      </p>
+      <div class="analogy">
+        Как оценка в школе: если угадал &mdash; 5, если не угадал &mdash; 2. Loss = "насколько модель ошиблась".
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. TRAINING -->
+<section id="training">
+  <div class="container">
+    <h2><span class="num">10</span> Обучение</h2>
+    <p class="subtitle">Как модель становится умнее</p>
+
+    <div class="card">
+      <h3>Цикл обучения</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <h4>1. Forward Pass</h4>
+          <p>Текст &rarr; через модель &rarr; предсказания</p>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step">
+          <h4>2. Loss</h4>
+          <p>Сравниваем предсказания с правильными ответами</p>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step">
+          <h4>3. Backward Pass</h4>
+          <p>Вычисляем gradient: "в какую сторону двигать каждый параметр?"</p>
+        </div>
+        <div class="flow-arrow">&darr;</div>
+        <div class="flow-step">
+          <h4>4. Adam Optimizer</h4>
+          <p>Обновляем параметры: weight -= learning_rate &times; gradient</p>
+        </div>
+        <div class="flow-arrow" style="animation-delay:0.5s;">&darr; повторяем 1000000 раз</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>BPB (Bits Per Byte) &mdash; главная метрика</h3>
+      <p>Сколько бит нужно модели чтобы закодировать один байт текста. Чем меньше, тем лучше.</p>
+      <table>
+        <tr><th>BPB</th><th>Уровень</th><th>Что это значит</th></tr>
+        <tr><td>8.0</td><td>Случайное угадывание</td><td>Модель ничего не знает</td></tr>
+        <tr><td>4.0-5.0</td><td>Базовый</td><td>Модель выучила частые слова</td></tr>
+        <tr><td>2.0-3.0</td><td>Хороший</td><td>Связный текст, грамматика</td></tr>
+        <tr><td>1.5-2.0</td><td>Отличный</td><td>Осмысленный текст, логика</td></tr>
+        <tr><td>3.9</td><td>v14 (103M, Russian)</td><td>Доказал что архитектура работает</td></tr>
+        <tr><td style="color:var(--accent2);font-weight:700;">v14.1: training &darr;</td><td style="color:var(--accent2);">Обучается!</td><td style="color:var(--accent2);">299M English, цель: &lt; 3.5</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 11. COMPARISON -->
+<section id="comparison">
+  <div class="container">
+    <h2><span class="num">11</span> HDC-Brain v14.1 vs SmolLM2-360M</h2>
+    <p class="subtitle">Сравнение с современным трансформером одного масштаба</p>
+
+    <table>
+      <tr><th>Аспект</th><th>SmolLM2-360M</th><th>HDC-Brain v14.1 (299M)</th></tr>
+      <tr>
+        <td>Кодирование слов</td>
+        <td>Float embedding (49K vocab)</td>
+        <td>STE Bipolar Codebook (32K, бинарный)</td>
+      </tr>
+      <tr>
+        <td>Позиция</td>
+        <td>RoPE</td>
+        <td>Cyclic Permutation (HDC, 0 доп. параметров)</td>
+      </tr>
+      <tr>
+        <td>Память</td>
+        <td>Нет (только attention)</td>
+        <td>HDC Memory с массой и затуханием</td>
+      </tr>
+      <tr>
+        <td>Attention</td>
+        <td>15-head GQA (2.7M params/layer)</td>
+        <td>4-head Binding (12K params/layer) &mdash; <strong style="color:var(--accent2);">225&times; меньше!</strong></td>
+      </tr>
+      <tr>
+        <td>FFN / Controller</td>
+        <td>SwiGLU (2560 inner)</td>
+        <td>Controller GELU (2560 inner)</td>
+      </tr>
+      <tr>
+        <td>Layers / Blocks</td>
+        <td>32 layers</td>
+        <td>8 blocks &times; 3 thoughts = 24 effective passes</td>
+      </tr>
+      <tr>
+        <td>"Мышление"</td>
+        <td>Нет</td>
+        <td>Thought Loops (до 4 проходов)</td>
+      </tr>
+      <tr>
+        <td>Контекст</td>
+        <td>8192 токенов</td>
+        <td>512 токенов</td>
+      </tr>
+      <tr>
+        <td>Deploy</td>
+        <td>~724 MB (bf16)</td>
+        <td>Бинарный codebook &mdash; потенциально ~200 MB</td>
+      </tr>
+    </table>
+
+    <div class="card" style="border-color:var(--accent2); margin-top:30px;">
+      <h3 style="color:var(--accent2);">Наше преимущество</h3>
+      <p>HDC-Brain использует <strong>три типа памяти</strong> одновременно:</p>
+      <ol style="margin-left:20px; margin-top:8px;">
+        <li><strong>Codebook</strong> &mdash; долговременная память (значения слов)</li>
+        <li><strong>HDC Memory</strong> &mdash; рабочая память (контекст)</li>
+        <li><strong>Attention</strong> &mdash; ассоциативная память (связи между словами)</li>
+      </ol>
+      <p style="margin-top:8px;">Transformer имеет только Attention. Мы ближе к тому, как работает мозг.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>HDC-Brain v14.1 (299M English) &mdash; Hoffman Swarm Project &mdash; 2025-2026</p>
+    <p style="margin-top:8px;">Архитектура: Oleg Hasjanov | Документация: Claude</p>
+  </div>
+</footer>
+
+<!-- INTERACTIVE BIT VISUALIZATION -->
+<script>
+const N = 48; // visible bits
+let vecA = [], vecB = [], vecR = [];
+
+function randomBits(n) {
+  return Array.from({length:n}, () => Math.random() > 0.5 ? 1 : 0);
+}
+
+function renderBits(containerId, bits) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = bits.map(b =>
+    `<div class="bit ${b ? 'one' : 'zero'}"></div>`
+  ).join('');
+}
+
+function hamSim(a, b) {
+  let match = 0;
+  for (let i = 0; i < a.length; i++) if (a[i] === b[i]) match++;
+  return 2 * match - a.length;
+}
+
+function resetBits() {
+  vecA = randomBits(N);
+  vecB = randomBits(N);
+  vecR = Array(N).fill(0);
+  renderBits('bitsA', vecA);
+  renderBits('bitsB', vecB);
+  renderBits('bitsR', vecR);
+  document.getElementById('simText').textContent =
+    `sim(A,B) = ${hamSim(vecA, vecB)} из ${N}`;
+}
+
+function doBind() {
+  vecR = vecA.map((a, i) => a === vecB[i] ? 1 : 0); // XNOR
+  renderBits('bitsR', vecR);
+  document.getElementById('simText').textContent =
+    `Bind: ${vecR.filter(x=>x).length}/${N} бит = 1  |  sim(A, Result) = ${hamSim(vecA, vecR)}  |  sim(B, Result) = ${hamSim(vecB, vecR)}`;
+}
+
+function doBundle() {
+  const c = randomBits(N);
+  vecR = vecA.map((a, i) => {
+    const sum = a + vecB[i] + c[i];
+    return sum >= 2 ? 1 : 0;
+  });
+  renderBits('bitsR', vecR);
+  document.getElementById('simText').textContent =
+    `Bundle(A,B,C): sim(A)=${hamSim(vecA, vecR)}, sim(B)=${hamSim(vecB, vecR)} (похож на обоих!)`;
+}
+
+resetBits();
+
+// Smooth scroll for nav
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      document.querySelector(href)?.scrollIntoView({behavior:'smooth'});
+    }
+  });
+});
+</script>
+
+</body>
+</html>

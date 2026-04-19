@@ -44,6 +44,28 @@ def _ste_sign_vec(w):
     return (hard - w).detach() + w
 
 
+class BinaryNorm(nn.Module):
+    """Бинарная замена LayerNorm.
+
+    LayerNorm нужен чтобы вектора не уходили в бесконечность.
+    В бинарном мире вектора {-1,+1} уже ограничены.
+    Но после сложения (residual, bundle) значения становятся float.
+
+    BinaryNorm: sign() с STE — загоняет обратно в {-1,+1}.
+    Один обучаемый скаляр scale контролирует амплитуду.
+    """
+    def __init__(self, dim):
+        super().__init__()
+        self.scale = nn.Parameter(torch.tensor(1.0))
+
+    def forward(self, x):
+        # sign() с STE: forward = sign, backward = straight-through
+        s = torch.sign(x)
+        s = torch.where(s == 0, torch.ones_like(s), s)
+        out = (s - x).detach() + x  # STE
+        return out * self.scale
+
+
 # ============================================================
 # Блоки
 # ============================================================
@@ -241,16 +263,16 @@ class HDCBlock(nn.Module):
             self.controller = BinaryController(hdc_dim, n_filters)
         else:
             self.controller = ControllerBlock(hdc_dim, controller_dim, dropout)
-        self.ln_mem = nn.LayerNorm(hdc_dim)
-        self.ln_attn = nn.LayerNorm(hdc_dim)
-        self.ln_logic = nn.LayerNorm(hdc_dim)
+        self.norm_mem = BinaryNorm(hdc_dim)
+        self.norm_attn = BinaryNorm(hdc_dim)
+        self.norm_logic = BinaryNorm(hdc_dim)
 
     def forward(self, x, kv_cache=None):
         mem = self.memory(x)
-        x = self.ln_mem(x + mem)
+        x = self.norm_mem(x + mem)
         attn, new_cache = self.attention(x, kv_cache)
-        x = self.ln_attn(x + attn)
-        x = self.ln_logic(self.logic(x))
+        x = self.norm_attn(x + attn)
+        x = self.norm_logic(self.logic(x))
         x = self.controller(x)
         return x, new_cache
 
@@ -262,7 +284,7 @@ class ThoughtLoop(nn.Module):
         self.max_thoughts = max_thoughts
         self.thought_gates = nn.Parameter(torch.zeros(max_thoughts))
         self.thought_pos = nn.Parameter(torch.randn(max_thoughts, hdc_dim) * 0.01)
-        self.ln = nn.LayerNorm(hdc_dim)
+        self.norm = BinaryNorm(hdc_dim)
 
     def _run_blocks(self, h, blocks):
         for block in blocks:
@@ -281,7 +303,7 @@ class ThoughtLoop(nn.Module):
 
         for t in range(1, n_thoughts):
             gate = torch.sigmoid(self.thought_gates[t])
-            thought_input = self.ln(h) + self.thought_pos[t]
+            thought_input = self.norm(h) + self.thought_pos[t]
             thought = self._run_blocks(thought_input, blocks)
             h = h + gate * (thought - h)
 
@@ -326,7 +348,7 @@ class HDCBrainV14_2(nn.Module):
         self.thought_loop = ThoughtLoop(hdc_dim, max_thoughts)
 
         # Output
-        self.output_ln = nn.LayerNorm(hdc_dim)
+        self.output_norm = BinaryNorm(hdc_dim)
         self.output_scale = nn.Parameter(torch.tensor(1.0))
 
         # Бинарный кодбук для инференса (заполняется при вызове to_binary())
@@ -347,7 +369,7 @@ class HDCBrainV14_2(nn.Module):
         tokens = self._ste_encode(idx)
         tokens = self._cyclic_position(tokens)
         h = self.thought_loop(tokens, self.blocks, n_thoughts)
-        h = self.output_ln(h)
+        h = self.output_norm(h)
         logits = F.linear(h, self.codebook) * self.output_scale
 
         loss = None
@@ -379,7 +401,7 @@ class HDCBrainV14_2(nn.Module):
         for i, block in enumerate(self.blocks):
             h, caches[i] = block(h)
 
-        h_out = self.output_ln(h)
+        h_out = self.output_norm(h)
         logits = F.linear(h_out, self.codebook) * self.output_scale
         next_id = self._sample(logits[:, -1, :], temperature, top_k)
         idx = torch.cat([idx, next_id], dim=1)
@@ -397,7 +419,7 @@ class HDCBrainV14_2(nn.Module):
             for i, block in enumerate(self.blocks):
                 h, caches[i] = block(h, kv_cache=caches[i])
 
-            h_out = self.output_ln(h)
+            h_out = self.output_norm(h)
             logits = F.linear(h_out, self.codebook) * self.output_scale
             next_id = self._sample(logits[:, -1, :], temperature, top_k)
             idx = torch.cat([idx, next_id], dim=1)

@@ -1,0 +1,65 @@
+[10:48:33] ============================================================
+[10:48:33] HDC-Brain v18: Worm-Driven + Working Memory
+[10:48:33] ============================================================
+[10:48:33] dim=4096, threads=4, chunk=100000, sample=10, checks=10000, passes=1
+[10:48:34] Data: 27474958 tokens, vocab_size=16000
+[10:48:34] ============================================================
+[10:48:34] Phase 0: Semantic Codebook
+[10:48:34] ============================================================
+[10:48:34] Codebook loaded from cache: codebook_16000_4096.bin
+[10:48:34] ============================================================
+[10:48:34] Worm Training (1 passes), chunk=100000, sample_rate=10, worm_checks=10000
+[10:48:34] ============================================================
+[10:48:34] --- Pass 1/1 ---
+[10:48:55]   18% | Memory: words=16000, facts=371029, rules=66085, abstractions=22983, meta=1, relations=0 | thoughts=500
+[10:49:23]   36% | Memory: words=16000, facts=655007, rules=117326, abstractions=44031, meta=2, relations=0 | thoughts=500
+[10:49:58]   54% | Memory: words=16000, facts=918638, rules=163129, abstractions=64158, meta=2, relations=0 | thoughts=500
+[10:50:38]   72% | Memory: words=16000, facts=1193292, rules=208659, abstractions=84609, meta=2, relations=0 | thoughts=500
+[10:51:21]   91% | Memory: words=16000, facts=1438939, rules=251958, abstractions=104769, meta=2, relations=0 | thoughts=500
+[10:51:43] Final worm cycle...
+[10:51:43]   [SharedThoughts] 1 thoughts:
+[10:51:43]     Ask × 500
+[10:51:49]   [Analyst] CHECK: 34.5% agree (10350/29999), 19649 conflicts, 8025 asked, YES neighbors_by_tokens
+[10:51:53]   [Skeptic] Inbox: 11624 CONFLICT, 8525 ASK from others
+[10:51:53]   [Skeptic] RESOLVE: 7802 strengthened, 3822 asked, 1605 weak found
+[10:51:53]   [Explorer] Inbox: 18152 confirmed STRONG
+[10:51:53]   [Explorer] MAP: 10680 tokens (2482 strong, 5560 weak), 200 bigram_rules, 50 abstractions, 20 MISSING sent
+[10:52:13]   [Teacher] confirmed=639, taught new=0
+[10:52:13]   Thought summary: total=43729, STRONG=18152, CONFLICT=11624, ASK=12347, MISSING=0
+[10:52:13] Worm Report: scanned=3443252, stored=1945077, strengthened=1871539, weakened=5877, asked=263376, teacher=639c/0t
+[10:52:13] Evaluating with WormMind...
+[10:52:26]   METRIC: Top-1 = 22.38%
+[10:52:26]   METRIC: Top-5 = 35.92%
+[10:52:26]   METRIC: avg_reasoning = 34.0960
+[10:52:26]   METRIC: avg_confidence = 0.3928
+[10:52:26]   METRIC: background_updates = 10991.0000
+[10:52:26]   METRIC: no_trigram_match = 1.80%
+[10:52:26]   METRIC: avg_uncertain = 21.8980
+[10:52:26]   METRIC: avg_contradictions = 2.9742
+[10:52:26]   METRIC: need_more_data = 5090.0000
+[10:52:26]   METRIC: relations = 2966.0000
+[10:52:26]   METRIC: bg_relations_created = 0.0000
+[10:52:26] Memory: words=16000, facts=1558542, rules=272133, abstractions=117353, meta=2, relations=2966 | bigram_idx=1175457 | token_idx=15354 | time=231.5s
+[10:52:26] ============================================================
+[10:52:26] Training Complete (231.5s) | Memory: words=16000, facts=1558542, rules=272133, abstractions=117353, meta=2, relations=2966
+[10:52:26] ============================================================
+[10:52:26] ============================================================
+[10:52:26] Final Evaluation (10000 positions) with WormMind
+[10:52:26] ============================================================
+[10:52:55]   METRIC: Final Top-1 = 18.20%
+[10:52:55]   METRIC: Final Top-5 = 30.88%
+[10:52:55]   METRIC: Final avg_reasoning = 34.6450
+[10:52:55]   METRIC: Final avg_confidence = 0.3877
+[10:52:55]   METRIC: Final bg_updates = 17930.0000
+[10:52:55] ============================================================
+[10:52:55] Self-Diagnostic Report
+[10:52:55] ============================================================
+[10:52:55]   METRIC: no_trigram_match = 1.84%
+[10:52:55]   METRIC: avg_uncertain = 22.7236
+[10:52:55]   METRIC: avg_contradictions = 2.9904
+[10:52:55]   METRIC: need_more_data = 10184.0000
+[10:52:55] ============================================================
+[10:52:55] Complete in 261.6s (4.4 min)
+[10:52:55] ============================================================
+[10:52:55] Memory: words=16000, facts=1558542, rules=272133, abstractions=120161, meta=2, relations=5074
+[10:52:55] Log saved to: test_v19.log

@@ -92,10 +92,11 @@ plt.close()
 print(f"  {len(pretrain_evals)} evals, BPB {best_bpb:.3f}..{max(bpbs):.3f}")
 
 # ============================================================
-# Figure 2: Finetune curve (last run = mixed data = best result)
+# Figure 2: Finetune v3 curve (quality_v3 dataset — final result)
 # ============================================================
-print("Plotting finetune curve...")
-steps, evals = parse_finetune_log(BASE / "finetune.log")
+print("Plotting finetune v3 curve...")
+V3_LOG = Path(__file__).parent.parent / "experiments" / "finetune_v3.log"
+steps, evals = parse_finetune_log(V3_LOG)
 s_iter, s_loss = zip(*steps)
 e_iter, e_train, e_val, e_bpb = zip(*evals)
 
@@ -106,7 +107,7 @@ ax1.plot(e_iter, e_train, 'o-', color='#2ca02c', markersize=4, linewidth=1.5, la
 ax1.plot(e_iter, e_val, 's-', color='#d62728', markersize=4, linewidth=1.5, label='Val eval')
 ax1.set_xlabel('Iteration')
 ax1.set_ylabel('Loss (cross-entropy)')
-ax1.set_title('Finetune Loss — Alpaca-GPT4 + SlimOrca + Alpaca')
+ax1.set_title('Finetune Loss — quality_v3 (75M tokens)')
 ax1.legend(loc='upper right')
 ax1.grid(True, alpha=0.3)
 
@@ -115,12 +116,12 @@ best_ft_iter = e_iter[list(e_bpb).index(best_ft_bpb)]
 
 ax2.plot(e_iter, e_bpb, 'o-', color='#1f77b4', markersize=5, linewidth=1.8)
 ax2.axhline(y=best_ft_bpb, color='red', linestyle='--', alpha=0.6,
-            label=f'Best: {best_ft_bpb:.3f}')
+            label=f'Best: {best_ft_bpb:.3f} (iter {best_ft_iter})')
 ax2.axhline(y=5.434, color='gray', linestyle=':', alpha=0.5, label='Base: 5.434')
 ax2.scatter([best_ft_iter], [best_ft_bpb], color='red', s=60, zorder=5)
 ax2.set_xlabel('Iteration')
 ax2.set_ylabel('BPB')
-ax2.set_title('Finetune BPB — from Base 5.434 to 4.105')
+ax2.set_title(f'Finetune BPB — from Base 5.434 to {best_ft_bpb:.3f}')
 ax2.legend(loc='upper right')
 ax2.grid(True, alpha=0.3)
 

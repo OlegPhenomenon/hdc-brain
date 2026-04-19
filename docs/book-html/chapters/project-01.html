@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Проект I — Проект: Наивная языковая модель | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item active">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция I</span> /
+        <span>Проект I</span>
+      </div>
+      <div class="topbar-progress">
+        <span>I из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 13%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция I</span>
+        <span class="chapter-number">Проект I</span>
+      </div>
+
+      <h1 class="chapter-title">Проект: Наивная языковая модель</h1>
+      <p class="chapter-subtitle">Полноценный текстовый предсказатель с тремя режимами: биграммы (1 предыдущее слово), триграммы (2 слова), и с регулируемой "температурой" (уровнем случайности).</p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<div class="section-heading" id="что-строим">
+  <h2>Что строим</h2>
+</div>
+
+<p>Полноценный текстовый предсказатель с тремя режимами: биграммы (1 предыдущее слово), триграммы (2 слова), и с регулируемой "температурой" (уровнем случайности).</p>
+
+<p>Это расширение того что ты делал в главе 1 (секция "Запусти прямо сейчас"), но теперь — обобщённая версия.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="что-тебе-нужно-знать">
+  <h2>Что тебе нужно знать</h2>
+</div>
+
+<p>Перед тем как писать код — убедись что ты понимаешь:</p>
+
+<ul>
+<li><strong>Биграммная модель</strong> — глава 1, секция "Генерация: одно слово за другим". Ты уже написал простейшую версию. Здесь обобщаем до n-грамм.</li>
+<li><strong>Вектор и похожесть</strong> — глава 2, секция "Как измерить похожесть". Пригодится для понимания того, почему частоты = вероятности.</li>
+<li><strong>Функция с параметрами</strong> — глава 3, секция "Нейронная сеть = функция с параметрами". Наша модель — тоже функция, только без нейросети: входы → выходы.</li>
+<li><strong>Loss и градиент</strong> — глава 4, секция "Loss: одно число которое говорит насколько плохо". Мы не будем обучать градиентами, но понимание loss поможет оценить качество модели.</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="спецификация">
+  <h2>Спецификация</h2>
+</div>
+
+<h3>Три функции</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def train(text: str, n: int = 2) -&gt; dict:
+    """
+    text — обучающий текст
+    n    — размер n-граммы (2=биграммы, 3=триграммы)
+    Возвращает модель: кортеж слов → {следующее: количество}
+    """
+    pass
+
+def predict(model: dict, context: tuple, top_k: int = 5) -&gt; list:
+    """
+    context — кортеж из n-1 предыдущих слов
+    Возвращает [(слово, вероятность), ...] отсортированные по убыванию
+    """
+    pass
+
+def generate(model: dict, start: tuple, length: int = 20, temperature: float = 1.0) -&gt; str:
+    """
+    temperature: 0.0 = всегда самое вероятное, 1.0 = по частотам, 2.0 = более случайно
+    """
+    pass</code>
+</pre>
+
+<h3>Температура</h3>
+
+<p>Это параметр который контролирует "случайность" генерации:</p>
+
+<ul>
+<li><code>temperature = 0.0</code> — всегда выбираем самое вероятное слово (жадная стратегия, greedy). Текст предсказуемый, часто зацикливается.</li>
+<li><code>temperature = 1.0</code> — выбираем пропорционально частотам. Это поведение из главы 1.</li>
+<li><code>temperature = 2.0</code> — распределение "размывается", редкие слова получают больше шансов. Текст более разнообразный, но менее осмысленный.</li>
+</ul>
+
+<p>Как это работает: возведи каждый счётчик в степень <code>1/temperature</code> перед нормализацией. При <code>temperature → 0</code> побеждает максимум. При <code>temperature → ∞</code> все слова равновероятны.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="тесты">
+  <h2>Тесты</h2>
+</div>
+
+<p>Запусти — все должны пройти:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">text = "кот сидит кот спит кот ест кот бежит"
+model = train(text, n=2)
+
+preds = predict(model, ("кот",))
+assert any(w in [p[0] for p in preds] for w in ["сидит", "спит", "ест"])
+assert abs(sum(p[1] for p in preds) - 1.0) &lt; 0.01
+assert predict(model, ("дракон",)) == [("???", 1.0)]
+assert len(generate(model, ("кот",), length=5).split()) &gt;= 2
+
+# Триграммы
+model3 = train("я люблю кота я люблю собаку я люблю рыбу", n=3)
+preds3 = predict(model3, ("я", "люблю"))
+assert "кота" in [p[0] for p in preds3]</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="улучшения">
+  <h2>Улучшения</h2>
+</div>
+
+<p>Если основная часть работает — попробуй:</p>
+
+<ul>
+<li>Подключи любой текстовый файл (книга, статья из Вики) и сравни: на каком тексте генерация интереснее?</li>
+<li>Нарисуй график: как меняется "осмысленность" текста при temperature от 0.1 до 3.0?</li>
+<li>Сделай символьную версию (без split по пробелам). Может ли модель "изобретать" новые слова?</li>
+<li>Добавь perplexity (глава 4, секция "Loss") — посчитай 2^(средний log2 loss) на тестовом тексте. Сравни биграммы vs триграммы.</li>
+</ul>
+
+      <div class="chapter-nav"><a href="chapter-04.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Как нейронная сеть учится</div>
+</a><a href="chapter-05.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Зачем придумали HDC</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

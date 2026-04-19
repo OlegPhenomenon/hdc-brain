@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава B — Математика: линейная алгебра и теория информации | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item active">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Приложение</span> /
+        <span>Глава B</span>
+      </div>
+      <div class="topbar-progress">
+        <span>B из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 93%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Приложение</span>
+        <span class="chapter-number">Глава B</span>
+      </div>
+
+      <h1 class="chapter-title">Математика: линейная алгебра и теория информации</h1>
+      <p class="chapter-subtitle">Вектор — это просто упорядоченный список чисел:</p>
+
+      <hr class="chapter-divider" />
+
+      <p>Вся математика книги в одном месте. Без доказательств — только интуиция, примеры и формулы которые нужны чтобы понять код.</p>
+
+<p>Если ты видишь формулу в коде и не понимаешь что она делает — загляни сюда.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b1-векторы-списки-чисел">
+  <h2>B.1 Векторы — списки чисел</h2>
+</div>
+
+<p>Вектор — это просто упорядоченный список чисел:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">a = [3, -1, 2, 5, -4]  ← вектор из 5 чисел
+b = [+1, -1, +1, -1, +1]  ← биполярный вектор из 5 чисел</code>
+</pre>
+
+<p>В нашей архитектуре каждый токен — это вектор из 4096 биполярных чисел <code>{-1, +1}</code>.</p>
+
+<p><strong>Длина вектора (норма)</strong> — расстояние от нуля:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">‖a‖ = √(a₁² + a₂² + ... + aₙ²)
+
+Пример: ‖[3, 4]‖ = √(9 + 16) = √25 = 5</code>
+</pre>
+
+<p>В Python: <code>torch.norm(a)</code> или <code>a.norm()</code>.</p>
+
+<p><strong>Скалярное произведение</strong> — "насколько векторы похожи":</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">a · b = a₁×b₁ + a₂×b₂ + ... + aₙ×bₙ
+
+Пример: [1, 2, 3] · [4, 5, 6] = 1×4 + 2×5 + 3×6 = 4 + 10 + 18 = 32</code>
+</pre>
+
+<p>В Python: <code>(a * b).sum()</code> или <code>torch.dot(a, b)</code>.</p>
+
+<p><strong>Косинусное сходство</strong> — нормализованная похожесть (от -1 до +1):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">cos(θ) = (a · b) / (‖a‖ × ‖b‖)</code>
+</pre>
+
+<ul>
+<li><code>cos = 1.0</code> → векторы смотрят в одну сторону (одинаковые)</li>
+<li><code>cos = 0.0</code> → векторы перпендикулярны (не похожи)</li>
+<li><code>cos = -1.0</code> → векторы смотрят в противоположные стороны</li>
+</ul>
+
+<p>В Python: <code>torch.nn.functional.cosine_similarity(a, b, dim=0)</code>.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b2-биполярные-векторы-и-квазиортогональность">
+  <h2>B.2 Биполярные векторы и квазиортогональность</h2>
+</div>
+
+<p>Наши токен-векторы биполярные: каждое из 4096 чисел либо -1 либо +1.</p>
+
+<p>Важный факт: <strong>два случайных биполярных вектора почти перпендикулярны</strong>.</p>
+
+<p>Почему? Каждое слагаемое <code>aᵢ × bᵢ</code> случайно равно +1 или -1 с равной вероятностью. Сумма 4096 таких случайных ±1 стремится к нулю по закону больших чисел.</p>
+
+<p>Математически:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">E[a · b] = 0          ← в среднем ноль
+Std[a · b] ≈ √4096 = 64   ← разброс
+
+Нормированное сходство:
+  cos(θ) = (a · b) / 4096
+  Std[cos] = 64/4096 ≈ 0.016
+
+Вывод: с вероятностью &gt;99% cos(θ) будет в диапазоне [-0.05, +0.05]</code>
+</pre>
+
+<p>Это называется <strong>квазиортогональность</strong>: векторы не строго перпендикулярны, но очень близко.</p>
+
+<p>Практическое следствие: в 4096-мерном пространстве можно хранить 32768 токенов и они почти не будут "мешать" друг другу.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b3-матрицы-таблицы-чисел">
+  <h2>B.3 Матрицы — таблицы чисел</h2>
+</div>
+
+<p>Матрица — прямоугольная таблица чисел:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">W = [[1, 2, 3],    ← строка 0
+     [4, 5, 6],    ← строка 1
+     [7, 8, 9]]    ← строка 2
+
+Размер: 3 × 3 (строки × столбцы)</code>
+</pre>
+
+<p>Кодбук — это матрица: <code>32768 × 4096</code> (токенов × измерений).</p>
+
+<p><strong>Умножение матрицы на вектор</strong> (самая частая операция в нейросетях):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">W × x = y
+
+Если W размера (m × n) и x размера (n,):
+  y размера (m,)
+  y[i] = строка_i(W) · x = Σⱼ W[i,j] × x[j]</code>
+</pre>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># PyTorch:
+W = torch.randn(10, 5)  # матрица 10×5
+x = torch.randn(5)      # вектор размера 5
+y = W @ x               # вектор размера 10</code>
+</pre>
+
+<p><strong>Умножение матрица × матрица</strong>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">C = A × B
+
+Если A размера (m × k) и B размера (k × n):
+  C размера (m × n)
+  C[i, j] = строка_i(A) · столбец_j(B)</code>
+</pre>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">A = torch.randn(4, 8)   # 4×8
+B = torch.randn(8, 6)   # 8×6
+C = A @ B               # 4×6</code>
+</pre>
+
+<p><strong>Транспонирование</strong> — поворот матрицы: строки становятся столбцами:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">A.T[i, j] = A[j, i]</code>
+</pre>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">A.T  # или A.transpose(-1, -2)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b4-функции-активации-нелинейности">
+  <h2>B.4 Функции активации — нелинейности</h2>
+</div>
+
+<p>Без нелинейностей нейросеть — просто линейная комбинация. Нелинейности дают мощь.</p>
+
+<p><strong>GELU</strong> — функция которую используем в ControllerBlock:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">GELU(x) = x × Φ(x)
+
+где Φ(x) = P(Z ≤ x) для стандартного нормального Z</code>
+</pre>
+
+<p>Проще говоря:</p>
+
+<ul>
+<li>При большом положительном x: GELU(x) ≈ x (пропускаем как есть)</li>
+<li>При большом отрицательном x: GELU(x) ≈ 0 (блокируем)</li>
+<li>В районе нуля: плавный переход</li>
+</ul>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">torch.nn.functional.gelu(x)</code>
+</pre>
+
+<p><strong>Sigmoid</strong> — превращает любое число в (0, 1):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">σ(x) = 1 / (1 + e⁻ˣ)
+
+σ(0)  = 0.5
+σ(5)  ≈ 0.993
+σ(-5) ≈ 0.007</code>
+</pre>
+
+<p>Используем для gate значений: <code>gate = σ(learned_param)</code>.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">torch.sigmoid(x)</code>
+</pre>
+
+<p><strong>Softmax</strong> — превращает вектор в вероятности (сумма = 1):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">softmax([1, 2, 3]) = [e¹, e², e³] / (e¹ + e² + e³)
+                   ≈ [0.09, 0.24, 0.67]</code>
+</pre>
+
+<p>Используем для финального предсказания следующего токена.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">torch.softmax(logits, dim=-1)</code>
+</pre>
+
+<p><strong>sign</strong> — знак числа:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">sign(5.3) = +1
+sign(-2.1) = -1
+sign(0) = 0</code>
+</pre>
+
+<p>Используем для бинаризации: <code>sign(weight)</code> превращает вещественные веса в <code>{-1, +1}</code>.</p>
+
+<p>Проблема: <code>d/dx sign(x) = 0</code> везде → нельзя учить обычным градиентным спуском. Решение: STE (см. раздел B.8).</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b5-нормализация">
+  <h2>B.5 Нормализация</h2>
+</div>
+
+<p><strong>LayerNorm</strong> — нормализует вектор:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Дано: x = [10, 15, 8, 22, 5]   (вектор из 5 чисел)
+
+μ = mean(x) = (10+15+8+22+5)/5 = 12
+σ = std(x)  = √(дисперсия) ≈ 5.97
+
+LN(x) = (x - 12) / 5.97 ≈ [-0.33, 0.50, -0.67, 1.68, -1.17]</code>
+</pre>
+
+<p>После нормализации: среднее = 0, стандартное отклонение = 1.</p>
+
+<p>Потом масштабирование: <code>LN(x) = (x - μ)/(σ + ε) × γ + β</code></p>
+
+<p>Где <code>γ</code> и <code>β</code> — обучаемые параметры (можно восстановить нужный масштаб).</p>
+
+<p>Зачем? Без нормализации числа в нейросети могут "взорваться" (стать огромными) или "схлопнуться" (стать нулями). LayerNorm держит их в разумном диапазоне.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">nn.LayerNorm(4096)  # нормализует по последнему измерению</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b6-производные-и-градиенты">
+  <h2>B.6 Производные и градиенты</h2>
+</div>
+
+<p><strong>Производная</strong> — скорость изменения функции:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">f'(x) = "насколько быстро f(x) меняется при изменении x"
+
+Если f(x) = x², то f'(x) = 2x
+Если f(2) = 4, то f'(2) = 4: при изменении x на 0.01, f меняется на ≈0.04</code>
+</pre>
+
+<p><strong>Градиент</strong> — производная для функции многих переменных:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">∇f(x₁, x₂, x₃) = [∂f/∂x₁, ∂f/∂x₂, ∂f/∂x₃]</code>
+</pre>
+
+<p>Это вектор: каждый элемент показывает как меняется f при изменении соответствующей переменной.</p>
+
+<p><strong>Цепное правило</strong> — ключ к backpropagation:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Если y = f(g(x)), то:
+  dy/dx = (df/dg) × (dg/dx)</code>
+</pre>
+
+<p>Нейросеть — цепочка функций. Производная раскрывается по цепному правилу через все слои.</p>
+
+<p>Пример:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">x → g(x) = x² → h(g) = g + 1 → f(h) = h³
+
+df/dx = (df/dh) × (dh/dg) × (dg/dx)
+      = 3h²    ×  1       ×  2x
+      = 3(x²+1)² × 2x</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b7-entropy-и-bpb">
+  <h2>B.7 Entropy и BPB</h2>
+</div>
+
+<p><strong>Энтропия</strong> — мера "неопределённости":</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">H(P) = -Σᵢ P(i) × log₂(P(i))</code>
+</pre>
+
+<p>Единица: биты. Смысл: "сколько бит нужно чтобы описать результат".</p>
+
+<p>Примеры:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Монета: P(орёл) = P(решка) = 0.5
+H = -(0.5 × log₂(0.5) + 0.5 × log₂(0.5)) = 1 бит  ← нужен 1 бит
+
+Нечестный кубик: P(1) = 0.99, P(2)=...=P(6)=0.002
+H ≈ 0.09 бит  ← почти нет неопределённости
+
+32768 равновероятных токенов:
+H = log₂(32768) = 15 бит  ← максимальная неопределённость</code>
+</pre>
+
+<p><strong>Cross-Entropy Loss</strong> — наш loss:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">loss = -log P(правильный_токен)</code>
+</pre>
+
+<ul>
+<li>Предсказали правильный токен с вероятностью 0.5 → loss = -log(0.5) = 0.69</li>
+<li>С вероятностью 0.1 → loss = -log(0.1) = 2.30</li>
+<li>С вероятностью 0.01 → loss = -log(0.01) = 4.61</li>
+</ul>
+
+<p><strong>BPB (Bits Per Byte)</strong>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">BPB = loss / log(2)</code>
+</pre>
+
+<p>Переводит loss из натуральных логарифмов в биты. Интерпретация: если бы модель была сжималкой — сколько бит на байт текста.</p>
+
+<p>Ориентиры:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">BPB = 1.0 — идеальное предсказание (недостижимо)
+BPB = 2.0 — GPT-4 на английском
+BPB = 4.0 — хорошая маленькая модель
+BPB = 7.5 — почти случайное угадывание
+BPB = 15  — полностью случайное (log₂(32768) = 15)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b8-ste-математика-трюка">
+  <h2>B.8 STE: математика трюка</h2>
+</div>
+
+<p><strong>Проблема</strong>: функция <code>sign(x)</code> имеет нулевой градиент везде. Нельзя обучать.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">d/dx sign(x) = 0  при x ≠ 0</code>
+</pre>
+
+<p>Если в цепи backpropagation встречается <code>sign()</code> → через неё передаётся градиент × 0 = 0 → все предшествующие параметры не обучаются.</p>
+
+<p><strong>Решение: Straight-Through Estimator</strong> (Bengio et al., 2013):</p>
+
+<p>Притворяемся что <code>sign(x) = x</code> (identity function). Тогда производная = 1.</p>
+
+<p>Реализация в PyTorch:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">hard = weight.sign()   # {-1, +1}
+
+# Трюк:
+ste = (hard - weight).detach() + weight
+
+# Разберём:
+# .detach() → убирает из графа вычислений
+# При backward:
+#   d(ste)/d(weight) = d((hard - weight).detach() + weight)/d(weight)
+#                    = 0 + 1 = 1
+# Градиент течёт через weight как через identity!
+
+# При forward:
+# ste = (hard - weight) + weight = hard  ← реально {-1, +1}</code>
+</pre>
+
+<p>STE — приближение. Это не точно математически. Но работает на практике: модель обучается, кодбук бинаризуется.</p>
+
+<p>Почему работает? После обучения большинство весов далеко от нуля (<code>|w| &gt;&gt; 0</code>). Тогда <code>sign(w) ≈ w / |w|</code> — почти линейная функция для больших <code>|w|</code>. STE-приближение становится точнее.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b9-attention-математика">
+  <h2>B.9 Attention: математика</h2>
+</div>
+
+<p>Стандартный Scaled Dot-Product Attention:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Attention(Q, K, V) = softmax(Q × Kᵀ / √dₖ) × V</code>
+</pre>
+
+<p>Размерности:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Q: (T, dₖ)   — T запросов (queries)
+K: (T, dₖ)   — T ключей (keys)
+V: (T, dᵥ)   — T значений (values)
+
+Q × Kᵀ: (T, T)   — матрица попарных сходств
+/ √dₖ:           — масштабирование
+softmax(·):       — веса (каждая строка суммируется в 1)
+× V: (T, dᵥ)     — взвешенная сумма значений</code>
+</pre>
+
+<p><strong>Почему делим на √dₖ?</strong></p>
+
+<p>Скалярное произведение <code>q · k</code> двух <code>dₖ</code>-мерных случайных векторов имеет стандартное отклонение <code>√dₖ</code>. При большом <code>dₖ</code> (например, 4096) значения огромные → softmax коллапсирует на один токен.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">dₖ = 4096, без масштабирования: std(q·k) ≈ 64
+softmax([64, 1, -3, 8]) ≈ [1.0, 0.0, 0.0, 0.0]  ← победитель берёт всё
+
+dₖ = 4096, с масштабированием / √4096 = /64: std ≈ 1
+softmax([1.0, 0.02, -0.05, 0.13]) ≈ [0.43, 0.25, 0.23, 0.29]  ← мягче</code>
+</pre>
+
+<p><strong>Наш HDC Binding Attention</strong> заменяет <code>Q × Kᵀ</code> на поэлементное умножение <code>q * k</code>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">binding = q * k   ← форма (B, H, T, head_dim) — НЕТ матрицы T×T
+scores = binding.sum(-1)  ← (B, H, T) — не (B, H, T, T)</code>
+</pre>
+
+<p>Это принципиально другая математика: не попарные сходства, а HDC Bind.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b10-cosine-learning-rate-schedule">
+  <h2>B.10 Cosine Learning Rate Schedule</h2>
+</div>
+
+<p>Формула косинусного затухания:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">lr(t) = lr_min + (lr_max - lr_min) × (1 + cos(π × progress)) / 2
+
+progress = (t - warmup) / (total - warmup)  ← от 0 до 1</code>
+</pre>
+
+<p>При progress=0: <code>lr = lr_max</code>. При progress=1: <code>lr = lr_min</code>.</p>
+
+<p>Почему косинус, а не просто линейное убывание?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">progress →  0.0   0.25  0.5   0.75  1.0
+cos(π×p)  →  1.0   0.71  0.0  -0.71 -1.0
+lr factor →  1.0   0.85  0.5   0.15  0.0</code>
+</pre>
+
+<p>В начале (0→0.25): lr уменьшается медленно → "шагаем широко пока ищем направление" В середине (0.25→0.75): быстрее убывает → "проходим через сложные места" В конце (0.75→1.0): снова медленно → "тонко подстраиваемся у минимума"</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b11-weight-decay">
+  <h2>B.11 Weight Decay</h2>
+</div>
+
+<p><strong>Проблема</strong>: без ограничений, веса могут расти бесконечно → переобучение.</p>
+
+<p><strong>L2-регуляризация</strong> — добавляем штраф к loss:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">L_total = L_cross_entropy + (λ/2) × Σ wᵢ²</code>
+</pre>
+
+<p>При оптимизации: <code>∂L_total/∂wᵢ = ∂L/∂wᵢ + λ × wᵢ</code></p>
+
+<p>Обновление: <code>wᵢ ← wᵢ × (1 - lr × λ) - lr × ∂L/∂wᵢ</code></p>
+
+<p>Множитель <code>(1 - lr × λ)</code> < 1 → веса постепенно "усыхают" к нулю.</p>
+
+<p><strong>Проблема Adam + L2</strong>: в Adam градиент делится на <code>√v̂</code> (нормализуется). Если прибавить <code>λ × wᵢ</code> до деления — штраф тоже нормализуется, что неправильно. Для параметров с большой историей градиентов <code>√v̂</code> большой → эффективный weight decay маленький.</p>
+
+<p><strong>AdamW</strong> (правильный): применяет weight decay после адаптации:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">AdamW:  wᵢ ← wᵢ × (1 - lr × λ)  - lr × AdamStep(∂L/∂wᵢ)
+                 ↑ decay             ↑ adam
+            (отдельно!)          (отдельно!)</code>
+</pre>
+
+<p>Weight decay всегда работает с полной силой λ, независимо от истории градиентов.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="b12-параллельный-скан-в-hdcmemory">
+  <h2>B.12 Параллельный скан в HDCMemory</h2>
+</div>
+
+<p><strong>Задача</strong>: для каждой позиции t вычислить взвешенную накопленную сумму прошлого:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">context[t] = Σᵢ₌₀ᵗ decay(i→t) × mass[i] × token[i]
+
+где decay(i→t) = decay[i+1] × decay[i+2] × ... × decay[t]
+              = Π_{k=i+1}^{t} decay[k]</code>
+</pre>
+
+<p>Произведение decay от i до t — это нарастающее произведение.</p>
+
+<p><strong>Через логарифмы</strong>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">log(decay(i→t)) = log(decay[i+1]) + log(decay[i+2]) + ... + log(decay[t])
+                = cumlog[t] - cumlog[i]
+
+где cumlog[t] = Σₖ₌₀ᵗ log(decay[k])  ← накопленная сумма логарифмов</code>
+</pre>
+
+<p>Реализация:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">log_decay = torch.log(decay.clamp(min=1e-6))  # (B, T, 1)
+cumlog    = torch.cumsum(log_decay, dim=1)      # (B, T, 1)
+
+# diff[b, t, i] = cumlog[t] - cumlog[i] = log(decay(i→t))
+diff = cumlog.unsqueeze(2) - cumlog.unsqueeze(1)  # (B, T, T)
+diff = diff.clamp(max=0)   # затухание только уменьшает, не увеличивает
+
+# Применяем causal mask:
+causal = torch.tril(torch.ones(T, T))
+diff[causal == 0] = float('-inf')
+
+# Веса:
+weights = torch.exp(diff)  # (B, T, T) — decay-веса для каждой пары
+
+# Итоговый контекст:
+context = weights @ (mass * tokens)  # (B, T, D)</code>
+</pre>
+
+<p><code>torch.cumsum</code> — высокоэффективная операция на GPU, O(T) вычислений. Итоговый <code>weights @ tokens</code> — матричное умножение, GEMM на CUDA.</p>
+
+<hr class="chapter-divider" />
+
+<p><em>Приложение C → Полный аннотированный код v14.1</em></p>
+
+      <div class="chapter-nav"><a href="appendix-a.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Глоссарий всех терминов</div>
+</a><a href="appendix-c.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Полный аннотированный код v14.1</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

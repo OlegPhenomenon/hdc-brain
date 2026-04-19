@@ -1,0 +1,1052 @@
+iter     50 | loss 9.5196 | lr 3.06e-05 | grad 1.89 | 4796ms/step | 1M tok
+iter    100 | loss 7.9962 | lr 6.06e-05 | grad 1.58 | 4808ms/step | 2M tok
+iter    150 | loss 7.6782 | lr 9.06e-05 | grad 2.79 | 4816ms/step | 4M tok
+iter    200 | loss 7.5615 | lr 1.21e-04 | grad 2.63 | 4822ms/step | 5M tok
+iter    250 | loss 7.5237 | lr 1.51e-04 | grad 1.76 | 4825ms/step | 6M tok
+iter    300 | loss 7.5023 | lr 1.81e-04 | grad 1.89 | 4827ms/step | 7M tok
+iter    350 | loss 7.4957 | lr 2.11e-04 | grad 1.31 | 4828ms/step | 9M tok
+iter    400 | loss 7.4858 | lr 2.41e-04 | grad 1.72 | 4829ms/step | 10M tok
+iter    450 | loss 7.4499 | lr 2.71e-04 | grad 2.24 | 4830ms/step | 11M tok
+iter    500 | loss 7.4067 | lr 3.00e-04 | grad 1.47 | 4832ms/step | 12M tok
+============================================================
+[0.7h, iter 500] Train: 7.3626 | Val: 7.3269 | BPB: 10.571 | Best BPB: 10.571 | Gap: 0.036 >>> BEST!
+  Thought gates: [0.5, 0.498, 0.491, 0.5]
+  Mass proj norm: 0.6184
+============================================================
+iter    550 | loss 7.3478 | lr 3.00e-04 | grad 1.12 | 4882ms/step | 14M tok
+iter    600 | loss 7.3171 | lr 3.00e-04 | grad 4.52 | 4880ms/step | 15M tok
+iter    650 | loss 7.2694 | lr 3.00e-04 | grad 1.45 | 4879ms/step | 16M tok
+iter    700 | loss 7.1463 | lr 3.00e-04 | grad 1.42 | 4877ms/step | 17M tok
+iter    750 | loss 6.9790 | lr 3.00e-04 | grad 1.54 | 4877ms/step | 18M tok
+iter    800 | loss 6.8773 | lr 3.00e-04 | grad 1.16 | 4876ms/step | 20M tok
+iter    850 | loss 6.8204 | lr 3.00e-04 | grad 1.28 | 4873ms/step | 21M tok
+iter    900 | loss 6.7453 | lr 3.00e-04 | grad 1.18 | 4872ms/step | 22M tok
+iter    950 | loss 6.6796 | lr 3.00e-04 | grad 1.61 | 4870ms/step | 23M tok
+iter   1000 | loss 6.6226 | lr 3.00e-04 | grad 0.98 | 4870ms/step | 25M tok
+============================================================
+[1.4h, iter 1000] Train: 6.6103 | Val: 6.5555 | BPB: 9.458 | Best BPB: 9.458 | Gap: 0.055 >>> BEST!
+  Thought gates: [0.5, 0.49, 0.482, 0.5]
+  Mass proj norm: 0.9222
+============================================================
+iter   1050 | loss 6.5842 | lr 3.00e-04 | grad 1.65 | 4895ms/step | 26M tok
+iter   1100 | loss 6.5120 | lr 3.00e-04 | grad 1.17 | 4893ms/step | 27M tok
+iter   1150 | loss 6.4790 | lr 3.00e-04 | grad 1.42 | 4892ms/step | 28M tok
+iter   1200 | loss 6.4122 | lr 3.00e-04 | grad 1.22 | 4892ms/step | 29M tok
+iter   1250 | loss 6.3904 | lr 3.00e-04 | grad 1.45 | 4891ms/step | 31M tok
+iter   1300 | loss 6.3364 | lr 3.00e-04 | grad 1.07 | 4889ms/step | 32M tok
+iter   1350 | loss 6.2874 | lr 2.99e-04 | grad 2.29 | 4889ms/step | 33M tok
+iter   1400 | loss 6.2563 | lr 2.99e-04 | grad 1.43 | 4888ms/step | 34M tok
+iter   1450 | loss 6.2141 | lr 2.99e-04 | grad 1.42 | 4887ms/step | 36M tok
+iter   1500 | loss 6.1944 | lr 2.99e-04 | grad 1.24 | 4886ms/step | 37M tok
+============================================================
+[2.0h, iter 1500] Train: 6.1577 | Val: 6.1101 | BPB: 8.816 | Best BPB: 8.816 | Gap: 0.048 >>> BEST!
+  Thought gates: [0.5, 0.474, 0.466, 0.5]
+  Mass proj norm: 2.9777
+============================================================
+iter   1550 | loss 6.1447 | lr 2.99e-04 | grad 1.62 | 4903ms/step | 38M tok
+iter   1600 | loss 6.1260 | lr 2.99e-04 | grad 1.39 | 4902ms/step | 39M tok
+iter   1650 | loss 6.0775 | lr 2.99e-04 | grad 1.39 | 4900ms/step | 41M tok
+iter   1700 | loss 6.0456 | lr 2.99e-04 | grad 1.34 | 4900ms/step | 42M tok
+iter   1750 | loss 6.0361 | lr 2.99e-04 | grad 1.63 | 4898ms/step | 43M tok
+iter   1800 | loss 6.0004 | lr 2.99e-04 | grad 1.53 | 4897ms/step | 44M tok
+iter   1850 | loss 5.9736 | lr 2.99e-04 | grad 1.29 | 4897ms/step | 45M tok
+iter   1900 | loss 5.9580 | lr 2.99e-04 | grad 1.14 | 4896ms/step | 47M tok
+iter   1950 | loss 5.9398 | lr 2.98e-04 | grad 1.25 | 4896ms/step | 48M tok
+iter   2000 | loss 5.9101 | lr 2.98e-04 | grad 1.46 | 4895ms/step | 49M tok
+============================================================
+[2.7h, iter 2000] Train: 5.8691 | Val: 5.8822 | BPB: 8.487 | Best BPB: 8.487 | Gap: -0.013 >>> BEST!
+  Thought gates: [0.5, 0.456, 0.448, 0.5]
+  Mass proj norm: 5.2500
+============================================================
+
+--- Generation samples (iter 2000) ---
+  [The capital of France is]: 'The capital of France is that the MBCC is not as an opportunity to the entire. The term has been used for each other hours in their own way, and it was a good form of time (a). How are many ways to pa'
+  [Machine learning is a field of]: 'Machine learning is a field of the new population and a high role on a little bit of water from life in which it is important to be now related to this, such as they were an effective reason for peopl'
+  [In the year 2050, humanity]: 'In the year 2050, humanity was the first used to 30 million years that can be affected by a different number of his own people. In fact, we do you need with its use, it seems the whole article will ha'
+  [The meaning of life is]: 'The meaning of life is found by the new factors of the sun and was that some people must not be less helpful in this case. When my child is no good, the most common results we had never been a number '
+---
+iter   2050 | loss 5.8907 | lr 2.98e-04 | grad 1.67 | 4913ms/step | 50M tok
+iter   2100 | loss 5.8786 | lr 2.98e-04 | grad 1.33 | 4912ms/step | 52M tok
+iter   2150 | loss 5.8650 | lr 2.98e-04 | grad 1.33 | 4911ms/step | 53M tok
+iter   2200 | loss 5.8345 | lr 2.98e-04 | grad 1.18 | 4910ms/step | 54M tok
+iter   2250 | loss 5.8229 | lr 2.98e-04 | grad 1.74 | 4909ms/step | 55M tok
+iter   2300 | loss 5.8094 | lr 2.98e-04 | grad 1.36 | 4908ms/step | 57M tok
+iter   2350 | loss 5.7962 | lr 2.97e-04 | grad 1.58 | 4907ms/step | 58M tok
+iter   2400 | loss 5.7657 | lr 2.97e-04 | grad 1.44 | 4907ms/step | 59M tok
+iter   2450 | loss 5.7508 | lr 2.97e-04 | grad 1.45 | 4906ms/step | 60M tok
+iter   2500 | loss 5.7432 | lr 2.97e-04 | grad 1.36 | 4905ms/step | 61M tok
+============================================================
+[3.4h, iter 2500] Train: 5.6991 | Val: 5.7173 | BPB: 8.249 | Best BPB: 8.249 | Gap: -0.018 >>> BEST!
+  Thought gates: [0.5, 0.438, 0.43, 0.5]
+  Mass proj norm: 7.0478
+============================================================
+iter   2550 | loss 5.7398 | lr 2.97e-04 | grad 1.66 | 4915ms/step | 63M tok
+iter   2600 | loss 5.7077 | lr 2.97e-04 | grad 1.38 | 4914ms/step | 64M tok
+iter   2650 | loss 5.6900 | lr 2.96e-04 | grad 1.70 | 4913ms/step | 65M tok
+iter   2700 | loss 5.6905 | lr 2.96e-04 | grad 1.47 | 4913ms/step | 66M tok
+iter   2750 | loss 5.6769 | lr 2.96e-04 | grad 1.45 | 4912ms/step | 68M tok
+iter   2800 | loss 5.6547 | lr 2.96e-04 | grad 1.65 | 4912ms/step | 69M tok
+iter   2850 | loss 5.6369 | lr 2.96e-04 | grad 1.25 | 4911ms/step | 70M tok
+iter   2900 | loss 5.6254 | lr 2.96e-04 | grad 1.43 | 4911ms/step | 71M tok
+iter   2950 | loss 5.6163 | lr 2.95e-04 | grad 1.82 | 4910ms/step | 72M tok
+iter   3000 | loss 5.6166 | lr 2.95e-04 | grad 1.32 | 4910ms/step | 74M tok
+============================================================
+[4.1h, iter 3000] Train: 5.5373 | Val: 5.5517 | BPB: 8.010 | Best BPB: 8.010 | Gap: -0.014 >>> BEST!
+  Thought gates: [0.5, 0.423, 0.414, 0.5]
+  Mass proj norm: 8.8141
+============================================================
+iter   3050 | loss 5.5969 | lr 2.95e-04 | grad 1.44 | 4918ms/step | 75M tok
+iter   3100 | loss 5.5828 | lr 2.95e-04 | grad 1.51 | 4917ms/step | 76M tok
+iter   3150 | loss 5.5818 | lr 2.95e-04 | grad 2.01 | 4914ms/step | 77M tok
+iter   3200 | loss 5.5542 | lr 2.94e-04 | grad 1.28 | 4913ms/step | 79M tok
+iter   3250 | loss 5.5570 | lr 2.94e-04 | grad 1.57 | 4913ms/step | 80M tok
+iter   3300 | loss 5.5296 | lr 2.94e-04 | grad 1.37 | 4912ms/step | 81M tok
+iter   3350 | loss 5.5350 | lr 2.94e-04 | grad 1.31 | 4912ms/step | 82M tok
+iter   3400 | loss 5.5281 | lr 2.94e-04 | grad 1.38 | 4910ms/step | 84M tok
+iter   3450 | loss 5.5058 | lr 2.93e-04 | grad 1.79 | 4909ms/step | 85M tok
+iter   3500 | loss 5.4932 | lr 2.93e-04 | grad 1.28 | 4909ms/step | 86M tok
+============================================================
+[4.8h, iter 3500] Train: 5.4456 | Val: 5.3923 | BPB: 7.780 | Best BPB: 7.780 | Gap: 0.053 >>> BEST!
+  Thought gates: [0.5, 0.41, 0.401, 0.5]
+  Mass proj norm: 10.3852
+============================================================
+iter   3550 | loss 5.4984 | lr 2.93e-04 | grad 1.30 | 4916ms/step | 87M tok
+iter   3600 | loss 5.4629 | lr 2.93e-04 | grad 1.34 | 4916ms/step | 88M tok
+iter   3650 | loss 5.4656 | lr 2.92e-04 | grad 1.31 | 4915ms/step | 90M tok
+iter   3700 | loss 5.4640 | lr 2.92e-04 | grad 1.32 | 4914ms/step | 91M tok
+iter   3750 | loss 5.4455 | lr 2.92e-04 | grad 1.26 | 4914ms/step | 92M tok
+iter   3800 | loss 5.4386 | lr 2.92e-04 | grad 1.24 | 4914ms/step | 93M tok
+iter   3850 | loss 5.4228 | lr 2.91e-04 | grad 1.56 | 4913ms/step | 95M tok
+iter   3900 | loss 5.4233 | lr 2.91e-04 | grad 1.28 | 4913ms/step | 96M tok
+iter   3950 | loss 5.4174 | lr 2.91e-04 | grad 1.38 | 4912ms/step | 97M tok
+iter   4000 | loss 5.4045 | lr 2.91e-04 | grad 1.07 | 4912ms/step | 98M tok
+============================================================
+[5.5h, iter 4000] Train: 5.3501 | Val: 5.3272 | BPB: 7.686 | Best BPB: 7.686 | Gap: 0.023 >>> BEST!
+  Thought gates: [0.5, 0.398, 0.389, 0.5]
+  Mass proj norm: 11.7461
+============================================================
+
+--- Generation samples (iter 4000) ---
+  [The capital of France is]: 'The capital of France is still under the first of 20th century, 1597 and was an event. - The last step to find the law's power on the other side of the globe to which a second house would be one-for-s'
+  [Machine learning is a field of]: 'Machine learning is a field of the world in which they should be doing an issue of other people because of its natural resources are for what your students will learn to find out their stories about i'
+  [In the year 2050, humanity]: 'In the year 2050, humanity, it is known that the “Farle” and “a” the same way we are going to read a new question of his own life in the 240-530. In 1976 he wanted by Aure S, Rogwisi, which was the fi'
+  [The meaning of life is]: 'The meaning of life is also the result of a person who are able to find out this. The question is what we have read in terms of our community, even though others do not get back.” At the same time, ho'
+---
+iter   4050 | loss 5.3925 | lr 2.90e-04 | grad 1.20 | 4921ms/step | 100M tok
+iter   4100 | loss 5.3895 | lr 2.90e-04 | grad 1.24 | 4920ms/step | 101M tok
+iter   4150 | loss 5.3835 | lr 2.90e-04 | grad 1.61 | 4920ms/step | 102M tok
+iter   4200 | loss 5.3702 | lr 2.90e-04 | grad 1.74 | 4919ms/step | 103M tok
+iter   4250 | loss 5.3492 | lr 2.89e-04 | grad 1.56 | 4919ms/step | 104M tok
+iter   4300 | loss 5.3524 | lr 2.89e-04 | grad 1.30 | 4918ms/step | 106M tok
+iter   4350 | loss 5.3375 | lr 2.89e-04 | grad 1.99 | 4918ms/step | 107M tok
+iter   4400 | loss 5.3518 | lr 2.89e-04 | grad 1.38 | 4918ms/step | 108M tok
+iter   4450 | loss 5.3264 | lr 2.88e-04 | grad 1.21 | 4917ms/step | 109M tok
+iter   4500 | loss 5.3373 | lr 2.88e-04 | grad 1.25 | 4917ms/step | 111M tok
+============================================================
+[6.2h, iter 4500] Train: 5.2655 | Val: 5.2318 | BPB: 7.548 | Best BPB: 7.548 | Gap: 0.034 >>> BEST!
+  Thought gates: [0.5, 0.388, 0.38, 0.5]
+  Mass proj norm: 12.9067
+============================================================
+iter   4550 | loss 5.2992 | lr 2.88e-04 | grad 1.33 | 4923ms/step | 112M tok
+iter   4600 | loss 5.2838 | lr 2.87e-04 | grad 1.32 | 4923ms/step | 113M tok
+iter   4650 | loss 5.3140 | lr 2.87e-04 | grad 1.56 | 4922ms/step | 114M tok
+iter   4700 | loss 5.3029 | lr 2.87e-04 | grad 1.41 | 4921ms/step | 116M tok
+iter   4750 | loss 5.2913 | lr 2.86e-04 | grad 1.90 | 4921ms/step | 117M tok
+iter   4800 | loss 5.2818 | lr 2.86e-04 | grad 1.30 | 4921ms/step | 118M tok
+iter   4850 | loss 5.2718 | lr 2.86e-04 | grad 1.56 | 4920ms/step | 119M tok
+iter   4900 | loss 5.2626 | lr 2.85e-04 | grad 1.51 | 4920ms/step | 120M tok
+iter   4950 | loss 5.2559 | lr 2.85e-04 | grad 1.48 | 4920ms/step | 122M tok
+iter   5000 | loss 5.2606 | lr 2.85e-04 | grad 1.21 | 4920ms/step | 123M tok
+============================================================
+[6.8h, iter 5000] Train: 5.1823 | Val: 5.1989 | BPB: 7.501 | Best BPB: 7.501 | Gap: -0.017 >>> BEST!
+  Thought gates: [0.5, 0.378, 0.369, 0.5]
+  Mass proj norm: 13.9296
+============================================================
+iter   5050 | loss 5.2390 | lr 2.84e-04 | grad 1.23 | 4925ms/step | 124M tok
+iter   5100 | loss 5.2402 | lr 2.84e-04 | grad 1.41 | 4925ms/step | 125M tok
+iter   5150 | loss 5.2374 | lr 2.84e-04 | grad 1.19 | 4925ms/step | 127M tok
+iter   5200 | loss 5.2172 | lr 2.83e-04 | grad 1.83 | 4924ms/step | 128M tok
+iter   5250 | loss 5.2233 | lr 2.83e-04 | grad 1.11 | 4924ms/step | 129M tok
+iter   5300 | loss 5.2012 | lr 2.83e-04 | grad 1.15 | 4924ms/step | 130M tok
+iter   5350 | loss 5.1881 | lr 2.82e-04 | grad 1.36 | 4924ms/step | 131M tok
+iter   5400 | loss 5.1870 | lr 2.82e-04 | grad 1.77 | 4924ms/step | 133M tok
+iter   5450 | loss 5.1907 | lr 2.82e-04 | grad 1.34 | 4923ms/step | 134M tok
+iter   5500 | loss 5.1828 | lr 2.81e-04 | grad 1.38 | 4923ms/step | 135M tok
+============================================================
+[7.5h, iter 5500] Train: 5.1142 | Val: 5.1372 | BPB: 7.412 | Best BPB: 7.412 | Gap: -0.023 >>> BEST!
+  Thought gates: [0.5, 0.37, 0.362, 0.5]
+  Mass proj norm: 14.8784
+============================================================
+iter   5550 | loss 5.1848 | lr 2.81e-04 | grad 1.25 | 4927ms/step | 136M tok
+iter   5600 | loss 5.1789 | lr 2.81e-04 | grad 1.47 | 4927ms/step | 138M tok
+iter   5650 | loss 5.1700 | lr 2.80e-04 | grad 1.78 | 4927ms/step | 139M tok
+iter   5700 | loss 5.1621 | lr 2.80e-04 | grad 1.24 | 4927ms/step | 140M tok
+iter   5750 | loss 5.1630 | lr 2.79e-04 | grad 1.41 | 4926ms/step | 141M tok
+iter   5800 | loss 5.1467 | lr 2.79e-04 | grad 1.85 | 4926ms/step | 143M tok
+iter   5850 | loss 5.1387 | lr 2.79e-04 | grad 1.48 | 4926ms/step | 144M tok
+iter   5900 | loss 5.1434 | lr 2.78e-04 | grad 1.22 | 4926ms/step | 145M tok
+iter   5950 | loss 5.1324 | lr 2.78e-04 | grad 1.09 | 4924ms/step | 146M tok
+iter   6000 | loss 5.1348 | lr 2.77e-04 | grad 1.30 | 4923ms/step | 147M tok
+============================================================
+[8.2h, iter 6000] Train: 5.0881 | Val: 5.0770 | BPB: 7.325 | Best BPB: 7.325 | Gap: 0.011 >>> BEST!
+  Thought gates: [0.5, 0.364, 0.355, 0.5]
+  Mass proj norm: 15.6763
+============================================================
+
+--- Generation samples (iter 6000) ---
+  [The capital of France is]: 'The capital of France is a great way to do this. That’s why we're not all that our ancestors and Christians have been the last, who is more aware of it in God. But I’ll see that, what could be there i'
+  [Machine learning is a field of]: 'Machine learning is a field of what is the way of working for a successful student to learn. When I write in order 1, you can use it as an application and start-uping them up being a good example to t'
+  [In the year 2050, humanity]: 'In the year 2050, humanity became so the most important factor is that they seem to be as much like in India. The first of this year’s population has increased a major impact on how we can see this di'
+  [The meaning of life is]: 'The meaning of life is that the whole is in mind. The most popular of his life, however, has a lot of great apsoon, but they must be able to see something that they have no such thing as it may be mor'
+---
+iter   6050 | loss 5.1213 | lr 2.77e-04 | grad 1.91 | 4929ms/step | 149M tok
+iter   6100 | loss 5.1139 | lr 2.77e-04 | grad 1.53 | 4928ms/step | 150M tok
+iter   6150 | loss 5.1039 | lr 2.76e-04 | grad 1.58 | 4928ms/step | 151M tok
+iter   6200 | loss 5.0974 | lr 2.76e-04 | grad 1.74 | 4928ms/step | 152M tok
+iter   6250 | loss 5.1031 | lr 2.75e-04 | grad 1.38 | 4927ms/step | 154M tok
+iter   6300 | loss 5.0851 | lr 2.75e-04 | grad 1.28 | 4927ms/step | 155M tok
+iter   6350 | loss 5.1049 | lr 2.75e-04 | grad 1.21 | 4926ms/step | 156M tok
+iter   6400 | loss 5.0832 | lr 2.74e-04 | grad 1.24 | 4926ms/step | 157M tok
+iter   6450 | loss 5.0786 | lr 2.74e-04 | grad 1.36 | 4925ms/step | 159M tok
+iter   6500 | loss 5.0755 | lr 2.73e-04 | grad 1.43 | 4925ms/step | 160M tok
+============================================================
+[8.9h, iter 6500] Train: 5.0032 | Val: 5.0093 | BPB: 7.227 | Best BPB: 7.227 | Gap: -0.006 >>> BEST!
+  Thought gates: [0.5, 0.358, 0.349, 0.5]
+  Mass proj norm: 16.4371
+============================================================
+iter   6550 | loss 5.0689 | lr 2.73e-04 | grad 1.13 | 4928ms/step | 161M tok
+iter   6600 | loss 5.0737 | lr 2.73e-04 | grad 1.54 | 4928ms/step | 162M tok
+iter   6650 | loss 5.0448 | lr 2.72e-04 | grad 1.31 | 4928ms/step | 163M tok
+iter   6700 | loss 5.0794 | lr 2.72e-04 | grad 1.46 | 4927ms/step | 165M tok
+iter   6750 | loss 5.0487 | lr 2.71e-04 | grad 1.42 | 4927ms/step | 166M tok
+iter   6800 | loss 5.0633 | lr 2.71e-04 | grad 1.26 | 4927ms/step | 167M tok
+iter   6850 | loss 5.0466 | lr 2.70e-04 | grad 1.63 | 4926ms/step | 168M tok
+iter   6900 | loss 5.0353 | lr 2.70e-04 | grad 1.30 | 4926ms/step | 170M tok
+iter   6950 | loss 5.0286 | lr 2.69e-04 | grad 1.38 | 4926ms/step | 171M tok
+iter   7000 | loss 5.0315 | lr 2.69e-04 | grad 1.34 | 4925ms/step | 172M tok
+============================================================
+[9.6h, iter 7000] Train: 4.9530 | Val: 4.9479 | BPB: 7.139 | Best BPB: 7.139 | Gap: 0.005 >>> BEST!
+  Thought gates: [0.5, 0.35, 0.341, 0.5]
+  Mass proj norm: 17.0900
+============================================================
+iter   7050 | loss 5.0317 | lr 2.68e-04 | grad 1.10 | 4929ms/step | 173M tok
+iter   7100 | loss 5.0452 | lr 2.68e-04 | grad 1.12 | 4927ms/step | 174M tok
+iter   7150 | loss 5.0227 | lr 2.68e-04 | grad 2.44 | 4927ms/step | 176M tok
+iter   7200 | loss 5.0050 | lr 2.67e-04 | grad 1.12 | 4926ms/step | 177M tok
+iter   7250 | loss 5.0196 | lr 2.67e-04 | grad 1.85 | 4926ms/step | 178M tok
+iter   7300 | loss 5.0089 | lr 2.66e-04 | grad 1.22 | 4926ms/step | 179M tok
+iter   7350 | loss 4.9711 | lr 2.66e-04 | grad 1.47 | 4926ms/step | 181M tok
+iter   7400 | loss 4.9888 | lr 2.65e-04 | grad 1.25 | 4925ms/step | 182M tok
+iter   7450 | loss 4.9774 | lr 2.65e-04 | grad 1.62 | 4925ms/step | 183M tok
+iter   7500 | loss 4.9851 | lr 2.64e-04 | grad 1.38 | 4925ms/step | 184M tok
+============================================================
+[10.3h, iter 7500] Train: 4.9581 | Val: 4.9582 | BPB: 7.154 | Best BPB: 7.139 | Gap: -0.000 
+  Thought gates: [0.5, 0.345, 0.336, 0.5]
+  Mass proj norm: 17.6658
+============================================================
+iter   7550 | loss 4.9751 | lr 2.64e-04 | grad 1.67 | 4927ms/step | 186M tok
+iter   7600 | loss 4.9569 | lr 2.63e-04 | grad 1.63 | 4927ms/step | 187M tok
+iter   7650 | loss 4.9757 | lr 2.63e-04 | grad 1.23 | 4927ms/step | 188M tok
+iter   7700 | loss 4.9725 | lr 2.62e-04 | grad 1.32 | 4926ms/step | 189M tok
+iter   7750 | loss 4.9525 | lr 2.62e-04 | grad 1.63 | 4926ms/step | 190M tok
+iter   7800 | loss 4.9722 | lr 2.61e-04 | grad 1.60 | 4925ms/step | 192M tok
+iter   7850 | loss 4.9449 | lr 2.61e-04 | grad 1.41 | 4924ms/step | 193M tok
+iter   7900 | loss 4.9464 | lr 2.60e-04 | grad 1.44 | 4923ms/step | 194M tok
+iter   7950 | loss 4.9468 | lr 2.60e-04 | grad 1.28 | 4923ms/step | 195M tok
+iter   8000 | loss 4.9414 | lr 2.59e-04 | grad 1.61 | 4922ms/step | 197M tok
+============================================================
+[10.9h, iter 8000] Train: 4.8512 | Val: 4.8861 | BPB: 7.050 | Best BPB: 7.050 | Gap: -0.035 >>> BEST!
+  Thought gates: [0.5, 0.341, 0.332, 0.5]
+  Mass proj norm: 18.1609
+============================================================
+
+--- Generation samples (iter 8000) ---
+  [The capital of France is]: 'The capital of France is a complex, and not a member of the state-competitionary. This is the central section between the United States and the country that has three important institutions into this '
+  [Machine learning is a field of]: 'Machine learning is a field of “Tomper-like” method. We need a look at how to get a basic information or work on the content of the Internet, the following can be found in a way that one’s own thinkin'
+  [In the year 2050, humanity]: 'In the year 2050, humanity was created as a way for this population. In 2017, the average of 43 countries in China are among all nations and has been reported that global economic change have resulted'
+  [The meaning of life is]: 'The meaning of life is the essence of a different form. The word “tagil” (which is, as it has been observed to say, on the side that the world has its own meaning and value; it remains with this symbo'
+---
+iter   8050 | loss 4.9574 | lr 2.59e-04 | grad 4.86 | 4926ms/step | 198M tok
+iter   8100 | loss 4.9569 | lr 2.58e-04 | grad 1.29 | 4925ms/step | 199M tok
+iter   8150 | loss 4.9355 | lr 2.58e-04 | grad 1.24 | 4925ms/step | 200M tok
+iter   8200 | loss 4.9292 | lr 2.57e-04 | grad 1.62 | 4924ms/step | 202M tok
+iter   8250 | loss 4.9280 | lr 2.57e-04 | grad 1.01 | 4924ms/step | 203M tok
+iter   8300 | loss 4.9471 | lr 2.56e-04 | grad 2.12 | 4923ms/step | 204M tok
+iter   8350 | loss 4.9217 | lr 2.56e-04 | grad 1.60 | 4922ms/step | 205M tok
+iter   8400 | loss 4.9369 | lr 2.55e-04 | grad 1.40 | 4922ms/step | 206M tok
+iter   8450 | loss 4.9278 | lr 2.54e-04 | grad 1.68 | 4921ms/step | 208M tok
+iter   8500 | loss 4.9017 | lr 2.54e-04 | grad 1.31 | 4921ms/step | 209M tok
+============================================================
+[11.6h, iter 8500] Train: 4.8277 | Val: 4.8602 | BPB: 7.012 | Best BPB: 7.012 | Gap: -0.032 >>> BEST!
+  Thought gates: [0.5, 0.338, 0.329, 0.5]
+  Mass proj norm: 18.6102
+============================================================
+iter   8550 | loss 4.9260 | lr 2.53e-04 | grad 1.14 | 4923ms/step | 210M tok
+iter   8600 | loss 4.9034 | lr 2.53e-04 | grad 1.62 | 4922ms/step | 211M tok
+iter   8650 | loss 4.8868 | lr 2.52e-04 | grad 1.90 | 4922ms/step | 213M tok
+iter   8700 | loss 4.8902 | lr 2.52e-04 | grad 1.86 | 4921ms/step | 214M tok
+iter   8750 | loss 4.8961 | lr 2.51e-04 | grad 1.54 | 4920ms/step | 215M tok
+iter   8800 | loss 4.8918 | lr 2.51e-04 | grad 1.87 | 4920ms/step | 216M tok
+iter   8850 | loss 4.8813 | lr 2.50e-04 | grad 1.30 | 4919ms/step | 217M tok
+iter   8900 | loss 4.8934 | lr 2.49e-04 | grad 1.39 | 4918ms/step | 219M tok
+iter   8950 | loss 4.8657 | lr 2.49e-04 | grad 1.53 | 4918ms/step | 220M tok
+iter   9000 | loss 4.8797 | lr 2.48e-04 | grad 1.62 | 4917ms/step | 221M tok
+============================================================
+[12.3h, iter 9000] Train: 4.8125 | Val: 4.7902 | BPB: 6.911 | Best BPB: 6.911 | Gap: 0.022 >>> BEST!
+  Thought gates: [0.5, 0.335, 0.325, 0.5]
+  Mass proj norm: 18.9815
+============================================================
+iter   9050 | loss 4.8612 | lr 2.48e-04 | grad 1.10 | 4920ms/step | 222M tok
+iter   9100 | loss 4.8664 | lr 2.47e-04 | grad 1.50 | 4919ms/step | 224M tok
+iter   9150 | loss 4.8802 | lr 2.47e-04 | grad 1.14 | 4918ms/step | 225M tok
+iter   9200 | loss 4.8646 | lr 2.46e-04 | grad 1.77 | 4918ms/step | 226M tok
+iter   9250 | loss 4.8624 | lr 2.46e-04 | grad 1.46 | 4917ms/step | 227M tok
+iter   9300 | loss 4.8626 | lr 2.45e-04 | grad 1.17 | 4917ms/step | 229M tok
+iter   9350 | loss 4.8482 | lr 2.44e-04 | grad 1.13 | 4916ms/step | 230M tok
+iter   9400 | loss 4.8432 | lr 2.44e-04 | grad 1.43 | 4915ms/step | 231M tok
+iter   9450 | loss 4.8518 | lr 2.43e-04 | grad 2.00 | 4915ms/step | 232M tok
+iter   9500 | loss 4.8535 | lr 2.43e-04 | grad 2.13 | 4915ms/step | 233M tok
+============================================================
+[13.0h, iter 9500] Train: 4.7851 | Val: 4.7557 | BPB: 6.862 | Best BPB: 6.862 | Gap: 0.029 >>> BEST!
+  Thought gates: [0.5, 0.331, 0.322, 0.5]
+  Mass proj norm: 19.3355
+============================================================
+iter   9550 | loss 4.8516 | lr 2.42e-04 | grad 1.65 | 4917ms/step | 235M tok
+iter   9600 | loss 4.8440 | lr 2.41e-04 | grad 1.81 | 4916ms/step | 236M tok
+iter   9650 | loss 4.8287 | lr 2.41e-04 | grad 1.71 | 4916ms/step | 237M tok
+iter   9700 | loss 4.8184 | lr 2.40e-04 | grad 1.26 | 4916ms/step | 238M tok
+iter   9750 | loss 4.8488 | lr 2.40e-04 | grad 1.36 | 4915ms/step | 240M tok
+iter   9800 | loss 4.8326 | lr 2.39e-04 | grad 1.64 | 4915ms/step | 241M tok
+iter   9850 | loss 4.8381 | lr 2.38e-04 | grad 1.23 | 4915ms/step | 242M tok
+iter   9900 | loss 4.8469 | lr 2.38e-04 | grad 1.06 | 4914ms/step | 243M tok
+iter   9950 | loss 4.8093 | lr 2.37e-04 | grad 1.87 | 4914ms/step | 245M tok
+iter  10000 | loss 4.8126 | lr 2.37e-04 | grad 1.30 | 4914ms/step | 246M tok
+============================================================
+[13.7h, iter 10000] Train: 4.7000 | Val: 4.7862 | BPB: 6.905 | Best BPB: 6.862 | Gap: -0.086 
+  Thought gates: [0.5, 0.328, 0.319, 0.5]
+  Mass proj norm: 19.6361
+============================================================
+
+--- Generation samples (iter 10000) ---
+  [The capital of France is]: 'The capital of France is 30 years old, and has a history on the country. The only people are of this land that is in Africa. If you wish to read or heard, I am not saying for sure they know why not ma'
+  [Machine learning is a field of]: 'Machine learning is a field of the technology and data collection. This is especially true when looking at a number of other things, and can be done using computers to find out more about these device'
+  [In the year 2050, humanity]: 'In the year 2050, humanity was created by the people who were part of their work, and in a sense – which is why. We need to go back into the road until it had been brought down to an end.” In 1985, he'
+  [The meaning of life is]: 'The meaning of life is a great time to look for the most of us. This is another story, though people can think about. Many other things you may be aware that we cannot say – it means you have all thes'
+---
+iter  10050 | loss 4.8165 | lr 2.36e-04 | grad 1.47 | 4917ms/step | 247M tok
+iter  10100 | loss 4.8077 | lr 2.35e-04 | grad 1.11 | 4916ms/step | 248M tok
+iter  10150 | loss 4.8064 | lr 2.35e-04 | grad 1.49 | 4916ms/step | 249M tok
+iter  10200 | loss 4.7991 | lr 2.34e-04 | grad 1.88 | 4916ms/step | 251M tok
+iter  10250 | loss 4.7950 | lr 2.34e-04 | grad 2.17 | 4915ms/step | 252M tok
+iter  10300 | loss 4.7995 | lr 2.33e-04 | grad 1.52 | 4915ms/step | 253M tok
+iter  10350 | loss 4.7930 | lr 2.32e-04 | grad 1.60 | 4915ms/step | 254M tok
+iter  10400 | loss 4.7940 | lr 2.32e-04 | grad 1.82 | 4914ms/step | 256M tok
+iter  10450 | loss 4.7888 | lr 2.31e-04 | grad 1.28 | 4914ms/step | 257M tok
+iter  10500 | loss 4.7892 | lr 2.30e-04 | grad 1.33 | 4914ms/step | 258M tok
+============================================================
+[14.3h, iter 10500] Train: 4.7031 | Val: 4.7135 | BPB: 6.801 | Best BPB: 6.801 | Gap: -0.010 >>> BEST!
+  Thought gates: [0.5, 0.325, 0.316, 0.5]
+  Mass proj norm: 19.9027
+============================================================
+iter  10550 | loss 4.7876 | lr 2.30e-04 | grad 1.86 | 4916ms/step | 259M tok
+============================================================
+[0.0h, iter 10500] Train: 4.7399 | Val: 4.7261 | BPB: 6.819 | Best BPB: 6.801 | Gap: 0.014 
+  Thought gates: [0.5, 0.325, 0.316, 0.5]
+  Mass proj norm: 19.9033
+============================================================
+iter  10550 | loss 4.7609 | lr 2.30e-04 | grad 0.87 | 13472ms/step | 3M tok
+iter  10600 | loss 4.7403 | lr 2.29e-04 | grad 1.27 | 13108ms/step | 7M tok
+============================================================
+[0.0h, iter 10500] Train: 4.7347 | Val: 4.7029 | BPB: 6.785 | Best BPB: 6.785 | Gap: 0.032 >>> BEST!
+  Thought gates: [0.5, 0.325, 0.316, 0.5]
+  Mass proj norm: 19.9034
+============================================================
+[0.0h, iter 10500] Train: 4.7319 | Val: 4.7386 | BPB: 6.837 | Best BPB: 6.785 | Gap: -0.007 
+  Thought gates: [0.5, 0.325, 0.316, 0.5]
+  Mass proj norm: 19.9044
+============================================================
+iter  10550 | loss 4.7693 | lr 2.30e-04 | grad 0.92 | 13286ms/step | 3M tok
+iter  10600 | loss 4.7424 | lr 2.29e-04 | grad 0.93 | 12984ms/step | 7M tok
+iter  10650 | loss 4.7246 | lr 2.29e-04 | grad 0.88 | 12892ms/step | 10M tok
+iter  10700 | loss 4.7300 | lr 2.28e-04 | grad 1.69 | 12846ms/step | 13M tok
+iter  10750 | loss 4.7189 | lr 2.27e-04 | grad 0.76 | 12816ms/step | 16M tok
+iter  10800 | loss 4.7110 | lr 2.27e-04 | grad 0.87 | 12798ms/step | 20M tok
+iter  10850 | loss 4.7068 | lr 2.26e-04 | grad 1.72 | 12784ms/step | 23M tok
+iter  10900 | loss 4.6865 | lr 2.25e-04 | grad 1.09 | 12776ms/step | 26M tok
+iter  10950 | loss 4.6866 | lr 2.25e-04 | grad 1.17 | 12770ms/step | 29M tok
+iter  11000 | loss 4.6929 | lr 2.24e-04 | grad 0.85 | 12745ms/step | 33M tok
+============================================================
+[1.8h, iter 11000] Train: 4.6056 | Val: 4.6079 | BPB: 6.648 | Best BPB: 6.648 | Gap: -0.002 >>> BEST!
+  Thought gates: [0.5, 0.321, 0.312, 0.5]
+  Mass proj norm: 20.3457
+============================================================
+iter  11050 | loss 4.6858 | lr 2.23e-04 | grad 0.95 | 12744ms/step | 36M tok
+iter  11100 | loss 4.6715 | lr 2.23e-04 | grad 1.86 | 12691ms/step | 39M tok
+iter  11150 | loss 4.6655 | lr 2.22e-04 | grad 1.28 | 12646ms/step | 43M tok
+iter  11200 | loss 4.6753 | lr 2.21e-04 | grad 0.98 | 12608ms/step | 46M tok
+iter  11250 | loss 4.6676 | lr 2.21e-04 | grad 1.42 | 12575ms/step | 49M tok
+iter  11300 | loss 4.6484 | lr 2.20e-04 | grad 0.95 | 12546ms/step | 52M tok
+iter  11350 | loss 4.6511 | lr 2.19e-04 | grad 1.28 | 12520ms/step | 56M tok
+iter  11400 | loss 4.6427 | lr 2.19e-04 | grad 1.06 | 12498ms/step | 59M tok
+iter  11450 | loss 4.6493 | lr 2.18e-04 | grad 1.06 | 12477ms/step | 62M tok
+iter  11500 | loss 4.6274 | lr 2.17e-04 | grad 1.12 | 12458ms/step | 66M tok
+============================================================
+[3.5h, iter 11500] Train: 4.5554 | Val: 4.5833 | BPB: 6.613 | Best BPB: 6.613 | Gap: -0.028 >>> BEST!
+  Thought gates: [0.5, 0.319, 0.309, 0.5]
+  Mass proj norm: 20.7586
+============================================================
+iter  11550 | loss 4.6554 | lr 2.17e-04 | grad 1.33 | 12471ms/step | 69M tok
+iter  11600 | loss 4.6203 | lr 2.16e-04 | grad 1.05 | 12454ms/step | 72M tok
+iter  11650 | loss 4.6271 | lr 2.15e-04 | grad 0.98 | 12439ms/step | 75M tok
+iter  11700 | loss 4.6201 | lr 2.15e-04 | grad 0.77 | 12424ms/step | 79M tok
+iter  11750 | loss 4.6424 | lr 2.14e-04 | grad 0.81 | 12412ms/step | 82M tok
+iter  11800 | loss 4.6128 | lr 2.13e-04 | grad 1.17 | 12400ms/step | 85M tok
+iter  11850 | loss 4.6022 | lr 2.13e-04 | grad 1.06 | 12389ms/step | 88M tok
+iter  11900 | loss 4.6016 | lr 2.12e-04 | grad 0.98 | 12379ms/step | 92M tok
+iter  11950 | loss 4.6085 | lr 2.11e-04 | grad 0.88 | 12369ms/step | 95M tok
+iter  12000 | loss 4.6089 | lr 2.11e-04 | grad 1.07 | 12360ms/step | 98M tok
+============================================================
+[5.2h, iter 12000] Train: 4.5292 | Val: 4.5327 | BPB: 6.540 | Best BPB: 6.540 | Gap: -0.003 >>> BEST!
+  Thought gates: [0.5, 0.316, 0.306, 0.5]
+  Mass proj norm: 21.1037
+============================================================
+
+--- Generation samples (iter 12000) ---
+  [The capital of France is]: 'The capital of France is located on the north-western Ohio coast of Mexico. The city has a large capital in the Central Basin is surrounded by three main rivers from the western part and southwestern '
+  [Machine learning is a field of]: 'Machine learning is a field of learning to read and write. A more interesting part is a simple technique for communicating with the teacher and student. The students were able to follow these question'
+  [In the year 2050, humanity]: 'In the year 2050, humanity has been given the following year 2013. For a list of our day: a) I found an annual meeting place, with a new understanding in our work on how we can help us make an argumen'
+  [The meaning of life is]: 'The meaning of life is that life-threatening skin condition, death and cancer. It is also called the “Light” of childhood and child health, which means it can be an issue or even lead to a greater ris'
+---
+iter  12050 | loss 4.6011 | lr 2.10e-04 | grad 0.78 | 12378ms/step | 102M tok
+iter  12100 | loss 4.5890 | lr 2.09e-04 | grad 1.10 | 12369ms/step | 105M tok
+iter  12150 | loss 4.5765 | lr 2.09e-04 | grad 1.21 | 12361ms/step | 108M tok
+iter  12200 | loss 4.5883 | lr 2.08e-04 | grad 1.50 | 12354ms/step | 111M tok
+iter  12250 | loss 4.5865 | lr 2.07e-04 | grad 1.01 | 12347ms/step | 115M tok
+iter  12300 | loss 4.5769 | lr 2.07e-04 | grad 1.18 | 12340ms/step | 118M tok
+iter  12350 | loss 4.5760 | lr 2.06e-04 | grad 0.90 | 12334ms/step | 121M tok
+iter  12400 | loss 4.5689 | lr 2.05e-04 | grad 0.79 | 12328ms/step | 125M tok
+iter  12450 | loss 4.5642 | lr 2.05e-04 | grad 1.28 | 12322ms/step | 128M tok
+iter  12500 | loss 4.5679 | lr 2.04e-04 | grad 1.24 | 12321ms/step | 131M tok
+============================================================
+[6.9h, iter 12500] Train: 4.4553 | Val: 4.5055 | BPB: 6.500 | Best BPB: 6.500 | Gap: -0.050 >>> BEST!
+  Thought gates: [0.5, 0.314, 0.304, 0.5]
+  Mass proj norm: 21.4117
+============================================================
+iter  12550 | loss 4.5706 | lr 2.03e-04 | grad 1.72 | 12344ms/step | 134M tok
+iter  12600 | loss 4.5583 | lr 2.03e-04 | grad 0.92 | 12351ms/step | 138M tok
+iter  12650 | loss 4.5489 | lr 2.02e-04 | grad 0.90 | 12358ms/step | 141M tok
+iter  12700 | loss 4.5516 | lr 2.01e-04 | grad 0.96 | 12364ms/step | 144M tok
+iter  12750 | loss 4.5460 | lr 2.01e-04 | grad 1.10 | 12370ms/step | 147M tok
+iter  12800 | loss 4.5499 | lr 2.00e-04 | grad 8.11 | 12376ms/step | 151M tok
+iter  12850 | loss 4.5457 | lr 1.99e-04 | grad 0.91 | 12383ms/step | 154M tok
+iter  12900 | loss 4.5290 | lr 1.98e-04 | grad 1.01 | 12389ms/step | 157M tok
+iter  12950 | loss 4.5203 | lr 1.98e-04 | grad 1.09 | 12395ms/step | 161M tok
+iter  13000 | loss 4.5207 | lr 1.97e-04 | grad 0.84 | 12400ms/step | 164M tok
+============================================================
+[8.6h, iter 13000] Train: 4.4498 | Val: 4.4517 | BPB: 6.423 | Best BPB: 6.423 | Gap: -0.002 >>> BEST!
+  Thought gates: [0.5, 0.311, 0.301, 0.5]
+  Mass proj norm: 21.7083
+============================================================
+iter  13050 | loss 4.5239 | lr 1.96e-04 | grad 1.31 | 12419ms/step | 167M tok
+iter  13100 | loss 4.5340 | lr 1.96e-04 | grad 0.96 | 12424ms/step | 170M tok
+iter  13150 | loss 4.5068 | lr 1.95e-04 | grad 0.93 | 12428ms/step | 174M tok
+iter  13200 | loss 4.5114 | lr 1.94e-04 | grad 1.19 | 12433ms/step | 177M tok
+iter  13250 | loss 4.5053 | lr 1.94e-04 | grad 1.14 | 12438ms/step | 180M tok
+iter  13300 | loss 4.5136 | lr 1.93e-04 | grad 1.52 | 12443ms/step | 184M tok
+iter  13350 | loss 4.4993 | lr 1.92e-04 | grad 1.14 | 12447ms/step | 187M tok
+iter  13400 | loss 4.5062 | lr 1.91e-04 | grad 1.05 | 12451ms/step | 190M tok
+iter  13450 | loss 4.4950 | lr 1.91e-04 | grad 0.80 | 12454ms/step | 193M tok
+iter  13500 | loss 4.4893 | lr 1.90e-04 | grad 0.74 | 12458ms/step | 197M tok
+============================================================
+[10.4h, iter 13500] Train: 4.4074 | Val: 4.4155 | BPB: 6.371 | Best BPB: 6.371 | Gap: -0.008 >>> BEST!
+  Thought gates: [0.5, 0.309, 0.299, 0.5]
+  Mass proj norm: 22.0015
+============================================================
+iter  13550 | loss 4.4882 | lr 1.89e-04 | grad 1.31 | 12472ms/step | 200M tok
+iter  13600 | loss 4.4861 | lr 1.89e-04 | grad 1.03 | 12474ms/step | 203M tok
+iter  13650 | loss 4.4885 | lr 1.88e-04 | grad 1.63 | 12477ms/step | 206M tok
+iter  13700 | loss 4.4948 | lr 1.87e-04 | grad 1.09 | 12480ms/step | 210M tok
+iter  13750 | loss 4.4964 | lr 1.86e-04 | grad 1.20 | 12484ms/step | 213M tok
+iter  13800 | loss 4.4780 | lr 1.86e-04 | grad 1.07 | 12487ms/step | 216M tok
+iter  13850 | loss 4.4780 | lr 1.85e-04 | grad 0.81 | 12491ms/step | 220M tok
+iter  13900 | loss 4.4615 | lr 1.84e-04 | grad 0.87 | 12493ms/step | 223M tok
+iter  13950 | loss 4.4557 | lr 1.84e-04 | grad 1.03 | 12496ms/step | 226M tok
+iter  14000 | loss 4.4695 | lr 1.83e-04 | grad 0.91 | 12499ms/step | 229M tok
+============================================================
+[12.2h, iter 14000] Train: 4.3422 | Val: 4.3671 | BPB: 6.301 | Best BPB: 6.301 | Gap: -0.025 >>> BEST!
+  Thought gates: [0.5, 0.306, 0.296, 0.5]
+  Mass proj norm: 22.2519
+============================================================
+
+--- Generation samples (iter 14000) ---
+  [The capital of France is]: 'The capital of France is the largest country of the world in 1590 and has produced a large number of new territories that have been inhabited by localities, but it is no surprise if a smaller city was'
+  [Machine learning is a field of]: 'Machine learning is a field of learning to learn about the basic concepts of science and mathematics, math education. We can also teach a number of lessons, with our students in understanding their th'
+  [In the year 2050, humanity]: 'In the year 2050, humanity was granted a tax year, when they were received on the same time. In 2016 it came to mean that they had only once given these days at all times of life as well as their expe'
+  [The meaning of life is]: 'The meaning of life is likely to have a great deal of confusion in the past, and this is true as much as possible or at least when we think of a man. It’s like that which has brought us in our hearts '
+---
+iter  14050 | loss 4.4521 | lr 1.82e-04 | grad 1.10 | 12513ms/step | 233M tok
+iter  14100 | loss 4.4586 | lr 1.81e-04 | grad 1.63 | 12516ms/step | 236M tok
+iter  14150 | loss 4.4468 | lr 1.81e-04 | grad 0.81 | 12518ms/step | 239M tok
+iter  14200 | loss 4.4593 | lr 1.80e-04 | grad 1.01 | 12521ms/step | 242M tok
+iter  14250 | loss 4.4533 | lr 1.79e-04 | grad 1.15 | 12523ms/step | 246M tok
+iter  14300 | loss 4.4460 | lr 1.79e-04 | grad 1.27 | 12525ms/step | 249M tok
+iter  14350 | loss 4.4436 | lr 1.78e-04 | grad 1.00 | 12521ms/step | 252M tok
+iter  14400 | loss 4.4437 | lr 1.77e-04 | grad 0.98 | 12516ms/step | 256M tok
+iter  14450 | loss 4.4326 | lr 1.76e-04 | grad 0.93 | 12511ms/step | 259M tok
+iter  14500 | loss 4.4423 | lr 1.76e-04 | grad 0.86 | 12506ms/step | 262M tok
+============================================================
+[13.9h, iter 14500] Train: 4.3592 | Val: 4.3803 | BPB: 6.320 | Best BPB: 6.301 | Gap: -0.021 
+  Thought gates: [0.5, 0.304, 0.294, 0.5]
+  Mass proj norm: 22.4897
+============================================================
+iter  14550 | loss 4.4424 | lr 1.75e-04 | grad 0.84 | 12507ms/step | 265M tok
+iter  14600 | loss 4.4274 | lr 1.74e-04 | grad 1.31 | 12502ms/step | 269M tok
+iter  14650 | loss 4.4280 | lr 1.74e-04 | grad 1.49 | 12497ms/step | 272M tok
+iter  14700 | loss 4.4356 | lr 1.73e-04 | grad 0.92 | 12493ms/step | 275M tok
+iter  14750 | loss 4.4166 | lr 1.72e-04 | grad 1.29 | 12488ms/step | 279M tok
+iter  14800 | loss 4.4450 | lr 1.71e-04 | grad 1.75 | 12484ms/step | 282M tok
+iter  14850 | loss 4.4205 | lr 1.71e-04 | grad 1.74 | 12479ms/step | 285M tok
+iter  14900 | loss 4.4274 | lr 1.70e-04 | grad 0.87 | 12475ms/step | 288M tok
+iter  14950 | loss 4.4160 | lr 1.69e-04 | grad 0.80 | 12470ms/step | 292M tok
+iter  15000 | loss 4.4072 | lr 1.69e-04 | grad 1.08 | 12466ms/step | 295M tok
+============================================================
+[15.6h, iter 15000] Train: 4.3337 | Val: 4.3510 | BPB: 6.278 | Best BPB: 6.278 | Gap: -0.017 >>> BEST!
+  Thought gates: [0.5, 0.304, 0.293, 0.5]
+  Mass proj norm: 22.6981
+============================================================
+iter  15050 | loss 4.4041 | lr 1.68e-04 | grad 1.13 | 12469ms/step | 298M tok
+iter  15100 | loss 4.4183 | lr 1.67e-04 | grad 0.89 | 12465ms/step | 301M tok
+iter  15150 | loss 4.4158 | lr 1.66e-04 | grad 1.19 | 12461ms/step | 305M tok
+iter  15200 | loss 4.4035 | lr 1.66e-04 | grad 0.89 | 12457ms/step | 308M tok
+iter  15250 | loss 4.4061 | lr 1.65e-04 | grad 1.39 | 12454ms/step | 311M tok
+iter  15300 | loss 4.3936 | lr 1.64e-04 | grad 0.94 | 12450ms/step | 315M tok
+iter  15350 | loss 4.3947 | lr 1.64e-04 | grad 1.45 | 12447ms/step | 318M tok
+iter  15400 | loss 4.4262 | lr 1.63e-04 | grad 1.31 | 12443ms/step | 321M tok
+iter  15450 | loss 4.3893 | lr 1.62e-04 | grad 0.98 | 12440ms/step | 324M tok
+iter  15500 | loss 4.3839 | lr 1.61e-04 | grad 1.07 | 12436ms/step | 328M tok
+============================================================
+[17.3h, iter 15500] Train: 4.3153 | Val: 4.3493 | BPB: 6.275 | Best BPB: 6.275 | Gap: -0.034 >>> BEST!
+  Thought gates: [0.5, 0.301, 0.29, 0.5]
+  Mass proj norm: 22.8855
+============================================================
+iter  15550 | loss 4.3884 | lr 1.61e-04 | grad 0.90 | 12439ms/step | 331M tok
+iter  15600 | loss 4.3828 | lr 1.60e-04 | grad 0.81 | 12436ms/step | 334M tok
+iter  15650 | loss 4.4116 | lr 1.59e-04 | grad 1.09 | 12433ms/step | 338M tok
+iter  15700 | loss 4.3952 | lr 1.59e-04 | grad 1.47 | 12430ms/step | 341M tok
+iter  15750 | loss 4.3978 | lr 1.58e-04 | grad 1.17 | 12427ms/step | 344M tok
+iter  15800 | loss 4.3862 | lr 1.57e-04 | grad 2.31 | 12424ms/step | 347M tok
+iter  15850 | loss 4.3796 | lr 1.56e-04 | grad 1.07 | 12421ms/step | 351M tok
+iter  15900 | loss 4.3682 | lr 1.56e-04 | grad 0.90 | 12418ms/step | 354M tok
+iter  15950 | loss 4.3772 | lr 1.55e-04 | grad 0.99 | 12415ms/step | 357M tok
+iter  16000 | loss 4.3662 | lr 1.54e-04 | grad 0.97 | 12412ms/step | 360M tok
+============================================================
+[19.0h, iter 16000] Train: 4.3030 | Val: 4.3086 | BPB: 6.216 | Best BPB: 6.216 | Gap: -0.006 >>> BEST!
+  Thought gates: [0.5, 0.299, 0.289, 0.5]
+  Mass proj norm: 23.0511
+============================================================
+
+--- Generation samples (iter 16000) ---
+  [The capital of France is]: 'The capital of France is home to the north. The largest city is located in South America, which lies in the world of land by a large area with its high rate. It features a small island for example – i'
+  [Machine learning is a field of]: 'Machine learning is a field of learning and data mining. The goal is to allow students for the job of all creation, but they can provide feedback on a certain career or product while also providing ac'
+  [In the year 2050, humanity]: 'In the year 2050, humanity expanded from the 305,000-hundred (18%) of the population had been severely eroded by a few more than hundred and fifty percent of the country’s cities. During that period, '
+  [The meaning of life is]: 'The meaning of life is the same, but most of it is a story that is about that, and you see this: It appears to us when your children are in the middle ages. The second part does not have the meaning f'
+---
+iter  16050 | loss 4.3623 | lr 1.54e-04 | grad 1.30 | 12420ms/step | 364M tok
+iter  16100 | loss 4.3530 | lr 1.53e-04 | grad 0.89 | 12419ms/step | 367M tok
+iter  16150 | loss 4.3618 | lr 1.52e-04 | grad 0.87 | 12419ms/step | 370M tok
+iter  16200 | loss 4.3927 | lr 1.51e-04 | grad 6.59 | 12417ms/step | 374M tok
+iter  16250 | loss 4.3671 | lr 1.51e-04 | grad 1.32 | 12414ms/step | 377M tok
+iter  16300 | loss 4.3638 | lr 1.50e-04 | grad 1.35 | 12412ms/step | 380M tok
+iter  16350 | loss 4.3583 | lr 1.49e-04 | grad 0.89 | 12410ms/step | 383M tok
+iter  16400 | loss 4.3528 | lr 1.49e-04 | grad 1.16 | 12408ms/step | 387M tok
+iter  16450 | loss 4.3549 | lr 1.48e-04 | grad 1.09 | 12406ms/step | 390M tok
+iter  16500 | loss 4.3382 | lr 1.47e-04 | grad 1.36 | 12404ms/step | 393M tok
+============================================================
+[20.7h, iter 16500] Train: 4.2551 | Val: 4.2636 | BPB: 6.152 | Best BPB: 6.152 | Gap: -0.009 >>> BEST!
+  Thought gates: [0.5, 0.298, 0.287, 0.5]
+  Mass proj norm: 23.2087
+============================================================
+iter  16550 | loss 4.3496 | lr 1.46e-04 | grad 1.01 | 12407ms/step | 396M tok
+iter  16600 | loss 4.3268 | lr 1.46e-04 | grad 0.94 | 12404ms/step | 400M tok
+iter  16650 | loss 4.3498 | lr 1.45e-04 | grad 2.46 | 12402ms/step | 403M tok
+iter  16700 | loss 4.3472 | lr 1.44e-04 | grad 2.52 | 12400ms/step | 406M tok
+iter  16750 | loss 4.3416 | lr 1.44e-04 | grad 1.04 | 12398ms/step | 410M tok
+iter  16800 | loss 4.3398 | lr 1.43e-04 | grad 1.23 | 12396ms/step | 413M tok
+iter  16850 | loss 4.3286 | lr 1.42e-04 | grad 1.21 | 12394ms/step | 416M tok
+iter  16900 | loss 4.3349 | lr 1.41e-04 | grad 1.10 | 12394ms/step | 419M tok
+iter  16950 | loss 4.3327 | lr 1.41e-04 | grad 2.45 | 12395ms/step | 423M tok
+iter  17000 | loss 4.3221 | lr 1.40e-04 | grad 1.06 | 12393ms/step | 426M tok
+============================================================
+[22.4h, iter 17000] Train: 4.2200 | Val: 4.2548 | BPB: 6.139 | Best BPB: 6.139 | Gap: -0.035 >>> BEST!
+  Thought gates: [0.5, 0.296, 0.285, 0.5]
+  Mass proj norm: 23.3559
+============================================================
+iter  17050 | loss 4.3468 | lr 1.39e-04 | grad 0.84 | 12396ms/step | 429M tok
+iter  17100 | loss 4.3180 | lr 1.39e-04 | grad 0.97 | 12395ms/step | 433M tok
+iter  17150 | loss 4.3125 | lr 1.38e-04 | grad 0.91 | 12393ms/step | 436M tok
+iter  17200 | loss 4.3081 | lr 1.37e-04 | grad 0.78 | 12391ms/step | 439M tok
+iter  17250 | loss 4.3271 | lr 1.36e-04 | grad 0.99 | 12389ms/step | 442M tok
+iter  17300 | loss 4.3104 | lr 1.36e-04 | grad 0.73 | 12387ms/step | 446M tok
+iter  17350 | loss 4.3191 | lr 1.35e-04 | grad 0.90 | 12386ms/step | 449M tok
+iter  17400 | loss 4.3035 | lr 1.34e-04 | grad 1.04 | 12384ms/step | 452M tok
+iter  17450 | loss 4.3127 | lr 1.34e-04 | grad 0.88 | 12382ms/step | 455M tok
+============================================================
+[0.0h, iter 17000] Train: 4.2417 | Val: 4.2380 | BPB: 6.115 | Best BPB: 6.115 | Gap: 0.004 >>> BEST!
+  Thought gates: [0.5, 0.296, 0.285, 0.5]
+  Mass proj norm: 23.3563
+============================================================
+iter  17050 | loss 4.3369 | lr 1.39e-04 | grad 0.78 | 13068ms/step | 3M tok
+iter  17100 | loss 4.3233 | lr 1.39e-04 | grad 1.47 | 12612ms/step | 7M tok
+iter  17150 | loss 4.3132 | lr 1.38e-04 | grad 0.81 | 12458ms/step | 10M tok
+iter  17200 | loss 4.3171 | lr 1.37e-04 | grad 0.99 | 12381ms/step | 13M tok
+iter  17250 | loss 4.3229 | lr 1.36e-04 | grad 1.26 | 12405ms/step | 16M tok
+iter  17300 | loss 4.3171 | lr 1.36e-04 | grad 0.91 | 12462ms/step | 20M tok
+iter  17350 | loss 4.3105 | lr 1.35e-04 | grad 1.99 | 12482ms/step | 23M tok
+iter  17400 | loss 4.3191 | lr 1.34e-04 | grad 0.78 | 12438ms/step | 26M tok
+iter  17450 | loss 4.3036 | lr 1.34e-04 | grad 0.82 | 12448ms/step | 29M tok
+iter  17500 | loss 4.3015 | lr 1.33e-04 | grad 0.95 | 12464ms/step | 33M tok
+============================================================
+[1.7h, iter 17500] Train: 4.1777 | Val: 4.2252 | BPB: 6.096 | Best BPB: 6.096 | Gap: -0.048 >>> BEST!
+  Thought gates: [0.5, 0.295, 0.284, 0.5]
+  Mass proj norm: 23.4877
+============================================================
+iter  17550 | loss 4.3100 | lr 1.32e-04 | grad 0.87 | 12557ms/step | 36M tok
+iter  17600 | loss 4.3190 | lr 1.32e-04 | grad 1.01 | 12524ms/step | 39M tok
+iter  17650 | loss 4.3077 | lr 1.31e-04 | grad 0.88 | 12495ms/step | 43M tok
+iter  17700 | loss 4.2952 | lr 1.30e-04 | grad 0.92 | 12471ms/step | 46M tok
+iter  17750 | loss 4.3101 | lr 1.29e-04 | grad 1.70 | 12449ms/step | 49M tok
+iter  17800 | loss 4.3050 | lr 1.29e-04 | grad 1.04 | 12430ms/step | 52M tok
+iter  17850 | loss 4.3044 | lr 1.28e-04 | grad 0.87 | 12432ms/step | 56M tok
+iter  17900 | loss 4.2936 | lr 1.27e-04 | grad 0.94 | 12416ms/step | 59M tok
+iter  17950 | loss 4.2943 | lr 1.27e-04 | grad 1.15 | 12402ms/step | 62M tok
+iter  18000 | loss 4.2873 | lr 1.26e-04 | grad 0.77 | 12389ms/step | 66M tok
+============================================================
+[3.4h, iter 18000] Train: 4.2133 | Val: 4.2315 | BPB: 6.105 | Best BPB: 6.096 | Gap: -0.018 
+  Thought gates: [0.5, 0.293, 0.283, 0.5]
+  Mass proj norm: 23.6078
+============================================================
+
+--- Generation samples (iter 18000) ---
+  [The capital of France is]: 'The capital of France is the European Union, which can be represented by a single national republic. Some 405 miles (18 km) in Germany, Germany and Austria from 352 to 69. The capital of Berlin is not'
+  [Machine learning is a field of]: 'Machine learning is a field of measurement, which is a computer screen time and then compared to the user's machine learning. One of our goals on a computer keyboard are that it has been used in softw'
+  [In the year 2050, humanity]: 'In the year 2050, humanity in the Caribbean, with several other countries where they remained a “wrong” part of America. They were often associated with other tribes living near the frontier and into '
+  [The meaning of life is]: 'The meaning of life is not the first time that we are living in, but rather by those who live there. I have a lot of people out of all-natural life or their lives without getting into bedding is one a'
+---
+iter  18050 | loss 4.2956 | lr 1.25e-04 | grad 1.33 | 12413ms/step | 69M tok
+iter  18100 | loss 4.2769 | lr 1.25e-04 | grad 0.88 | 12404ms/step | 72M tok
+iter  18150 | loss 4.2818 | lr 1.24e-04 | grad 0.82 | 12393ms/step | 75M tok
+iter  18200 | loss 4.2823 | lr 1.23e-04 | grad 0.80 | 12384ms/step | 79M tok
+iter  18250 | loss 4.2830 | lr 1.23e-04 | grad 1.46 | 12375ms/step | 82M tok
+iter  18300 | loss 4.2776 | lr 1.22e-04 | grad 0.92 | 12367ms/step | 85M tok
+iter  18350 | loss 4.2907 | lr 1.21e-04 | grad 0.94 | 12362ms/step | 88M tok
+iter  18400 | loss 4.2812 | lr 1.21e-04 | grad 1.05 | 12360ms/step | 92M tok
+iter  18450 | loss 4.2682 | lr 1.20e-04 | grad 0.77 | 12356ms/step | 95M tok
+iter  18500 | loss 4.2773 | lr 1.19e-04 | grad 0.74 | 12350ms/step | 98M tok
+============================================================
+[5.2h, iter 18500] Train: 4.1917 | Val: 4.2245 | BPB: 6.095 | Best BPB: 6.095 | Gap: -0.033 >>> BEST!
+  Thought gates: [0.5, 0.292, 0.281, 0.5]
+  Mass proj norm: 23.7299
+============================================================
+iter  18550 | loss 4.2655 | lr 1.19e-04 | grad 1.01 | 12372ms/step | 102M tok
+iter  18600 | loss 4.2668 | lr 1.18e-04 | grad 0.98 | 12369ms/step | 105M tok
+iter  18650 | loss 4.2725 | lr 1.17e-04 | grad 0.83 | 12366ms/step | 108M tok
+iter  18700 | loss 4.2644 | lr 1.17e-04 | grad 0.91 | 12363ms/step | 111M tok
+iter  18750 | loss 4.2604 | lr 1.16e-04 | grad 0.80 | 12359ms/step | 115M tok
+iter  18800 | loss 4.2545 | lr 1.15e-04 | grad 2.22 | 12355ms/step | 118M tok
+iter  18850 | loss 4.2653 | lr 1.15e-04 | grad 0.83 | 12350ms/step | 121M tok
+iter  18900 | loss 4.2586 | lr 1.14e-04 | grad 1.37 | 12350ms/step | 125M tok
+iter  18950 | loss 4.2593 | lr 1.13e-04 | grad 0.79 | 12350ms/step | 128M tok
+iter  19000 | loss 4.2588 | lr 1.13e-04 | grad 0.77 | 12346ms/step | 131M tok
+============================================================
+[6.9h, iter 19000] Train: 4.1582 | Val: 4.2162 | BPB: 6.083 | Best BPB: 6.083 | Gap: -0.058 >>> BEST!
+  Thought gates: [0.5, 0.291, 0.28, 0.5]
+  Mass proj norm: 23.8255
+============================================================
+iter  19050 | loss 4.2551 | lr 1.12e-04 | grad 0.79 | 12359ms/step | 134M tok
+iter  19100 | loss 4.2533 | lr 1.11e-04 | grad 0.91 | 12355ms/step | 138M tok
+iter  19150 | loss 4.2479 | lr 1.11e-04 | grad 1.25 | 12351ms/step | 141M tok
+iter  19200 | loss 4.2343 | lr 1.10e-04 | grad 0.93 | 12347ms/step | 144M tok
+iter  19250 | loss 4.2539 | lr 1.09e-04 | grad 0.79 | 12342ms/step | 147M tok
+iter  19300 | loss 4.2372 | lr 1.09e-04 | grad 1.05 | 12340ms/step | 151M tok
+iter  19350 | loss 4.2449 | lr 1.08e-04 | grad 0.82 | 12338ms/step | 154M tok
+iter  19400 | loss 4.2500 | lr 1.07e-04 | grad 0.80 | 12334ms/step | 157M tok
+iter  19450 | loss 4.2404 | lr 1.07e-04 | grad 1.01 | 12331ms/step | 161M tok
+iter  19500 | loss 4.2338 | lr 1.06e-04 | grad 0.92 | 12327ms/step | 164M tok
+============================================================
+[8.6h, iter 19500] Train: 4.1458 | Val: 4.1786 | BPB: 6.029 | Best BPB: 6.029 | Gap: -0.033 >>> BEST!
+  Thought gates: [0.5, 0.29, 0.279, 0.5]
+  Mass proj norm: 23.9230
+============================================================
+iter  19550 | loss 4.2391 | lr 1.05e-04 | grad 0.91 | 12335ms/step | 167M tok
+iter  19600 | loss 4.2470 | lr 1.05e-04 | grad 0.88 | 12332ms/step | 170M tok
+iter  19650 | loss 4.2385 | lr 1.04e-04 | grad 0.91 | 12328ms/step | 174M tok
+iter  19700 | loss 4.2466 | lr 1.03e-04 | grad 1.84 | 12325ms/step | 177M tok
+iter  19750 | loss 4.2373 | lr 1.03e-04 | grad 1.09 | 12322ms/step | 180M tok
+iter  19800 | loss 4.2377 | lr 1.02e-04 | grad 2.27 | 12320ms/step | 184M tok
+iter  19850 | loss 4.2396 | lr 1.01e-04 | grad 1.06 | 12317ms/step | 187M tok
+iter  19900 | loss 4.2339 | lr 1.01e-04 | grad 0.95 | 12314ms/step | 190M tok
+iter  19950 | loss 4.2324 | lr 1.00e-04 | grad 0.89 | 12312ms/step | 193M tok
+iter  20000 | loss 4.2238 | lr 9.96e-05 | grad 0.76 | 12309ms/step | 197M tok
+============================================================
+[10.3h, iter 20000] Train: 4.1600 | Val: 4.2171 | BPB: 6.084 | Best BPB: 6.029 | Gap: -0.057 
+  Thought gates: [0.5, 0.289, 0.278, 0.5]
+  Mass proj norm: 24.0072
+============================================================
+
+--- Generation samples (iter 20000) ---
+  [The capital of France is]: 'The capital of France is located, along with a similar size to the right of the people. The capital is known as Castluttenes and is believed to be the place of residence that extends from its original'
+  [Machine learning is a field of]: 'Machine learning is a field of study. The use of the word cloud is a technique that supports learning in the classroom. We are also using this method to teach your child, and it helps students underst'
+  [In the year 2050, humanity]: 'In the year 2050, humanity began to work on the construction of a new building in the construction, and the construction was replaced for by 1659. "If you live in this work, it is possible that we cou'
+  [The meaning of life is]: 'The meaning of life is that a person can also tell us the difference between our lives. We are told that we have more knowledge, experience and understanding (including memory). The purpose of this re'
+---
+iter  20050 | loss 4.2354 | lr 9.90e-05 | grad 0.92 | 12318ms/step | 200M tok
+iter  20100 | loss 4.2262 | lr 9.83e-05 | grad 0.86 | 12316ms/step | 203M tok
+iter  20150 | loss 4.2259 | lr 9.77e-05 | grad 0.79 | 12314ms/step | 206M tok
+iter  20200 | loss 4.2261 | lr 9.71e-05 | grad 0.84 | 12312ms/step | 210M tok
+iter  20250 | loss 4.2187 | lr 9.65e-05 | grad 0.84 | 12309ms/step | 213M tok
+iter  20300 | loss 4.2231 | lr 9.58e-05 | grad 0.86 | 12306ms/step | 216M tok
+iter  20350 | loss 4.2192 | lr 9.52e-05 | grad 1.05 | 12304ms/step | 220M tok
+iter  20400 | loss 4.2154 | lr 9.46e-05 | grad 0.79 | 12302ms/step | 223M tok
+iter  20450 | loss 4.2264 | lr 9.40e-05 | grad 0.82 | 12299ms/step | 226M tok
+iter  20500 | loss 4.2246 | lr 9.34e-05 | grad 19.03 | 12297ms/step | 229M tok
+============================================================
+[12.0h, iter 20500] Train: 4.1206 | Val: 4.1683 | BPB: 6.014 | Best BPB: 6.014 | Gap: -0.048 >>> BEST!
+  Thought gates: [0.5, 0.289, 0.278, 0.5]
+  Mass proj norm: 24.0899
+============================================================
+iter  20550 | loss 4.2199 | lr 9.28e-05 | grad 1.02 | 12303ms/step | 233M tok
+iter  20600 | loss 4.2128 | lr 9.22e-05 | grad 0.80 | 12301ms/step | 236M tok
+iter  20650 | loss 4.2250 | lr 9.16e-05 | grad 0.84 | 12299ms/step | 239M tok
+iter  20700 | loss 4.2114 | lr 9.10e-05 | grad 1.07 | 12297ms/step | 242M tok
+iter  20750 | loss 4.2111 | lr 9.04e-05 | grad 0.94 | 12295ms/step | 246M tok
+iter  20800 | loss 4.2093 | lr 8.98e-05 | grad 0.95 | 12293ms/step | 249M tok
+iter  20850 | loss 4.2056 | lr 8.92e-05 | grad 17.44 | 12292ms/step | 252M tok
+iter  20900 | loss 4.2048 | lr 8.86e-05 | grad 0.75 | 12290ms/step | 256M tok
+iter  20950 | loss 4.2129 | lr 8.80e-05 | grad 0.74 | 12289ms/step | 259M tok
+iter  21000 | loss 4.1988 | lr 8.74e-05 | grad 1.10 | 12288ms/step | 262M tok
+============================================================
+[13.7h, iter 21000] Train: 4.1293 | Val: 4.1567 | BPB: 5.997 | Best BPB: 5.997 | Gap: -0.027 >>> BEST!
+  Thought gates: [0.5, 0.288, 0.277, 0.5]
+  Mass proj norm: 24.1636
+============================================================
+iter  21050 | loss 4.2044 | lr 8.68e-05 | grad 0.73 | 12294ms/step | 265M tok
+iter  21100 | loss 4.2741 | lr 8.62e-05 | grad 13.80 | 12292ms/step | 269M tok
+iter  21150 | loss 4.2011 | lr 8.56e-05 | grad 1.28 | 12290ms/step | 272M tok
+iter  21200 | loss 4.2055 | lr 8.51e-05 | grad 0.77 | 12289ms/step | 275M tok
+iter  21250 | loss 4.2041 | lr 8.45e-05 | grad 0.87 | 12287ms/step | 279M tok
+iter  21300 | loss 4.1997 | lr 8.39e-05 | grad 0.91 | 12285ms/step | 282M tok
+iter  21350 | loss 4.1913 | lr 8.33e-05 | grad 0.86 | 12283ms/step | 285M tok
+iter  21400 | loss 4.2006 | lr 8.28e-05 | grad 0.86 | 12283ms/step | 288M tok
+iter  21450 | loss 4.1968 | lr 8.22e-05 | grad 0.75 | 12288ms/step | 292M tok
+iter  21500 | loss 4.1987 | lr 8.16e-05 | grad 0.99 | 12292ms/step | 295M tok
+============================================================
+[15.4h, iter 21500] Train: 4.1503 | Val: 4.1396 | BPB: 5.973 | Best BPB: 5.973 | Gap: 0.011 >>> BEST!
+  Thought gates: [0.5, 0.287, 0.276, 0.5]
+  Mass proj norm: 24.2294
+============================================================
+iter  21550 | loss 5.0582 | lr 8.11e-05 | grad 2.50 | 12309ms/step | 298M tok
+iter  21600 | loss 4.2022 | lr 8.05e-05 | grad 0.86 | 12313ms/step | 301M tok
+iter  21650 | loss 4.1972 | lr 7.99e-05 | grad 1.09 | 12317ms/step | 305M tok
+iter  21700 | loss 4.2015 | lr 7.94e-05 | grad 1.80 | 12321ms/step | 308M tok
+iter  21750 | loss 4.1885 | lr 7.88e-05 | grad 0.97 | 12324ms/step | 311M tok
+iter  21800 | loss 4.1946 | lr 7.83e-05 | grad 1.05 | 12328ms/step | 315M tok
+iter  21850 | loss 4.1917 | lr 7.77e-05 | grad 1.53 | 12331ms/step | 318M tok
+iter  21900 | loss 4.1912 | lr 7.72e-05 | grad 1.50 | 12334ms/step | 321M tok
+iter  21950 | loss 4.1920 | lr 7.66e-05 | grad 1.12 | 12337ms/step | 324M tok
+iter  22000 | loss 4.8252 | lr 7.61e-05 | grad 17.77 | 12340ms/step | 328M tok
+============================================================
+[17.1h, iter 22000] Train: 6.2973 | Val: 6.2919 | BPB: 9.078 | Best BPB: 5.973 | Gap: 0.005 
+  Thought gates: [0.5, 0.287, 0.276, 0.5]
+  Mass proj norm: 24.2817
+============================================================
+
+--- Generation samples (iter 22000) ---
+  [The capital of France is]: 'The capital of France is a world-renowned and popular history. And while the current version of the German empire is considered to be the greatest contribution in that it was founded in 19472 (the cur'
+  [Machine learning is a field of]: 'Machine learning is a field of communication, which is a learning center of a field.'
+  [In the year 2050, humanity]: 'In the year 2050, humanity had been a great success in the global economy, the world has ever experienced. There were two levels of the 20th century. These developments have led to a “following” econo'
+  [The meaning of life is]: 'The meaning of life is to be understood by God for the children of Israel by the people on earth from their own land, and through that city. The word of God was born in a country which has been descri'
+---
+iter  22050 | loss 4.2757 | lr 7.56e-05 | grad 0.76 | 12350ms/step | 331M tok
+iter  22100 | loss 4.1889 | lr 7.50e-05 | grad 0.85 | 12352ms/step | 334M tok
+iter  22150 | loss 4.1784 | lr 7.45e-05 | grad 0.89 | 12355ms/step | 338M tok
+iter  22200 | loss 4.4887 | lr 7.40e-05 | grad 1.05 | 12358ms/step | 341M tok
+iter  22250 | loss 4.1870 | lr 7.34e-05 | grad 1.29 | 12361ms/step | 344M tok
+iter  22300 | loss 4.1932 | lr 7.29e-05 | grad 1.51 | 12363ms/step | 347M tok
+iter  22350 | loss 4.2032 | lr 7.24e-05 | grad 0.92 | 12366ms/step | 351M tok
+iter  22400 | loss 4.1879 | lr 7.19e-05 | grad 1.10 | 12368ms/step | 354M tok
+iter  22450 | loss 4.1793 | lr 7.13e-05 | grad 2.92 | 12371ms/step | 357M tok
+iter  22500 | loss 4.1778 | lr 7.08e-05 | grad 1.32 | 12373ms/step | 360M tok
+============================================================
+[18.9h, iter 22500] Train: 4.1220 | Val: 4.1256 | BPB: 5.952 | Best BPB: 5.952 | Gap: -0.004 >>> BEST!
+  Thought gates: [0.5, 0.286, 0.275, 0.5]
+  Mass proj norm: 24.3262
+============================================================
+iter  22550 | loss 4.1836 | lr 7.03e-05 | grad 0.99 | 12381ms/step | 364M tok
+iter  22600 | loss 4.1743 | lr 6.98e-05 | grad 0.99 | 12383ms/step | 367M tok
+iter  22650 | loss 4.1783 | lr 6.93e-05 | grad 1.63 | 12385ms/step | 370M tok
+iter  22700 | loss 4.1818 | lr 6.88e-05 | grad 0.96 | 12387ms/step | 374M tok
+iter  22750 | loss 4.6939 | lr 6.83e-05 | grad 0.99 | 12388ms/step | 377M tok
+iter  22800 | loss 4.1751 | lr 6.78e-05 | grad 0.82 | 12390ms/step | 380M tok
+iter  22850 | loss 4.1777 | lr 6.73e-05 | grad 1.26 | 12392ms/step | 383M tok
+iter  22900 | loss 4.1743 | lr 6.68e-05 | grad 0.85 | 12394ms/step | 387M tok
+iter  22950 | loss 4.1780 | lr 6.63e-05 | grad 1.03 | 12392ms/step | 390M tok
+iter  23000 | loss 4.1765 | lr 6.58e-05 | grad 0.97 | 12390ms/step | 393M tok
+============================================================
+[20.7h, iter 23000] Train: 4.0965 | Val: 4.0905 | BPB: 5.902 | Best BPB: 5.902 | Gap: 0.006 >>> BEST!
+  Thought gates: [0.5, 0.286, 0.275, 0.5]
+  Mass proj norm: 24.3709
+============================================================
+iter  23050 | loss 4.1712 | lr 6.53e-05 | grad 0.81 | 12393ms/step | 396M tok
+iter  23100 | loss 4.1678 | lr 6.48e-05 | grad 0.72 | 12391ms/step | 400M tok
+iter  23150 | loss 4.1686 | lr 6.44e-05 | grad 1.03 | 12389ms/step | 403M tok
+iter  23200 | loss 4.1650 | lr 6.39e-05 | grad 2.41 | 12387ms/step | 406M tok
+iter  23250 | loss 4.1595 | lr 6.34e-05 | grad 0.86 | 12385ms/step | 410M tok
+iter  23300 | loss 4.1677 | lr 6.29e-05 | grad 1.15 | 12383ms/step | 413M tok
+iter  23350 | loss 4.1701 | lr 6.25e-05 | grad 0.83 | 12381ms/step | 416M tok
+iter  23400 | loss 4.1599 | lr 6.20e-05 | grad 0.75 | 12379ms/step | 419M tok
+iter  23450 | loss 4.1671 | lr 6.15e-05 | grad 0.80 | 12377ms/step | 423M tok
+iter  23500 | loss 4.1705 | lr 6.11e-05 | grad 3.93 | 12376ms/step | 426M tok
+============================================================
+[22.4h, iter 23500] Train: 4.1230 | Val: 4.1445 | BPB: 5.980 | Best BPB: 5.902 | Gap: -0.022 
+  Thought gates: [0.5, 0.286, 0.274, 0.5]
+  Mass proj norm: 24.4108
+============================================================
+iter  23550 | loss 4.1963 | lr 6.06e-05 | grad 1.31 | 12378ms/step | 429M tok
+iter  23600 | loss 4.3763 | lr 6.02e-05 | grad 1.67 | 12376ms/step | 433M tok
+iter  23650 | loss 4.1776 | lr 5.97e-05 | grad 1.25 | 12374ms/step | 436M tok
+iter  23700 | loss 4.1691 | lr 5.93e-05 | grad 1.06 | 12372ms/step | 439M tok
+iter  23750 | loss 4.1559 | lr 5.88e-05 | grad 0.96 | 12370ms/step | 442M tok
+iter  23800 | loss 4.1709 | lr 5.84e-05 | grad 0.81 | 12368ms/step | 446M tok
+iter  23850 | loss 4.1577 | lr 5.79e-05 | grad 1.23 | 12367ms/step | 449M tok
+iter  23900 | loss 4.1512 | lr 5.75e-05 | grad 0.93 | 12366ms/step | 452M tok
+iter  23950 | loss 4.1613 | lr 5.71e-05 | grad 0.96 | 12369ms/step | 455M tok
+============================================================
+[0.0h, iter 23000] Train: 4.0827 | Val: 4.1086 | BPB: 5.928 | Best BPB: 5.902 | Gap: -0.026 
+  Thought gates: [0.5, 0.286, 0.275, 0.5]
+  Mass proj norm: 24.3708
+============================================================
+iter  23050 | loss 4.1735 | lr 6.53e-05 | grad 0.79 | 13984ms/step | 3M tok
+iter  23100 | loss 4.1682 | lr 6.48e-05 | grad 0.87 | 13397ms/step | 7M tok
+iter  23150 | loss 4.1763 | lr 6.44e-05 | grad 0.87 | 13248ms/step | 10M tok
+iter  23200 | loss 4.1677 | lr 6.39e-05 | grad 0.90 | 13174ms/step | 13M tok
+iter  23250 | loss 4.1542 | lr 6.34e-05 | grad 0.96 | 13128ms/step | 16M tok
+iter  23300 | loss 4.1652 | lr 6.29e-05 | grad 2.61 | 13099ms/step | 20M tok
+iter  23350 | loss 4.1712 | lr 6.25e-05 | grad 0.90 | 13077ms/step | 23M tok
+iter  23400 | loss 4.1647 | lr 6.20e-05 | grad 0.73 | 13060ms/step | 26M tok
+iter  23450 | loss 4.1745 | lr 6.15e-05 | grad 20.20 | 13048ms/step | 29M tok
+iter  23500 | loss 4.7054 | lr 6.11e-05 | grad 0.83 | 13037ms/step | 33M tok
+============================================================
+[1.8h, iter 23500] Train: 4.1128 | Val: 4.1564 | BPB: 5.997 | Best BPB: 5.902 | Gap: -0.044 
+  Thought gates: [0.5, 0.286, 0.274, 0.5]
+  Mass proj norm: 24.4047
+============================================================
+iter  23550 | loss 4.1644 | lr 6.06e-05 | grad 1.51 | 13081ms/step | 36M tok
+iter  23600 | loss 4.1664 | lr 6.02e-05 | grad 0.99 | 13070ms/step | 39M tok
+iter  23650 | loss 4.1709 | lr 5.97e-05 | grad 0.94 | 13062ms/step | 43M tok
+iter  23700 | loss 4.1544 | lr 5.93e-05 | grad 3.64 | 13039ms/step | 46M tok
+iter  23750 | loss 4.1574 | lr 5.88e-05 | grad 0.77 | 12978ms/step | 49M tok
+iter  23800 | loss 4.1597 | lr 5.84e-05 | grad 1.42 | 12924ms/step | 52M tok
+iter  23850 | loss 4.1613 | lr 5.79e-05 | grad 0.85 | 12877ms/step | 56M tok
+iter  23900 | loss 4.1545 | lr 5.75e-05 | grad 1.29 | 12835ms/step | 59M tok
+iter  23950 | loss 4.1550 | lr 5.71e-05 | grad 0.80 | 12797ms/step | 62M tok
+iter  24000 | loss 4.1662 | lr 5.66e-05 | grad 0.81 | 12766ms/step | 66M tok
+============================================================
+[3.6h, iter 24000] Train: 4.0725 | Val: 4.1087 | BPB: 5.928 | Best BPB: 5.902 | Gap: -0.036 
+  Thought gates: [0.5, 0.285, 0.274, 0.5]
+  Mass proj norm: 24.4428
+============================================================
+
+--- Generation samples (iter 24000) ---
+  [The capital of France is]: 'The capital of France is one of the largest cities in New York and has been a major port city for development projects. At the other end, it is also home to several smaller towns each day. The capital'
+  [Machine learning is a field of]: 'Machine learning is a field of study how students learn to recognize and appreciate the different experiences of learners who are interested in learning through various classes. The teacher is also an'
+  [In the year 2050, humanity]: 'In the year 2050, humanity’s most powerful civil society. It was the great-greatness that made it hard for us to imagine a world of peace and security, in 1845, at the time this time had started.'
+  [The meaning of life is]: 'The meaning of life is to be a very simple and easy life that could only come from someone in the middle. It means that people who are not actually members of society because they live at all times, b'
+---
+iter  24050 | loss 4.1541 | lr 5.62e-05 | grad 0.97 | 12770ms/step | 69M tok
+iter  24100 | loss 4.1602 | lr 5.58e-05 | grad 0.91 | 12742ms/step | 72M tok
+iter  24150 | loss 4.1610 | lr 5.54e-05 | grad 0.96 | 12717ms/step | 75M tok
+iter  24200 | loss 4.1476 | lr 5.49e-05 | grad 1.35 | 12694ms/step | 79M tok
+iter  24250 | loss 4.1634 | lr 5.45e-05 | grad 1.05 | 12673ms/step | 82M tok
+iter  24300 | loss 4.1544 | lr 5.41e-05 | grad 0.95 | 12653ms/step | 85M tok
+iter  24350 | loss 4.1508 | lr 5.37e-05 | grad 1.33 | 12635ms/step | 88M tok
+iter  24400 | loss 4.1550 | lr 5.33e-05 | grad 0.81 | 12621ms/step | 92M tok
+iter  24450 | loss 4.1569 | lr 5.29e-05 | grad 1.06 | 12605ms/step | 95M tok
+iter  24500 | loss 4.1702 | lr 5.25e-05 | grad 9.59 | 12590ms/step | 98M tok
+============================================================
+[5.3h, iter 24500] Train: 4.1500 | Val: 4.1295 | BPB: 5.958 | Best BPB: 5.902 | Gap: 0.021 
+  Thought gates: [0.5, 0.285, 0.274, 0.5]
+  Mass proj norm: 24.4858
+============================================================
+iter  24550 | loss 4.1711 | lr 5.21e-05 | grad 1.29 | 12593ms/step | 102M tok
+iter  24600 | loss 4.1554 | lr 5.17e-05 | grad 0.79 | 12579ms/step | 105M tok
+iter  24650 | loss 4.1521 | lr 5.13e-05 | grad 1.08 | 12566ms/step | 108M tok
+iter  24700 | loss 4.1480 | lr 5.09e-05 | grad 1.74 | 12553ms/step | 111M tok
+iter  24750 | loss 4.1537 | lr 5.06e-05 | grad 17.91 | 12542ms/step | 115M tok
+iter  24800 | loss 4.1554 | lr 5.02e-05 | grad 0.99 | 12531ms/step | 118M tok
+iter  24850 | loss 4.1529 | lr 4.98e-05 | grad 6.88 | 12520ms/step | 121M tok
+iter  24900 | loss 4.1408 | lr 4.94e-05 | grad 0.90 | 12511ms/step | 125M tok
+iter  24950 | loss 4.6338 | lr 4.91e-05 | grad 0.82 | 12501ms/step | 128M tok
+iter  25000 | loss 4.1477 | lr 4.87e-05 | grad 1.06 | 12492ms/step | 131M tok
+============================================================
+[6.9h, iter 25000] Train: 4.0273 | Val: 4.0978 | BPB: 5.912 | Best BPB: 5.902 | Gap: -0.070 
+  Thought gates: [0.5, 0.285, 0.274, 0.5]
+  Mass proj norm: 24.5150
+============================================================
+iter  25050 | loss 4.4650 | lr 4.83e-05 | grad 29.97 | 12497ms/step | 134M tok
+iter  25100 | loss 5.0526 | lr 4.80e-05 | grad 281.77 | 12488ms/step | 138M tok
+iter  25150 | loss 4.2020 | lr 4.76e-05 | grad 0.80 | 12480ms/step | 141M tok
+iter  25200 | loss 4.1495 | lr 4.73e-05 | grad 0.92 | 12472ms/step | 144M tok
+iter  25250 | loss 4.1448 | lr 4.69e-05 | grad 1.99 | 12464ms/step | 147M tok
+iter  25300 | loss 4.1547 | lr 4.66e-05 | grad 0.99 | 12458ms/step | 151M tok
+iter  25350 | loss 4.1385 | lr 4.62e-05 | grad 0.86 | 12451ms/step | 154M tok
+iter  25400 | loss 4.1499 | lr 4.59e-05 | grad 0.78 | 12445ms/step | 157M tok
+iter  25450 | loss 4.1448 | lr 4.55e-05 | grad 1.02 | 12438ms/step | 161M tok
+iter  25500 | loss 4.1388 | lr 4.52e-05 | grad 0.93 | 12433ms/step | 164M tok
+============================================================
+[8.6h, iter 25500] Train: 4.0249 | Val: 4.0733 | BPB: 5.877 | Best BPB: 5.877 | Gap: -0.048 >>> BEST!
+  Thought gates: [0.5, 0.285, 0.274, 0.5]
+  Mass proj norm: 24.5408
+============================================================
+iter  25550 | loss 4.3254 | lr 4.49e-05 | grad 16.83 | 12439ms/step | 167M tok
+iter  25600 | loss 4.2559 | lr 4.46e-05 | grad 0.74 | 12434ms/step | 170M tok
+iter  25650 | loss 4.1307 | lr 4.42e-05 | grad 1.69 | 12429ms/step | 174M tok
+iter  25700 | loss 4.1342 | lr 4.39e-05 | grad 1.53 | 12423ms/step | 177M tok
+iter  25750 | loss 4.1304 | lr 4.36e-05 | grad 1.53 | 12418ms/step | 180M tok
+iter  25800 | loss 4.1372 | lr 4.33e-05 | grad 0.81 | 12413ms/step | 184M tok
+iter  25850 | loss 4.1363 | lr 4.30e-05 | grad 0.95 | 12408ms/step | 187M tok
+iter  25900 | loss 4.1443 | lr 4.27e-05 | grad 17.42 | 12403ms/step | 190M tok
+iter  25950 | loss 4.1337 | lr 4.24e-05 | grad 1.13 | 12399ms/step | 193M tok
+iter  26000 | loss 4.1259 | lr 4.21e-05 | grad 0.80 | 12394ms/step | 197M tok
+============================================================
+[10.3h, iter 26000] Train: 4.0404 | Val: 4.0769 | BPB: 5.882 | Best BPB: 5.877 | Gap: -0.036 
+  Thought gates: [0.5, 0.285, 0.274, 0.5]
+  Mass proj norm: 24.5665
+============================================================
+
+--- Generation samples (iter 26000) ---
+  [The capital of France is]: 'The capital of France is a country who developed the capital of its capital in 1387. In the following year, he founded a small kingdom and established an independent colony for many years until his de'
+  [Machine learning is a field of]: 'Machine learning is a field of education in the field of research. I am going to ask for an easy, learning experience about the field, and how we can tell stories which are you using your own? - How d'
+  [In the year 2050, humanity]: 'In the year 2050, humanity's role in the creation of the creation of modern society. The concept of man is "poor," yet he has a very different purpose and meaning: - What do you think? Why not?" How d'
+  [The meaning of life is]: 'The meaning of life is as follows: - The feeling of the way of life is so special, and we can also have a sense of what it means. Some people don't want to make up some kind of socialisation because t'
+---
+iter  26050 | loss 4.1347 | lr 4.18e-05 | grad 0.72 | 12401ms/step | 200M tok
+iter  26100 | loss 4.1266 | lr 4.15e-05 | grad 0.75 | 12396ms/step | 203M tok
+iter  26150 | loss 4.1302 | lr 4.12e-05 | grad 0.70 | 12392ms/step | 206M tok
+iter  26200 | loss 4.1321 | lr 4.09e-05 | grad 0.86 | 12387ms/step | 210M tok
+iter  26250 | loss 4.2709 | lr 4.06e-05 | grad 0.85 | 12383ms/step | 213M tok
+iter  26300 | loss 4.1291 | lr 4.03e-05 | grad 0.84 | 12379ms/step | 216M tok
+iter  26350 | loss 4.1275 | lr 4.01e-05 | grad 0.77 | 12375ms/step | 220M tok
+iter  26400 | loss 4.1313 | lr 3.98e-05 | grad 0.75 | 12371ms/step | 223M tok
+iter  26450 | loss 4.1194 | lr 3.95e-05 | grad 1.11 | 12376ms/step | 226M tok
+iter  26500 | loss 4.1304 | lr 3.93e-05 | grad 0.83 | 12377ms/step | 229M tok
+============================================================
+[12.0h, iter 26500] Train: 4.0601 | Val: 4.0609 | BPB: 5.859 | Best BPB: 5.859 | Gap: -0.001 >>> BEST!
+  Thought gates: [0.5, 0.285, 0.273, 0.5]
+  Mass proj norm: 24.5891
+============================================================
+iter  26550 | loss 4.1228 | lr 3.90e-05 | grad 0.84 | 12383ms/step | 233M tok
+iter  26600 | loss 4.1320 | lr 3.88e-05 | grad 0.92 | 12380ms/step | 236M tok
+iter  26650 | loss 4.1344 | lr 3.85e-05 | grad 1.08 | 12376ms/step | 239M tok
+iter  26700 | loss 4.2552 | lr 3.83e-05 | grad 21.12 | 12373ms/step | 242M tok
+iter  26750 | loss 4.1222 | lr 3.80e-05 | grad 0.84 | 12370ms/step | 246M tok
+iter  26800 | loss 4.1204 | lr 3.78e-05 | grad 0.83 | 12367ms/step | 249M tok
+iter  26850 | loss 4.1351 | lr 3.75e-05 | grad 0.80 | 12363ms/step | 252M tok
+iter  26900 | loss 4.2358 | lr 3.73e-05 | grad 0.79 | 12360ms/step | 256M tok
+iter  26950 | loss 4.2570 | lr 3.71e-05 | grad 1.56 | 12357ms/step | 259M tok
+iter  27000 | loss 4.1953 | lr 3.68e-05 | grad 0.76 | 12354ms/step | 262M tok
+============================================================
+[13.7h, iter 27000] Train: 4.0260 | Val: 4.0365 | BPB: 5.824 | Best BPB: 5.824 | Gap: -0.010 >>> BEST!
+  Thought gates: [0.5, 0.285, 0.273, 0.5]
+  Mass proj norm: 24.6114
+============================================================
+iter  27050 | loss 4.1236 | lr 3.66e-05 | grad 0.76 | 12359ms/step | 265M tok
+iter  27100 | loss 4.1129 | lr 3.64e-05 | grad 0.85 | 12357ms/step | 269M tok
+iter  27150 | loss 4.1262 | lr 3.62e-05 | grad 0.79 | 12354ms/step | 272M tok
+iter  27200 | loss 4.1283 | lr 3.60e-05 | grad 0.82 | 12351ms/step | 275M tok
+iter  27250 | loss 4.1208 | lr 3.57e-05 | grad 0.78 | 12349ms/step | 279M tok
+iter  27300 | loss 4.1501 | lr 3.55e-05 | grad 18.69 | 12346ms/step | 282M tok
+iter  27350 | loss 4.1360 | lr 3.53e-05 | grad 0.75 | 12343ms/step | 285M tok
+iter  27400 | loss 4.4373 | lr 3.51e-05 | grad 0.79 | 12341ms/step | 288M tok
+iter  27450 | loss 4.1203 | lr 3.49e-05 | grad 0.79 | 12339ms/step | 292M tok
+iter  27500 | loss 4.1175 | lr 3.48e-05 | grad 0.79 | 12336ms/step | 295M tok
+============================================================
+[15.4h, iter 27500] Train: 4.0480 | Val: 4.0544 | BPB: 5.850 | Best BPB: 5.824 | Gap: -0.006 
+  Thought gates: [0.5, 0.284, 0.273, 0.5]
+  Mass proj norm: 24.6313
+============================================================
+iter  27550 | loss 4.1204 | lr 3.46e-05 | grad 0.84 | 12340ms/step | 298M tok
+iter  27600 | loss 4.1256 | lr 3.44e-05 | grad 0.82 | 12338ms/step | 301M tok
+iter  27650 | loss 4.1222 | lr 3.42e-05 | grad 10.48 | 12335ms/step | 305M tok
+iter  27700 | loss 4.1183 | lr 3.40e-05 | grad 0.77 | 12333ms/step | 308M tok
+iter  27750 | loss 4.1060 | lr 3.39e-05 | grad 0.92 | 12331ms/step | 311M tok
+iter  27800 | loss 4.1144 | lr 3.37e-05 | grad 0.87 | 12329ms/step | 315M tok
+iter  27850 | loss 4.1187 | lr 3.35e-05 | grad 0.82 | 12327ms/step | 318M tok
+iter  27900 | loss 4.1148 | lr 3.34e-05 | grad 0.79 | 12327ms/step | 321M tok
+iter  27950 | loss 4.1233 | lr 3.32e-05 | grad 0.85 | 12327ms/step | 324M tok
+iter  28000 | loss 4.1120 | lr 3.31e-05 | grad 0.88 | 12328ms/step | 328M tok
+============================================================
+[17.1h, iter 28000] Train: 4.0497 | Val: 4.0218 | BPB: 5.803 | Best BPB: 5.803 | Gap: 0.028 >>> BEST!
+  Thought gates: [0.5, 0.284, 0.273, 0.5]
+  Mass proj norm: 24.6514
+============================================================
+
+--- Generation samples (iter 28000) ---
+  [The capital of France is]: 'The capital of France is a country in the whole of France and is characterized by Germany. The capital was divided into ten states: the Holy See is also the "King of England". A number of provinces fr'
+  [Machine learning is a field of]: 'Machine learning is a field of learning. This allows the user of a web-based model to make them better understood and more accurate as it can be, in practice. With this learning experience with the le'
+  [In the year 2050, humanity]: 'In the year 2050, humanity has not yet passed since the creation of “the most powerful” state, that is an idea. There are no real examples in Africa and many of us find more humankind than to be able '
+  [The meaning of life is]: 'The meaning of life is as much the same, or the word that comes with its own way of life. The word “final” is used to describe a particular meaning, and what makes it, but not the same thing can be sa'
+---
+iter  28050 | loss 4.1131 | lr 3.29e-05 | grad 0.96 | 12336ms/step | 331M tok
+iter  28100 | loss 4.1137 | lr 3.28e-05 | grad 0.96 | 12335ms/step | 334M tok
+iter  28150 | loss 4.2192 | lr 3.26e-05 | grad 21.53 | 12334ms/step | 338M tok
+iter  28200 | loss 4.4996 | lr 3.25e-05 | grad 0.75 | 12334ms/step | 341M tok
+iter  28250 | loss 4.1159 | lr 3.23e-05 | grad 0.82 | 12333ms/step | 344M tok
+iter  28300 | loss 4.1154 | lr 3.22e-05 | grad 0.76 | 12334ms/step | 347M tok
+iter  28350 | loss 4.1177 | lr 3.21e-05 | grad 0.76 | 12335ms/step | 351M tok
+iter  28400 | loss 4.1153 | lr 3.20e-05 | grad 0.80 | 12340ms/step | 354M tok
+iter  28450 | loss 4.1176 | lr 3.18e-05 | grad 0.81 | 12347ms/step | 357M tok
+iter  28500 | loss 4.1096 | lr 3.17e-05 | grad 0.78 | 12353ms/step | 360M tok
+============================================================
+[18.9h, iter 28500] Train: 4.0020 | Val: 4.0335 | BPB: 5.819 | Best BPB: 5.803 | Gap: -0.031 
+  Thought gates: [0.5, 0.284, 0.272, 0.5]
+  Mass proj norm: 24.6693
+============================================================
+iter  28550 | loss 4.1079 | lr 3.16e-05 | grad 1.00 | 12364ms/step | 364M tok
+iter  28600 | loss 4.1079 | lr 3.15e-05 | grad 0.79 | 12370ms/step | 367M tok
+iter  28650 | loss 4.1183 | lr 3.14e-05 | grad 0.91 | 12377ms/step | 370M tok
+iter  28700 | loss 4.1028 | lr 3.13e-05 | grad 0.93 | 12384ms/step | 374M tok
+iter  28750 | loss 4.1378 | lr 3.12e-05 | grad 28.32 | 12390ms/step | 377M tok
+iter  28800 | loss 4.2088 | lr 3.11e-05 | grad 0.77 | 12396ms/step | 380M tok
+iter  28850 | loss 4.1131 | lr 3.10e-05 | grad 0.96 | 12401ms/step | 383M tok
+iter  28900 | loss 4.1061 | lr 3.09e-05 | grad 0.82 | 12407ms/step | 387M tok
+iter  28950 | loss 4.1081 | lr 3.08e-05 | grad 0.79 | 12409ms/step | 390M tok
+iter  29000 | loss 4.1742 | lr 3.08e-05 | grad 0.83 | 12407ms/step | 393M tok
+============================================================
+[20.7h, iter 29000] Train: 4.0230 | Val: 4.0564 | BPB: 5.852 | Best BPB: 5.803 | Gap: -0.033 
+  Thought gates: [0.5, 0.284, 0.272, 0.5]
+  Mass proj norm: 24.6854
+============================================================
+iter  29050 | loss 4.1050 | lr 3.07e-05 | grad 0.81 | 12410ms/step | 396M tok
+iter  29100 | loss 4.1089 | lr 3.06e-05 | grad 0.75 | 12408ms/step | 400M tok
+iter  29150 | loss 4.1130 | lr 3.06e-05 | grad 0.84 | 12406ms/step | 403M tok
+iter  29200 | loss 4.1089 | lr 3.05e-05 | grad 0.81 | 12405ms/step | 406M tok
+iter  29250 | loss 4.1012 | lr 3.04e-05 | grad 0.76 | 12404ms/step | 410M tok
+iter  29300 | loss 4.1063 | lr 3.04e-05 | grad 0.84 | 12402ms/step | 413M tok
+iter  29350 | loss 4.1065 | lr 3.03e-05 | grad 0.83 | 12401ms/step | 416M tok
+iter  29400 | loss 4.1095 | lr 3.03e-05 | grad 0.72 | 12400ms/step | 419M tok
+iter  29450 | loss 4.1047 | lr 3.02e-05 | grad 0.88 | 12398ms/step | 423M tok
+iter  29500 | loss 4.1029 | lr 3.02e-05 | grad 1.10 | 12397ms/step | 426M tok
+============================================================
+[22.4h, iter 29500] Train: 4.0277 | Val: 4.0901 | BPB: 5.901 | Best BPB: 5.803 | Gap: -0.062 
+  Thought gates: [0.5, 0.284, 0.272, 0.5]
+  Mass proj norm: 24.7013
+============================================================
+iter  29550 | loss 4.1092 | lr 3.02e-05 | grad 0.74 | 12400ms/step | 429M tok
+iter  29600 | loss 4.0933 | lr 3.01e-05 | grad 0.88 | 12399ms/step | 433M tok
+iter  29650 | loss 4.1082 | lr 3.01e-05 | grad 0.78 | 12398ms/step | 436M tok
+iter  29700 | loss 4.1115 | lr 3.01e-05 | grad 1.20 | 12397ms/step | 439M tok
+iter  29750 | loss 4.0975 | lr 3.00e-05 | grad 0.71 | 12395ms/step | 442M tok
+iter  29800 | loss 4.0988 | lr 3.00e-05 | grad 1.42 | 12394ms/step | 446M tok
+iter  29850 | loss 4.1002 | lr 3.00e-05 | grad 1.44 | 12393ms/step | 449M tok
+iter  29900 | loss 4.0994 | lr 3.00e-05 | grad 0.75 | 12391ms/step | 452M tok
+iter  29950 | loss 4.1027 | lr 3.00e-05 | grad 0.80 | 12390ms/step | 455M tok

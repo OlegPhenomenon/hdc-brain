@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 12 — HDC Memory — как модель помнит прошлое | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item active">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция IV</span> /
+        <span>Глава 12</span>
+      </div>
+      <div class="topbar-progress">
+        <span>12 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 47%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция IV</span>
+        <span class="chapter-number">Глава 12</span>
+      </div>
+
+      <h1 class="chapter-title">HDC Memory — как модель помнит прошлое</h1>
+      <p class="chapter-subtitle"></p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<p>Ира — архивариус в библиотеке.</p>
+
+<p>К ней приходят люди и просят помощи: "Ищу книгу про французскую революцию".</p>
+
+<p>Ира умная. Она не просто смотрит последнюю книгу что принесли — она помнит <strong>весь архив</strong>. Но помнит по-разному.</p>
+
+<p>Книгу которую принесли вчера — помнит отлично. Книгу из 1990 года — помнит хуже. А книга про котов из 1975 года — вообще неважна для запроса про революцию.</p>
+
+<p>У Иры два фильтра:</p>
+
+<ol>
+<li><strong>Насколько давно</strong> (время влияет на память — новее = лучше помним)</li>
+<li><strong>Насколько важно</strong> (содержание: книга про Францию важнее книги про котов)</li>
+</ol>
+
+<hr class="chapter-divider" />
+
+<h3>Проблема без памяти</h3>
+
+<p>После кодбука (глава 11) мы имеем матрицу векторов:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Строка 0: [вектор "The"]
+Строка 1: [вектор "capital"]
+Строка 2: [вектор "of"]
+Строка 3: [вектор "France"]
+Строка 4: [вектор "is"]</code>
+</pre>
+
+<p>Каждый вектор — в <strong>полной изоляции</strong>. Токен "is" на позиции 4 понятия не имеет что было на позициях 0-3.</p>
+
+<p>Но чтобы предсказать что идёт после "is" — нужно помнить "France" и "capital". Иначе это "the [что-то] of France is" может быть чем угодно.</p>
+
+<p>Нужна <strong>память</strong> — механизм который даёт каждому токену доступ к прошлым.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Простейшая идея: просто сложить все прошлые токены</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Для токена на позиции t:
+# context[t] = token[0] + token[1] + ... + token[t]
+
+context = torch.cumsum(tokens, dim=1)  # накапливаем суммы</code>
+</pre>
+
+<p>Это работает? Немного. Проблема: "the" и "France" получают <strong>одинаковый вес</strong>. Но "France" несёт намного больше информации для предсказания "Paris".</p>
+
+<p>Нужна взвешенная память. Важные токены — больший вклад. Старые токены — меньший.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Mass: насколько ты важен?</h3>
+
+<p>Первый компонент HDCMemory — <strong>масса</strong> (mass).</p>
+
+<p>Для каждого токена вычисляем число от 0 до 1: насколько этот токен "весомый"?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Один обучаемый линейный слой: 4096 чисел → 1 число
+self.mass_proj = nn.Linear(hdc_dim, 1, bias=False)
+
+# В forward:
+mass = torch.sigmoid(self.mass_proj(tokens))  # (B, T, 1)
+# sigmoid превращает любое число в диапазон [0, 1]</code>
+</pre>
+
+<p><code>sigmoid</code> — это S-образная функция:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">sigmoid(-5) ≈ 0.01  (почти 0)
+sigmoid( 0) = 0.50  (ровно половина)
+sigmoid(+5) ≈ 0.99  (почти 1)</code>
+</pre>
+
+<p>Модель сама учится присваивать массу:</p>
+
+<ul>
+<li>"the" → mass ≈ 0.03 (артикль, мало информации)</li>
+<li>"France" → mass ≈ 0.92 (существительное, несёт смысл)</li>
+<li>"capital" → mass ≈ 0.85 (тоже важное)</li>
+</ul>
+
+<p>Это обучается автоматически через backpropagation.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Decay: ты помнишь хуже то что давно</h3>
+
+<p>Второй компонент — <strong>затухание</strong> (decay).</p>
+
+<p>Даже важные токены со временем "тускнеют". Слово из 5 позиций назад менее важно чем слово из вчера.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Ещё один обучаемый линейный слой
+self.decay_proj = nn.Linear(hdc_dim, 1, bias=False)
+
+# В forward:
+decay = torch.sigmoid(self.decay_proj(tokens))  # (B, T, 1)
+# decay ≈ 0.0 → этот токен быстро забудется
+# decay ≈ 1.0 → этот токен запомнится надолго</code>
+</pre>
+
+<p>Снова: модель сама решает. Токен "France" может получить высокий decay (долго помним) и высокую mass (сильно весомый). Токен "the" — низкий decay (быстро забываем) и низкую mass.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Как decay работает через время</h3>
+
+<p>Представим три токена: "The" (pos=0), "capital" (pos=1), "France" (pos=2).</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">decay[0] = 0.9   (для "The")
+decay[1] = 0.8   (для "capital")
+decay[2] = 0.95  (для "France")</code>
+</pre>
+
+<p>Когда мы на позиции 4 смотрим на прошлые токены:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Сила токена 0 ("The"):     decay[0] × decay[1] × decay[2] × decay[3] = 0.9 × 0.8 × 0.95 × ...
+Сила токена 1 ("capital"): decay[1] × decay[2] × decay[3] = 0.8 × 0.95 × ...
+Сила токена 2 ("France"):  decay[2] × decay[3] = 0.95 × ...</code>
+</pre>
+
+<p>Чем дальше токен — тем больше decay-множителей перемножено — тем слабее сигнал.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Накопленная память через cumsum</h3>
+
+<p>Теперь как это эффективно посчитать?</p>
+
+<p>Для каждой позиции нужна сумма всех предыдущих токенов с правильными весами:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">context[t] = Σ (накопленный_decay[i→t] × mass[i] × token[i])
+             i≤t</code>
+</pre>
+
+<p>Наивно — это вложенный цикл O(T²). Для T=512 — медленно.</p>
+
+<p>Решение: логарифмическое пространство + cumsum (накопительная сумма):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># log(a × b × c) = log(a) + log(b) + log(c)
+# Произведение decay → сумма log(decay)
+
+log_decay = torch.log(decay.clamp(min=1e-6))   # (B, T, 1)
+cum_log = torch.cumsum(log_decay, dim=1)        # (B, T, 1)
+# cum_log[t] = log(decay[0]) + log(decay[1]) + ... + log(decay[t])
+#            = log(decay[0] × decay[1] × ... × decay[t])</code>
+</pre>
+
+<p>Разница между двумя позициями:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Затухание от позиции i до позиции t:
+# = decay[i+1] × decay[i+2] × ... × decay[t]
+# = exp(cum_log[t] - cum_log[i])
+
+diff = cum_log - cum_log.transpose(1, 2)  # (B, T, T)
+# diff[t, i] = cum_log[t] - cum_log[i] = log(затухание i→t)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Полный код HDCMemory</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def forward(self, tokens_bound):
+    B, T, D = tokens_bound.shape
+
+    # === Шаг 1: Считаем mass и decay ===
+    mass  = torch.sigmoid(self.mass_proj(tokens_bound))    # (B, T, 1)
+    decay = torch.sigmoid(self.decay_proj(tokens_bound))   # (B, T, 1)
+
+    # Взвешенные токены (масса определяет "важность")
+    weighted = mass * tokens_bound                          # (B, T, D)
+
+    # === Шаг 2: Переходим в log-пространство ===
+    log_decay = torch.log(decay.clamp(min=1e-6))           # (B, T, 1)
+    cum_log = torch.cumsum(log_decay, dim=1)               # (B, T, 1)
+
+    # === Шаг 3: Матрица затуханий между позициями ===
+    diff = cum_log - cum_log.transpose(1, 2)               # (B, T, T)
+    diff = diff.clamp(max=0)                               # только затухание, не усиление
+
+    # === Шаг 4: Causal mask — видим только прошлое ===
+    causal = torch.tril(torch.ones(T, T, device=tokens_bound.device))
+    diff = diff.masked_fill(causal == 0, -1e9)             # будущее → -inf
+
+    # === Шаг 5: Матрица весов ===
+    W = torch.exp(diff)                                    # (B, T, T)
+    # W[b, t, i] = насколько токен i виден из позиции t
+    # Если i &gt; t → W = exp(-inf) ≈ 0 (будущее не видно)
+    # Если i = t → W = exp(0) = 1
+    # Если i &lt; t → W = exp(отрицательное) &lt; 1 (затухание)
+
+    # === Шаг 6: Взвешенная сумма ===
+    context = torch.matmul(W, weighted)                    # (B, T, D)
+
+    return context</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Визуализация матрицы W</h3>
+
+<p>Матрица W (T×T) показывает "кто сколько помнит кого":</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">         token 0  token 1  token 2  token 3  token 4
+  pos 0 [ 1.00,   0.00,   0.00,   0.00,   0.00 ]  ← видит только себя
+  pos 1 [ 0.85,   1.00,   0.00,   0.00,   0.00 ]  ← себя + token 0 с затуханием
+  pos 2 [ 0.72,   0.85,   1.00,   0.00,   0.00 ]
+  pos 3 [ 0.61,   0.72,   0.85,   1.00,   0.00 ]
+  pos 4 [ 0.52,   0.61,   0.72,   0.85,   1.00 ]</code>
+</pre>
+
+<p>Ключевые свойства:</p>
+
+<ul>
+<li><strong>Нижнетреугольная</strong> — каждый токен видит только себя и прошлое (causal)</li>
+<li><strong>Диагональ = 1.0</strong> — сам себя помнишь идеально</li>
+<li><strong>Убывает влево</strong> — дальние токены помнятся хуже</li>
+</ul>
+
+<p>Но если у токена высокая <strong>mass</strong>, его вклад больше — даже если он далеко:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">         token 0  token 1  "France"  token 3
+  pos 3 [ 0.03,   0.04,    0.85,    1.00 ]
+         ↑ "the"            ↑ mass=0.95 × decay
+         низкая mass          → сильный вклад!</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Сколько параметров занимает вся HDCMemory?</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">mass_proj:  4096 × 1 = 4,096 параметров
+decay_proj: 4096 × 1 = 4,096 параметров
+
+ИТОГО: 8,192 параметра</code>
+</pre>
+
+<p>8 тысяч параметров. Это <strong>0.003%</strong> одного блока.</p>
+
+<p>Для сравнения: ControllerBlock в том же блоке → 21 миллион параметров.</p>
+
+<p>HDCMemory — невероятно компактный механизм который даёт модели доступ ко всему прошлому контексту.</p>
+
+<p>Почему так мало? Потому что мы не создаём "пространство памяти" — мы просто взвешиваем сами токены. Хитрость в том, что весовые коэффициенты (mass и decay) зависят от <strong>содержания</strong> токена, а не от его позиции.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Связь с Mamba</h3>
+
+<p>Если вы читали про архитектуры без трансформеров — возможно слышали про <strong>Mamba</strong> (2023).</p>
+
+<p>Mamba — это "selective state space model". Она тоже запоминает прошлое и сама решает что важно запомнить.</p>
+
+<p>Сравнение:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Mamba:       h_t = A_t × h_{t-1} + B_t × x_t
+             y_t = C_t × h_t
+             (A, B, C — зависят от данных)
+
+HDCMemory:   context_t = Σ exp(cumlog[t] - cumlog[i]) × mass[i] × token[i]
+             (decay и mass — тоже зависят от данных)</code>
+</pre>
+
+<p>Математически разные. Концептуально — одна идея:</p>
+
+<ul>
+<li>Накопление прошлого</li>
+<li>Data-dependent gates (наши mass/decay = гейты Mamba)</li>
+<li>Параллельный вычисление через cumsum</li>
+</ul>
+
+<p>Разница: в Mamba есть отдельный "скрытый вектор" <code>h</code> — внутреннее состояние. У нас нет — мы просто взвешиваем сами токены. Проще, меньше параметров.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Задания</h3>
+
+<p><strong>Задание 12.1</strong> — Реализуй наивно</p>
+
+<p>Реализуй простую HDCMemory без log-space трюка, через обычный цикл:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def naive_memory(tokens, mass, decay):
+    """
+    tokens: (T, D)
+    mass:   (T, 1)  — важность токена [0, 1]
+    decay:  (T, 1)  — скорость затухания [0, 1]
+
+    Возвращает context: (T, D)
+    context[t] = sum(затухание[i→t] × mass[i] × tokens[i]) для i=0..t
+    """
+    T, D = tokens.shape
+    context = torch.zeros_like(tokens)
+
+    for t in range(T):
+        accumulated_decay = 1.0
+        for i in range(t, -1, -1):    # идём назад от t до 0
+            context[t] += accumulated_decay * mass[i] * tokens[i]
+            accumulated_decay *= decay[i].item()  # умножаем на decay этого токена
+
+    return context</code>
+</pre>
+
+<p>Запусти с простыми числами и убедись что результат разумный.</p>
+
+<p><strong>Задание 12.2</strong> — Граничные случаи</p>
+
+<p>Что будет если:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Вариант A: decay = 1.0 для всех токенов
+decay_all_ones = torch.ones(T, 1)
+
+# Вариант B: decay = 0.0 для всех токенов
+decay_all_zeros = torch.zeros(T, 1)
+
+# Вариант C: mass = 0.0 для всех токенов
+mass_all_zeros = torch.zeros(T, 1)</code>
+</pre>
+
+<p>Запусти <code>naive_memory</code> с каждым вариантом. Объясни результаты.</p>
+
+<p><strong>Задание 12.3</strong> — Мысленный эксперимент</p>
+
+<p>Мы сказали что "France" получает высокую mass. Но <em>откуда</em> модель это узнаёт? Ведь mass_proj — это просто умножение на матрицу весов.</p>
+
+<p>Подумай: как в процессе обучения <code>mass_proj</code> учится давать "France" высокий mass? Какой сигнал (градиент) поступает к <code>mass_proj</code> и когда он увеличивает веса?</p>
+
+<p><em>Подсказка: если mass("France") низкий → context плохо запоминает France → модель не предсказывает "Paris" → loss высокий → градиент говорит "увеличь mass для France".</em></p>
+
+<hr class="chapter-divider" />
+
+<div class="summary-box">
+  <h4>✅ Итоги главы</h4>
+  <p>HDCMemory — механизм памяти который даёт каждому токену доступ к прошлому:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Mass:   насколько важен этот токен [0..1]  — обучается
+Decay:  как быстро забывается [0..1]       — обучается
+
+context[t] = Σ (decay[i→t] × mass[i] × token[i])
+             i≤t
+
+Реализация: через log-cumsum → матрица W → matmul
+Параметров: всего 8,192 (mass_proj + decay_proj)</code>
+</pre>
+
+<p>Это компактно, эффективно, и концептуально близко к Mamba — только проще.</p>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 13 → Attention — самый важный механизм в NLP</em></p>
+
+      <div class="chapter-nav"><a href="project-03.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Проект: Мини-кодбук для русских слов</div>
+</a><a href="chapter-13.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Attention — самый важный механизм в NLP</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

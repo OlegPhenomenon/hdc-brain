@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 07 — Bipolar — почему +1 и −1 | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item active">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция II</span> /
+        <span>Глава 07</span>
+      </div>
+      <div class="topbar-progress">
+        <span>07 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 23%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция II</span>
+        <span class="chapter-number">Глава 07</span>
+      </div>
+
+      <h1 class="chapter-title">Bipolar — почему +1 и −1</h1>
+      <p class="chapter-subtitle">Денис — фотограф. Он хранит RAW-фотографии — это TIFF файлы, 48 МБ каждый. У него 10 000 фотографий. Это 480 ГБ.</p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<div class="callout info">
+  <div class="callout-icon">ℹ️</div>
+  <div class="callout-body">
+    <div class="callout-title">Заметка</div>
+    <p>Мы знаем три операции HDC: Bind, Bundle, Permute. Но есть ещё одна деталь которую мы скрыли до сих пор: наши HDC-векторы содержат не просто числа, а только +1 и -1. В этой главе: зачем, и что это даёт.</p>
+  </div>
+</div>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="история-денис-и-фотографии-в-пикселях">
+  <h2>История: Денис и фотографии в пикселях</h2>
+</div>
+
+<p>Денис — фотограф. Он хранит RAW-фотографии — это TIFF файлы, 48 МБ каждый. У него 10 000 фотографий. Это 480 ГБ.</p>
+
+<p>Коллега говорит: "Денис, тебе правда нужна такая точность? Ты фотографируешь пейзажи, а не научные микрографии."</p>
+
+<p>Денис думает: "Моему глазу хватит 8 бит на канал вместо 16. Сожму вдвое."</p>
+
+<p>Результат: 240 ГБ. Глаз не видит разницы.</p>
+
+<p>Потом кто-то предлагает JPEG с лёгким сжатием — 24 МБ вместо 48 МБ. Снова Денис не видит разницы.</p>
+
+<p>Это <strong>квантизация</strong> — уменьшение точности данных с минимальной потерей качества.</p>
+
+<p>В нейросетях то же самое. Числа хранятся как float32 (32 бита). Но нужны ли все 32 бита?</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="32-бита-не-всегда-нужны">
+  <h2>32 бита — не всегда нужны</h2>
+</div>
+
+<p>Посмотри на одно число: <code>0.37182649</code></p>
+
+<p>Оно занимает 32 бита в памяти:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">0.37182649 в float32:
+  ┌─┬────────┬───────────────────────┐
+  │0│01111101│01111110001000001100101│
+  └─┴────────┴───────────────────────┘
+  ↑     ↑              ↑
+ знак экспонента    мантисса
+ (1 бит) (8 бит)   (23 бита)</code>
+</pre>
+
+<p>Для HDC нам интересна только одна вещь: <strong>на каком полюсе это число?</strong> Положительное или отрицательное?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">0.37182649  → ПОЛОЖИТЕЛЬНОЕ → +1
+-0.82614    → ОТРИЦАТЕЛЬНОЕ → -1
+0.00001     → ПОЛОЖИТЕЛЬНОЕ → +1
+-100000.0   → ОТРИЦАТЕЛЬНОЕ → -1</code>
+</pre>
+
+<p>Это называется <strong>bipolar</strong> (двуполярное) — всего два значения: +1 и -1.</p>
+
+<p>Нам нужен <strong>1 бит</strong> вместо 32.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="что-теряем-и-что-получаем">
+  <h2>Что теряем и что получаем</h2>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">ТЕРЯЕМ:
+─────────────────────────────────────
+  Точность: 0.9 и 0.1 → оба +1 (неразличимы!)
+  Разнообразие: только 2 значения вместо 4 миллиардов
+
+
+ПОЛУЧАЕМ:
+─────────────────────────────────────
+  Память: в 32 раза меньше!
+  Скорость: операции над битами — самые быстрые на любом CPU/GPU
+  Устойчивость: нет overflow, нет NaN, нет числовых проблем</code>
+</pre>
+
+<p>Давай посчитаем разницу для нашего Codebook:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Codebook: 32,000 токенов × 4,096 чисел
+
+Float32:  32,000 × 4,096 × 4 байта  =  524,288,000 байт  ≈  500 МБ
+Bipolar:  32,000 × 4,096 × 1 бит    =   16,384,000 байт  ≈   16 МБ
+                                                           ↑
+                                              в 32 раза меньше!</code>
+</pre>
+
+<p>16 МБ вместо 500 МБ. Это важно: 16 МБ <strong>влезает в кэш CPU</strong>. Кэш = мгновенный доступ без задержек.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="почему-умножение-1-такое-быстрое">
+  <h2>Почему умножение ±1 такое быстрое</h2>
+</div>
+
+<p>На современных процессорах есть специальные операции над битами. Самая полезная для нас — <strong>XNOR</strong> (исключающее НЕ-ИЛИ).</p>
+
+<p>Посмотри на таблицу умножения для ±1:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">(+1) × (+1) = +1   ← оба одинаковые → +1
+(+1) × (-1) = -1   ← разные → -1
+(-1) × (+1) = -1   ← разные → -1
+(-1) × (-1) = +1   ← оба одинаковые → +1</code>
+</pre>
+
+<p>Это в точности совпадает с операцией XNOR (заменяем +1→1, -1→0):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">1 XNOR 1 = 1   ← совпали → 1
+1 XNOR 0 = 0   ← не совпали → 0
+0 XNOR 1 = 0   ← не совпали → 0
+0 XNOR 0 = 1   ← совпали → 1</code>
+</pre>
+
+<p>Одна инструкция XNOR на процессоре обрабатывает <strong>64 пары бит за раз</strong> (64-битный регистр). Обычное float-умножение — одна пара за раз.</p>
+
+<p>Ускорение скалярного произведения:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Обычный dot product (float32): ~1×   (базовая скорость)
+XNOR + POPCNT (бинарный):      ~64×  (на CPU)
+                                ~100-1000× (на специальных чипах)</code>
+</pre>
+
+<div class="concept-box">
+  <div class="concept-label">Ключевое понятие</div>
+  <p><strong>POPCNT</strong> — "population count", считает количество единиц в числе. Нам нужно посчитать сколько битов совпало (XNOR), потом POPCNT считает совпадения. Итог: скалярное произведение за наносекунды.</p>
+</div>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="почему-1-а-не-0-1">
+  <h2>Почему ±1, а не {0, 1}</h2>
+</div>
+
+<p>Можно было использовать двоичный код: 0 и 1. Чем bipolar лучше?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Обычный бинарный {0, 1}:
+  Среднее случайного вектора = 0.5   (смещено!)
+  Скалярное произведение двух случайных векторов &gt; 0
+
+Bipolar {-1, +1}:
+  Среднее случайного вектора = 0.0   (нет смещения!)
+  Скалярное произведение двух случайных векторов ≈ 0</code>
+</pre>
+
+<p>Bipolar симметричен относительно нуля. Это означает:</p>
+
+<ul>
+<li>Случайные векторы автоматически ортогональны (сходство ≈ 0)</li>
+<li>Bind не вносит систематического смещения</li>
+<li>Математика чище</li>
+</ul>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+dim = 4096
+n = 1000
+
+# Сравним два подхода
+binary  = torch.randint(0, 2, (n, dim)).float()     # {0, 1}
+bipolar = torch.sign(torch.randn(n, dim))            # {-1, +1}
+
+# Среднее попарных скалярных произведений:
+def avg_dot(vectors):
+    # Берём первые 100 пар
+    total = 0
+    for i in range(100):
+        total += torch.dot(vectors[i], vectors[i+1]).item()
+    return total / 100 / dim
+
+print(f"Binary  avg dot: {avg_dot(binary):.4f}")    # ≈ 0.25 (смещено!)
+print(f"Bipolar avg dot: {avg_dot(bipolar):.4f}")   # ≈ 0.0  (нет смещения)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="красивый-факт-hamming-cosine">
+  <h2>Красивый факт: Hamming = Cosine</h2>
+</div>
+
+<p>Для bipolar векторов есть красивое математическое соотношение.</p>
+
+<p><strong>Hamming distance</strong> — количество позиций где векторы отличаются:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">A = [+1, -1, +1, -1, +1]
+B = [+1, +1, +1, -1, -1]
+         ↑              ↑
+       отличается    отличается → Hamming(A, B) = 2</code>
+</pre>
+
+<p>Оказывается, для bipolar векторов:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Cosine_similarity(A, B)  =  1 - 2 × Hamming(A, B) / D</code>
+</pre>
+
+<p>Или наоборот:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Hamming(A, B)  =  D × (1 - Cosine(A, B)) / 2</code>
+</pre>
+
+<p>Таблица соответствия:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Hamming    Cosine   Интерпретация
+─────────────────────────────────
+0 (0%)     +1.0     Одинаковые
+D/4 (25%)  +0.5     Похожие
+D/2 (50%)   0.0     Ортогональные (случайные)
+3D/4 (75%) -0.5     Непохожие
+D (100%)   -1.0     Противоположные</code>
+</pre>
+
+<p><strong>Зачем это важно?</strong> Cosine similarity (геометрическая мера) = функция от Hamming (битовой операции). Можно всё считать через биты!</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="проблема-как-обучать-бинарные-веса">
+  <h2>Проблема: как обучать бинарные веса?</h2>
+</div>
+
+<p>Вот главная трудность.</p>
+
+<p>Мы хотим веса {-1, +1}. Но нейросеть учится через <strong>градиенты</strong> — производные функции потерь по параметрам.</p>
+
+<p>Посмотри на функцию <code>sign(x)</code>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">График sign(x):
+
+  +1 ──────────────────────╮
+                           │ ← скачок в нуле
+  -1 ╭─────────────────────
+     |
+     0</code>
+</pre>
+
+<p>Производная? Везде ноль, в точке 0 — бесконечность:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">d/dx sign(x) = 0  при  x ≠ 0   ← нулевая производная везде!
+               ∞  при  x = 0</code>
+</pre>
+
+<p>Нулевая производная = нет сигнала для обучения. Нейросеть не может учиться.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Параметр w = 0.73
+sign(0.73) = +1
+
+Градиент через sign: d(loss)/d(0.73) = 0   ← стоп! ничего не передаётся</code>
+</pre>
+
+<p>Это как сказать Олегу: "Я не скажу тебе было ли лучше или хуже. Удачи с уткой."</p>
+
+<p>Решение этой проблемы — в следующей главе (STE). Сначала запомним: bipolar быстро и компактно, но требует специального трюка для обучения.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="alpha-scaling-немного-умнее-чем-просто-знак">
+  <h2>Alpha-scaling: немного умнее чем просто знак</h2>
+</div>
+
+<p>В нашем коде мы не просто берём <code>sign(w)</code>. Мы делаем <code>alpha * sign(w)</code>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">alpha = torch.mean(torch.abs(w), dim=-1, keepdim=True)
+hard  = alpha * torch.sign(w)</code>
+</pre>
+
+<p>Зачем <code>alpha</code>?</p>
+
+<p>Посмотри на два вектора:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">вектор A: [0.001, -0.002, 0.001, -0.001]
+вектор B: [100,   -200,   100,   -100  ]</code>
+</pre>
+
+<p>После <code>sign()</code> — они одинаковые: <code>[+1, -1, +1, -1]</code>.</p>
+
+<p>Но их <strong>масштабы</strong> совершенно разные! A — тихий шёпот, B — крик.</p>
+
+<p><code>alpha</code> = среднее абсолютное значение = "типичная громкость" вектора:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">alpha_A = mean(|0.001|, |0.002|, |0.001|, |0.001|) = 0.00125
+alpha_B = mean(|100|, |200|, |100|, |100|) = 125
+
+alpha_A × sign(A) = [0.00125, -0.00125, 0.00125, -0.00125]
+alpha_B × sign(B) = [125, -125, 125, -125]</code>
+</pre>
+
+<p>Теперь масштаб сохранился! Это называется <strong>alpha-scaling</strong>.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def alpha_sign(w):
+    """Бинаризация с сохранением масштаба."""
+    alpha = w.abs().mean(dim=-1, keepdim=True)
+    return alpha * w.sign()
+
+
+a = torch.tensor([0.001, -0.002, 0.001, -0.001])
+b = torch.tensor([100.0, -200.0, 100.0, -100.0])
+
+print("Просто sign:")
+print(a.sign().tolist())   # [1, -1, 1, -1]
+print(b.sign().tolist())   # [1, -1, 1, -1]  ← одинаково!
+
+print("\nAlpha-scaling:")
+print(alpha_sign(a).tolist())   # [0.00125, -0.00125, ...]
+print(alpha_sign(b).tolist())   # [125, -125, ...]  ← разные!</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="будущее-модель-в-37-мб-на-телефоне">
+  <h2>Будущее: модель в 37 МБ на телефоне</h2>
+</div>
+
+<p>Сейчас мы тренируем в float32/bf16, при inference используем bipolar. Но можно пойти дальше.</p>
+
+<p><strong>1-bit inference</strong>: сохраняем веса не как float (4 байта), а как биты (1/8 байта):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Обычная модель 300M:  300M × 4 байта = 1.2 GB
+1-bit модель 300M:    300M × 1 бит   = 37.5 MB  ← в 32 раза меньше!</code>
+</pre>
+
+<p>37 МБ — помещается в оперативную память смартфона. Модель работает офлайн без интернета.</p>
+
+<p>Именно это делает <strong>BitNet</strong> (2023, Microsoft) — они обучили трансформер в 1 бит и он конкурирует с float16 моделью вдвое большего размера.</p>
+
+<p>Наша архитектура идёт ещё дальше: бинарность не только в весах но и в самих операциях (Bind = XNOR).</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="задания">
+  <h2>Задания</h2>
+</div>
+
+<div class="exercise">
+  <div class="exercise-header">
+    <span class="exercise-badge">Задание</span>
+    <span class="exercise-title">Задание 7.1 — Три способа бинаризации</span>
+  </div>
+  <p>Сравни три способа перейти от float к bipolar:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+dim = 4096
+original = torch.randn(dim)   # float32
+
+# Способ 1: просто sign
+binary_1 = torch.sign(original)
+
+# Способ 2: alpha-scaling
+alpha = original.abs().mean()
+binary_2 = alpha * torch.sign(original)
+
+# Способ 3: среднее через медиану вместо среднего
+median = original.abs().median()
+binary_3 = median * torch.sign(original)
+
+# Для каждого: косинусное сходство с original
+def cosine(a, b):
+    return (torch.dot(a, b) / (a.norm() * b.norm())).item()
+
+print(f"plain sign:    cos={cosine(original, binary_1):.4f}")
+print(f"alpha-scaling: cos={cosine(original, binary_2):.4f}")
+print(f"median-scaling: cos={cosine(original, binary_3):.4f}")
+
+# Какой способ "ближе" к оригинальному вектору?</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="exercise">
+  <div class="exercise-header">
+    <span class="exercise-badge">Задание</span>
+    <span class="exercise-title">Задание 7.2 — Проверь формулу Hamming = Cosine</span>
+  </div>
+  
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+def hamming(a, b):
+    """Количество позиций где векторы отличаются."""
+    return (a != b).sum().item()
+
+def cosine_sim(a, b):
+    return (torch.dot(a.float(), b.float()) /
+            (a.float().norm() * b.float().norm())).item()
+
+dim = 4096
+errors = []
+
+for _ in range(100):
+    a = torch.sign(torch.randn(dim))
+    b = torch.sign(torch.randn(dim))
+
+    H = hamming(a, b)
+    cos_from_formula = 1 - 2 * H / dim   # наша формула
+    cos_real = cosine_sim(a, b)
+
+    errors.append(abs(cos_from_formula - cos_real))
+
+print(f"Средняя ошибка формулы: {sum(errors)/len(errors):.8f}")
+# Должна быть почти нулевой!</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="exercise">
+  <div class="exercise-header">
+    <span class="exercise-badge">Задание</span>
+    <span class="exercise-title">Задание 7.3 — Скорость</span>
+  </div>
+  <p>Сравни скорость скалярного произведения float vs bipolar:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch, time
+
+dim = 4096
+n   = 10_000
+
+a_float   = torch.randn(n, dim)
+b_float   = torch.randn(n, dim)
+a_bipolar = torch.sign(a_float)
+b_bipolar = torch.sign(b_float)
+
+# float dot product
+start = time.time()
+for i in range(n):
+    _ = torch.dot(a_float[i], b_float[i])
+print(f"Float:   {time.time()-start:.3f}s")
+
+# bipolar dot product
+start = time.time()
+for i in range(n):
+    _ = torch.dot(a_bipolar[i], b_bipolar[i])
+print(f"Bipolar: {time.time()-start:.3f}s")
+
+# Примерно одинаково на GPU, но на специальных FPGA/ASIC
+# bipolar в 100-1000 раз быстрее</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="итоги-главы">
+  <h2>Итоги главы</h2>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Bipolar {-1, +1}:
+  ✓ В 32 раза меньше памяти (1 бит vs 32 бита)
+  ✓ XNOR+POPCNT = сотни умножений за 1 такт процессора
+  ✓ Hamming distance = Cosine similarity (одно и то же!)
+  ✓ Alpha-scaling сохраняет масштаб при бинаризации
+  ✗ Нельзя обучать напрямую (производная sign = 0)
+
+Решение проблемы обучения → следующая глава.</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 8 → STE — трюк чтобы обучать необучаемое</em></p>
+
+      <div class="chapter-nav"><a href="chapter-06.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Три операции: Bind, Bundle, Permute</div>
+</a><a href="chapter-08.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">STE — трюк чтобы обучать необучаемое</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

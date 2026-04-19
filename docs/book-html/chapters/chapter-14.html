@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 14 — HDC Binding Attention — наш главный трюк | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item active">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция IV</span> /
+        <span>Глава 14</span>
+      </div>
+      <div class="topbar-progress">
+        <span>14 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 53%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция IV</span>
+        <span class="chapter-number">Глава 14</span>
+      </div>
+
+      <h1 class="chapter-title">HDC Binding Attention — наш главный трюк</h1>
+      <p class="chapter-subtitle"></p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<p>В главе 13 мы увидели проблему:</p>
+
+<p>Стандартный MultiHead Attention при D=4096 требует <strong>67 миллионов параметров на один слой</strong>. Если у нас 8 слоёв — это 536M параметров только на attention. А вся наша модель — 299M.</p>
+
+<p>Что-то не сходится.</p>
+
+<p>Значит, стандартный attention нам не подходит. Нужен другой способ.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Что делает матрица W_q на самом деле?</h3>
+
+<p>В стандартном attention мы вычисляем запросы так:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">Q = x @ W_q   # (T, D) @ (D, D) = (T, D)</code>
+</pre>
+
+<p>Что делает матрица <code>W_q</code>?</p>
+
+<p>Представим её как машину для смешивания:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Q[i] = W_q[i, 0] × x[0]
+      + W_q[i, 1] × x[1]
+      + W_q[i, 2] × x[2]
+      + ...
+      + W_q[i, D-1] × x[D-1]</code>
+</pre>
+
+<p>Каждое измерение выхода Q — <strong>взвешенная комбинация всех измерений x</strong>. Любое из 4096 измерений x влияет на любое из 4096 измерений Q.</p>
+
+<p>Это называется "cross-dimension mixing" — перемешивание измерений.</p>
+
+<p>Сильная операция. Очень много параметров.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Ключевой вопрос: а обязательно нужно перемешивать?</h3>
+
+<p>Вспомним операцию <strong>Bind</strong> из главы 6:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">Q = x * bv_q   # поэлементное умножение</code>
+</pre>
+
+<p>Каждое измерение выхода зависит <strong>только от того же измерения x</strong>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Q[0] = x[0] × bv_q[0]
+Q[1] = x[1] × bv_q[1]
+Q[i] = x[i] × bv_q[i]</code>
+</pre>
+
+<p>Никакого перемешивания. Каждое измерение — сам по себе.</p>
+
+<p>Зато <code>bv_q</code> — это <strong>вектор</strong>, а не матрица:</p>
+
+<ul>
+<li>Матрица W_q: D × D = 4096 × 4096 = <strong>16.7M параметров</strong></li>
+<li>Вектор bv_q: D = 4096 = <strong>4096 параметров</strong></li>
+</ul>
+
+<p>Разница: в 4096 раз!</p>
+
+<p>Вот в чём главная идея HDC Binding Attention: <strong>заменяем матричные проекции поэлементным умножением на обученный вектор</strong>.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Интуиция: что делает Bind</h3>
+
+<p>Bind — это "покраска" вектора.</p>
+
+<p>Представь что исходный токен — белый лист бумаги, на котором написан текст.</p>
+
+<ul>
+<li><code>bv_q</code> — "красный фильтр" (для запросов)</li>
+<li><code>bv_k</code> — "синий фильтр" (для ключей)</li>
+<li><code>bv_v</code> — "зелёный фильтр" (для значений)</li>
+</ul>
+
+<p>Когда мы делаем <code>Q = x * bv_q</code> — мы "смотрим на токен через красный фильтр". Когда делаем <code>K = x * bv_k</code> — "через синий".</p>
+
+<p>Через разные фильтры один и тот же текст выглядит по-разному. Это и даёт разные "точки зрения" для Q, K, V — без матрицы!</p>
+
+<hr class="chapter-divider" />
+
+<h3>Binding vectors — бинарные через STE</h3>
+
+<p>Наши <code>bv_q</code>, <code>bv_k</code>, <code>bv_v</code> — не просто векторы. Они <strong>бинарные</strong> (через STE из главы 8):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">class MultiHeadBindingAttention(nn.Module):
+    def __init__(self, hdc_dim, n_heads=4):
+        super().__init__()
+        self.hdc_dim = hdc_dim        # 4096
+        self.n_heads = n_heads        # 4
+        self.head_dim = hdc_dim // n_heads  # 1024
+
+        # Параметры: только 3 вектора на H голов (не матрицы!)
+        self.bv_q = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)  # (4, 1024)
+        self.bv_k = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)  # (4, 1024)
+        self.bv_v = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)  # (4, 1024)
+        # Итого: 3 × 4 × 1024 = 12,288 параметров</code>
+</pre>
+
+<p>Сравним с обычным MHA:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Обычный MHA:       W_q + W_k + W_v + W_o = 4 × 4096² = 67,108,864 параметров
+HDC Binding:       bv_q + bv_k + bv_v    = 3 × 4096  = 12,288 параметров
+
+Экономия: в 5461 раз!</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Многоголовый вариант: разбиваем вектор на сектора</h3>
+
+<p>Как сделать несколько "голов" без матрицы?</p>
+
+<p>Разбиваем D-мерный вектор токена на H равных кусков:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Вектор токена [d₀, d₁, ..., d₄₀₉₅]
+
+Голова 1: [d₀,    d₁,    ..., d₁₀₂₃]   ← первые 1024 измерений
+Голова 2: [d₁₀₂₄, d₁₀₂₅, ..., d₂₀₄₇]  ← следующие 1024
+Голова 3: [d₂₀₄₈, d₂₀₄₉, ..., d₃₀₇₁]
+Голова 4: [d₃₀₇₂, d₃₀₇₃, ..., d₄₀₉₅]</code>
+</pre>
+
+<p>Каждая голова работает в своём "секторе" вектора. У каждой головы свой bv<em>q, bv</em>k, bv_v:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Голова 1: bv_q₁ (1024 чисел), bv_k₁, bv_v₁
+Голова 2: bv_q₂ (1024 чисел), bv_k₂, bv_v₂
+Голова 3: bv_q₃, bv_k₃, bv_v₃
+Голова 4: bv_q₄, bv_k₄, bv_v₄</code>
+</pre>
+
+<p>Каждая голова смотрит на текст через свой фильтр, в своём секторе.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Полный код MultiHeadBindingAttention</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">class MultiHeadBindingAttention(nn.Module):
+    def __init__(self, hdc_dim, n_heads=4):
+        super().__init__()
+        self.n_heads = n_heads
+        self.head_dim = hdc_dim // n_heads  # 1024
+        self.scale = self.head_dim ** -0.5  # 1/√1024 = 1/32 (нормализация)
+
+        self.bv_q = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)
+        self.bv_k = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)
+        self.bv_v = nn.Parameter(torch.randn(n_heads, self.head_dim) * 0.02)
+
+    def _ste_sign(self, w):
+        """Бинаризуем вектор: хранится float, используется ±alpha."""
+        alpha = torch.mean(torch.abs(w), dim=-1, keepdim=True)
+        hard = alpha * torch.sign(w)
+        hard = torch.where(hard == 0, alpha * torch.ones_like(hard), hard)
+        return (hard - w).detach() + w
+
+    def forward(self, x):
+        B, T, D = x.shape   # например (12, 512, 4096)
+        H = self.n_heads     # 4
+        HD = self.head_dim   # 1024
+
+        # === Шаг 1: Бинаризуем binding vectors (STE) ===
+        bv_q = self._ste_sign(self.bv_q)  # (4, 1024) — значения ±alpha
+        bv_k = self._ste_sign(self.bv_k)
+        bv_v = self._ste_sign(self.bv_v)
+
+        # === Шаг 2: Разбиваем токены на головы ===
+        x_heads = x.view(B, T, H, HD)
+        # (12, 512, 4, 1024) — каждый токен разделён на 4 куска
+
+        # === Шаг 3: BIND — поэлементное умножение ===
+        # bv_q: (4, 1024) → broadcast по B и T → (12, 512, 4, 1024)
+        Q = x_heads * bv_q  # каждая голова смотрит через свой фильтр
+        K = x_heads * bv_k
+        V = x_heads * bv_v
+
+        # === Шаг 4: Перестановка осей для attention ===
+        Q = Q.permute(0, 2, 1, 3)  # (B, H, T, HD) = (12, 4, 512, 1024)
+        K = K.permute(0, 2, 1, 3)
+        V = V.permute(0, 2, 1, 3)
+
+        # === Шаг 5: Scores ===
+        scores = Q @ K.transpose(-2, -1) * self.scale  # (12, 4, 512, 512)
+
+        # === Шаг 6: Causal mask ===
+        causal = torch.tril(torch.ones(T, T, device=x.device, dtype=torch.bool))
+        scores = scores.masked_fill(~causal, float('-inf'))
+
+        # === Шаг 7: SIGMOID вместо Softmax! ===
+        attn = torch.sigmoid(scores * 4.0)   # (12, 4, 512, 512)
+        attn = attn.masked_fill(~causal, 0.0)  # явно зануляем будущее
+
+        # === Шаг 8: Взвешенная сумма V ===
+        out = attn @ V   # (12, 4, 512, 1024)
+
+        # === Шаг 9: Объединяем головы ===
+        out = out.permute(0, 2, 1, 3).contiguous().view(B, T, D)
+        # (12, 4, 512, 1024) → (12, 512, 4, 1024) → (12, 512, 4096)
+        # Каждая голова писала в свой сектор → просто собираем обратно
+
+        return out</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Почему нет out<em>projection (W</em>o)?</h3>
+
+<p>В стандартном MHA после объединения голов идёт финальная матрица:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Стандартный:
+out = concat_heads(...)  # (B, T, D)
+out = self.W_o(out)      # W_o: 4096 × 4096 = 16.7M параметров!</code>
+</pre>
+
+<p><code>W_o</code> нужен чтобы "перемешать" информацию от разных голов — голова 1 хранит одно, голова 2 другое, и нужно их скомбинировать.</p>
+
+<p>Но в нашей архитектуре каждая голова работает в <strong>своём секторе</strong> D-вектора:</p>
+
+<ul>
+<li>Голова 1 → измерения 0..1023</li>
+<li>Голова 2 → измерения 1024..2047</li>
+<li>Голова 3 → измерения 2048..3071</li>
+<li>Голова 4 → измерения 3072..4095</li>
+</ul>
+
+<p>Когда мы объединяем головы через <code>view(B, T, D)</code> — это просто "склеивание" секторов обратно. Каждая голова уже пишет в свою "зону" — перемешивать не нужно.</p>
+
+<p>Экономия: ещё 16.7M параметров.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Sigmoid вместо Softmax: в чём разница</h3>
+
+<p>Это важный момент, который отличает нас от стандартного attention.</p>
+
+<p><strong>Softmax</strong> — конкурентный:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">softmax([2.0, 1.0, 0.5]) = [0.66, 0.24, 0.10]
+#                            сумма всегда = 1.0</code>
+</pre>
+
+<p>Один токен "выигрывает" — остальные получают меньше. Если один стал важнее, другие автоматически стали менее важными.</p>
+
+<p><strong>Sigmoid</strong> — независимый:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">sigmoid([2.0, 1.0, 0.5]) = [0.88, 0.73, 0.62]
+#                             сумма = 2.23, не фиксирована</code>
+</pre>
+
+<p>Каждый токен отвечает независимо: "достаточно ли я важен?" Несколько токенов могут быть одновременно важными.</p>
+
+<p>Зачем нам sigmoid?</p>
+
+<p>В HDC идеология такая: <strong>накапливаем сигналы</strong>, а не выбираем победителя. Это больше соответствует Bundle операции из главы 6.</p>
+
+<p>Плюс: <code>* 4.0</code> добавляет "решительности":</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">sigmoid(1.0)     = 0.73
+sigmoid(1.0 × 4) = 0.98   ← чёткий ответ
+sigmoid(-1.0 × 4) = 0.02  ← чёткий отказ</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Считаем параметры</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Стандартный Multi-Head Attention (D=4096, H=4):
+  W_q: 4096 × 4096 = 16,777,216
+  W_k: 4096 × 4096 = 16,777,216
+  W_v: 4096 × 4096 = 16,777,216
+  W_o: 4096 × 4096 = 16,777,216
+  ─────────────────────────────────
+  ИТОГО: 67,108,864 параметров ≈ 67M
+
+HDC Binding Attention (D=4096, H=4):
+  bv_q: 4 × 1024  = 4,096
+  bv_k: 4 × 1024  = 4,096
+  bv_v: 4 × 1024  = 4,096
+  (нет W_o)
+  ─────────────────────────────────
+  ИТОГО: 12,288 параметров ≈ 12K
+
+Отношение: 67,108,864 / 12,288 = 5,461×</code>
+</pre>
+
+<p>В <strong>5461 раз</strong> меньше параметров в Attention.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Честный анализ: что мы теряем</h3>
+
+<p>Чудес не бывает. За экономию мы платим.</p>
+
+<p><strong>Нет cross-dimension mixing</strong></p>
+
+<p>В стандартном attention измерение Q[0] зависит от всех измерений x. У нас Q[0] зависит только от x[0].</p>
+
+<p>Это значит: один проход через Binding Attention выразительнее слабее. Компенсируем: 8 блоков × 3 прохода мысли = 24 прохода через данные.</p>
+
+<p><strong>Binding vectors одинаковы для всех токенов</strong></p>
+
+<p><code>bv_q</code> — один вектор для всех токенов в словаре. В стандартном attention W_q адаптируется к содержанию каждого токена.</p>
+
+<p>У нас "фильтр" одинаков для всех — только сами токенные векторы разные.</p>
+
+<p><strong>Меньше выразительности при той же размерности</strong></p>
+
+<p>Стандартный attention D=4096 выразительнее нашего D=4096. Но наш использует на 5000× меньше параметров — значит оставшиеся параметры можно потратить на большее количество блоков, больший кодбук, больший контроллер.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Формула HDC Binding Attention</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Q = x * bv_q       ← Bind (поэлементное умножение)
+K = x * bv_k
+V = x * bv_v
+
+scores = Q @ K^T × scale      scale = 1/√HD
+attn   = sigmoid(scores × 4)  (с causal mask)
+output = attn @ V</code>
+</pre>
+
+<p>Вот что каждый символ означает буквально:</p>
+
+<ul>
+<li><code>x * bv_q</code> — каждое измерение x умножается на соответствующее измерение bv_q</li>
+<li><code>Q @ K^T</code> — матрица похожести: каждый запрос сравнивается с каждым ключом</li>
+<li><code>× scale</code> — нормализация дисперсии (как в стандартном attention)</li>
+<li><code>sigmoid(× 4)</code> — превращаем похожесть в вес [0..1], с * 4 для большего контраста</li>
+<li><code>@ V</code> — взвешиваем значения по получившимся весам</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<h3>Задания</h3>
+
+<p><strong>Задание 14.1</strong> — Bind vs матрица</p>
+
+<p>Сравни результаты двух операций:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+import torch.nn as nn
+
+D = 8
+x = torch.randn(1, 5, D)  # 1 батч, 5 токенов, 8 измерений
+
+# Вариант 1: матричная проекция
+W_q = nn.Linear(D, D, bias=False)
+Q_matrix = W_q(x)
+
+# Вариант 2: Bind
+bv_q = torch.randn(D) * 0.02
+Q_bind = x * bv_q
+
+print(f"Q_matrix форма: {Q_matrix.shape}")  # (1, 5, 8)
+print(f"Q_bind форма:   {Q_bind.shape}")    # (1, 5, 8) — одинаково!
+
+# Посчитай параметры:
+params_matrix = sum(p.numel() for p in W_q.parameters())
+params_bind = bv_q.numel()
+
+print(f"Параметров matrix: {params_matrix}")  # 64
+print(f"Параметров bind:   {params_bind}")    # 8   ← в 8 раз меньше</code>
+</pre>
+
+<p>При D=4096 разница будет в 4096 раз. Проверь!</p>
+
+<p><strong>Задание 14.2</strong> — Подсчёт параметров</p>
+
+<p>Посчитай параметры для разных конфигов:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def mha_params(D, H):
+    # W_q + W_k + W_v + W_o, каждый D×D
+    return 4 * D * D
+
+def binding_attn_params(D, H):
+    # bv_q + bv_k + bv_v, каждый H × (D//H) = D
+    return 3 * D  # (без W_o!)
+
+for D in [256, 512, 1024, 4096]:
+    m = mha_params(D, 4)
+    b = binding_attn_params(D, 4)
+    print(f"D={D}: MHA={m:,}, Binding={b:,}, ratio={m//b}×")</code>
+</pre>
+
+<p>При каком D соотношение становится больше 1000×?</p>
+
+<p><strong>Задание 14.3</strong> — Sigmoid vs Softmax</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+import torch.nn.functional as F
+
+scores = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
+
+# Softmax
+print("Softmax:", F.softmax(scores, dim=0).round(decimals=2))
+print("Сумма:", F.softmax(scores, dim=0).sum().item())
+
+# Sigmoid
+print("Sigmoid:", torch.sigmoid(scores).round(decimals=2))
+print("Сумма:", torch.sigmoid(scores).sum().item())
+
+# Sigmoid × 4
+print("Sigmoid×4:", torch.sigmoid(scores * 4).round(decimals=2))</code>
+</pre>
+
+<p>Чем принципиально отличается поведение softmax и sigmoid? Когда sigmoid лучше, когда хуже?</p>
+
+<p><strong>Задание 14.4</strong> — Подумать</p>
+
+<p>В коде:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">attn = torch.sigmoid(scores * 4.0)
+attn = attn.masked_fill(~causal, 0.0)  # зачем явно зануляем?</code>
+</pre>
+
+<p>Ведь <code>scores</code> для будущего = <code>-inf</code>, и <code>sigmoid(-inf) ≈ 0</code>. Зачем тогда явное <code>masked_fill(0.0)</code> после sigmoid?</p>
+
+<p>*Подсказка: float точность. <code>sigmoid(-inf)</code> может дать не точно <code>0.0</code>, а <code>1e-38</code> или NaN.*</p>
+
+<hr class="chapter-divider" />
+
+<div class="summary-box">
+  <h4>✅ Итоги главы</h4>
+  <p>HDC Binding Attention — замена стандартного Attention через HDC-операцию Bind:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Обычно:  Q = x @ W_q        — матрица 4096×4096 = 16.7M параметров
+У нас:   Q = x * bv_q       — вектор 4096 = 4096 параметров
+
+Итого: 12,288 параметров vs 67,108,864 = в 5461 раз меньше!</code>
+</pre>
+
+<p>Ключевые отличия от стандартного MHA:</p>
+
+<ul>
+<li>Bind вместо матричной проекции</li>
+<li>Нет out_projection (каждая голова пишет в свой сектор)</li>
+<li>Sigmoid вместо Softmax (накапливаем, не конкурируем)</li>
+</ul>
+
+<p>Компромисс: теряем cross-dimension mixing. Компенсируем: 8 блоков × 3 мысли = 24 прохода через данные.</p>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 15 → HDCBlock — собираем всё в один блок</em></p>
+
+      <div class="chapter-nav"><a href="chapter-13.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Attention — самый важный механизм в NLP</div>
+</a><a href="chapter-15.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">HDCBlock — собираем блок целиком</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

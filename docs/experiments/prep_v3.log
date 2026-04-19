@@ -1,0 +1,42 @@
+=== OpenHermes-2.5 ===
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating train split:   0%|          | 0/1001551 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1001551/1001551 [00:23<00:00, 41901.44 examples/s]Generating train split: 100%|██████████| 1001551/1001551 [00:24<00:00, 41578.48 examples/s]
+   raw: 1,001,551
+   OpenHermes-2.5: +264,084 pairs (total: 264,084)
+=== TULU-3-SFT-mixture ===
+Generating train split:   0%|          | 0/939343 [00:00<?, ? examples/s]Generating train split:   3%|▎         | 31000/939343 [00:00<00:03, 299058.42 examples/s]Generating train split:   8%|▊         | 73000/939343 [00:00<00:02, 363171.73 examples/s]Generating train split:  12%|█▏        | 110000/939343 [00:00<00:03, 274967.92 examples/s]Generating train split:  15%|█▌        | 141000/939343 [00:00<00:06, 118977.97 examples/s]Generating train split:  17%|█▋        | 161558/939343 [00:01<00:09, 85740.37 examples/s] Generating train split:  19%|█▉        | 178558/939343 [00:01<00:09, 76317.45 examples/s]Generating train split:  20%|██        | 192558/939343 [00:01<00:10, 70054.01 examples/s]Generating train split:  22%|██▏       | 203558/939343 [00:02<00:11, 65927.86 examples/s]Generating train split:  23%|██▎       | 217558/939343 [00:02<00:09, 74208.93 examples/s]Generating train split:  25%|██▌       | 235558/939343 [00:02<00:07, 90646.71 examples/s]Generating train split:  27%|██▋       | 253558/939343 [00:02<00:06, 105336.22 examples/s]Generating train split:  29%|██▉       | 271558/939343 [00:02<00:05, 118373.66 examples/s]Generating train split:  31%|███       | 289558/939343 [00:02<00:05, 128865.32 examples/s]Generating train split:  33%|███▎      | 307558/939343 [00:02<00:04, 138316.88 examples/s]Generating train split:  35%|███▍      | 324115/939343 [00:02<00:04, 139567.23 examples/s]Generating train split:  37%|███▋      | 343115/939343 [00:03<00:03, 151238.07 examples/s]Generating train split:  39%|███▉      | 366115/939343 [00:03<00:03, 170712.37 examples/s]Generating train split:  43%|████▎     | 406115/939343 [00:03<00:02, 229939.70 examples/s]Generating train split:  50%|████▉     | 468115/939343 [00:03<00:01, 337056.69 examples/s]Generating train split:  54%|█████▍    | 511672/939343 [00:03<00:01, 317638.59 examples/s]Generating train split:  60%|█████▉    | 559672/939343 [00:03<00:01, 312189.53 examples/s]Generating train split:  64%|██████▍   | 605672/939343 [00:03<00:01, 306477.88 examples/s]Generating train split:  69%|██████▉   | 646229/939343 [00:03<00:01, 291609.64 examples/s]Generating train split:  73%|███████▎  | 685229/939343 [00:04<00:00, 278562.31 examples/s]Generating train split:  79%|███████▉  | 740229/939343 [00:04<00:00, 303765.84 examples/s]Generating train split:  83%|████████▎ | 783786/939343 [00:04<00:00, 323991.92 examples/s]Generating train split:  88%|████████▊ | 827786/939343 [00:04<00:00, 347461.30 examples/s]Generating train split:  95%|█████████▍| 891786/939343 [00:04<00:00, 370127.92 examples/s]Generating train split: 100%|██████████| 939343/939343 [00:04<00:00, 199079.95 examples/s]
+   raw: 939,343
+   TULU-3-SFT-mixture: +146,029 pairs (total: 410,113)
+=== Capybara ===
+Generating train split:   0%|          | 0/16006 [00:00<?, ? examples/s]Generating train split:  54%|█████▍    | 8604/16006 [00:00<00:00, 83324.77 examples/s]Generating train split: 100%|██████████| 16006/16006 [00:00<00:00, 87142.01 examples/s]
+   raw: 16,006
+   Capybara: +0 pairs (total: 410,113)
+=== Alpaca-GPT4 ===
+   Alpaca-GPT4: +31,164 pairs (total: 441,277)
+=== Alpaca x3 ===
+   Alpaca x3: +126,576 pairs (total: 567,853)
+=== Dolly-15K ===
+   Dolly-15K: +9,117 pairs (total: 576,970)
+=== WizardLM-Evol-70K ===
+   WizardLM-Evol-70K: +14,865 pairs (total: 591,835)
+
+=== TOTAL: 591,835 pairs ===
+
+Tokenizing...
+  50,000/591,835 (6,396,524 tokens)
+  100,000/591,835 (12,787,185 tokens)
+  150,000/591,835 (19,164,032 tokens)
+  200,000/591,835 (25,552,444 tokens)
+  250,000/591,835 (31,950,510 tokens)
+  300,000/591,835 (38,333,961 tokens)
+  350,000/591,835 (44,735,973 tokens)
+  400,000/591,835 (51,104,749 tokens)
+  450,000/591,835 (57,490,644 tokens)
+  500,000/591,835 (63,852,564 tokens)
+  550,000/591,835 (70,230,974 tokens)
+
+Total tokens: 75,575,183
+
+quality_v3_train.bin: 143.6 MB
+quality_v3_val.bin:   7.6 MB
+DONE

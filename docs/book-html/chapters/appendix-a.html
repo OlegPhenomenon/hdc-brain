@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава A — Глоссарий всех терминов | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item active">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Приложение</span> /
+        <span>Глава A</span>
+      </div>
+      <div class="topbar-progress">
+        <span>A из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 90%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Приложение</span>
+        <span class="chapter-number">Глава A</span>
+      </div>
+
+      <h1 class="chapter-title">Глоссарий всех терминов</h1>
+      <p class="chapter-subtitle"><strong>Adam</strong> — умный оптимизатор. Обычный gradient descent двигает все параметры на одинаковый шаг. Adam запоминает историю для каждого параметра отдельно: если параметр часто получает большие градиенты —</p>
+
+      <hr class="chapter-divider" />
+
+      <p>Все термины которые встречаются в книге — в одном месте.</p>
+
+<p>Написан так: сначала простое объяснение человеческими словами, потом точное определение.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="а">
+  <h2>А</h2>
+</div>
+
+<p><strong>Adam</strong> — умный оптимизатор. Обычный gradient descent двигает все параметры на одинаковый шаг. Adam запоминает историю для каждого параметра отдельно: если параметр часто получает большие градиенты — шаг меньше, если маленькие — шаг больше. Это "адаптивный" в названии. Полное название: Adaptive Moment Estimation. Kingma &amp; Ba (2014).</p>
+
+<p><strong>AdamW</strong> — Adam с правильным weight decay. Обычный Adam смешивает weight decay с адаптацией (что неправильно математически). AdamW применяет weight decay отдельно: сначала уменьшает веса, потом делает шаг по градиенту. Буква "W" = Weight decay (correct). Loshchilov &amp; Hutter (2017).</p>
+
+<p><strong>Attention</strong> — механизм "внимания". Когда обрабатываем слово, смотрим на все предыдущие слова и решаем: это важно для понимания? Технически: вычисляем схожесть запроса (Q) каждого токена с ключами (K) других токенов, используем схожесть как вес при суммировании значений (V).</p>
+
+<p><strong>Autoregressive</strong> — генерация по одному. Модель предсказывает следующий токен, добавляет его к контексту, снова предсказывает... и так до конца. Как рассказывать историю: не знаешь следующее слово пока не придумал предыдущее.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="б">
+  <h2>Б</h2>
+</div>
+
+<p><strong>Backpropagation</strong> (обратное распространение ошибки) — способ считать градиенты. Посчитали loss → откуда он пришёл? Прошли назад через все операции по цепному правилу: если <code>z = f(y)</code>, <code>y = g(x)</code>, то <code>dL/dx = dL/dz × dz/dy × dy/dx</code>. Так для каждого параметра получаем: "насколько он виновен в ошибке".</p>
+
+<p><strong>Batch / Батч</strong> — группа примеров которые обрабатываются вместе. Вместо одного предложения — сразу 16 предложений. GPU отлично умеет обрабатывать много примеров параллельно. Большой batch → стабильнее градиенты (меньше шума) → лучше обучение.</p>
+
+<p><strong>bf16 / bfloat16</strong> — 16-битный формат чисел. Обычный float32 — 32 бита. Наш bf16 — 16 бит: быстрее, меньше памяти. Секрет: bf16 сохраняет диапазон как у float32 (не переполняется), но жертвует точностью (2 значащих цифры вместо 7). Для нейросетей диапазон важнее точности.</p>
+
+<p><strong>Bind</strong> — операция HDC. Создать вектор "А и Б вместе": поэлементно умножить A на B. <code>A * B = C</code>. Результат C квазиортогонален обоим A и B — это и есть "связывание" информации.</p>
+
+<p><strong>Bipolar</strong> — пространство {-1, +1}. Каждое из 4096 измерений вектора равно либо -1 либо +1. Отличие от бинарного {0, 1}: можно делать вычитание, есть симметрия, легче считать нормы.</p>
+
+<p><strong>BPB (Bits Per Byte)</strong> — метрика качества. Если бы модель была сжималкой — сколько бит тратила бы на каждый байт текста? <code>BPB = loss / log(2)</code>. Ориентиры: 1.0 = идеально (недостижимо), 2.0 = GPT-4 на английском, 4.0 = хорошо, 7.5 = случайное угадывание.</p>
+
+<p><strong>BPE (Byte Pair Encoding)</strong> — алгоритм создания словаря токенов. Начинаем с символов. Находим самую частую пару символов → объединяем в один токен. Повторяем. Через 32000 итераций — словарь 32K токенов где частые слова = один токен, редкие слова = несколько.</p>
+
+<p><strong>Bundle</strong> — операция HDC. "Усреднить" несколько векторов: <code>sign(A + B + C)</code>. Результат близок ко всем трём, но не равен ни одному. Как компромисс: "немного от каждого".</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="в">
+  <h2>В</h2>
+</div>
+
+<p><strong>Validation Loss</strong> — потери на тест-данных. Обучаем на одних данных, проверяем на других (которых модель не видела). Если train loss низкий, val loss высокий — модель "зазубрила" тренировку. Validation loss — честная мера качества.</p>
+
+<p><strong>Vocabulary / Словарь</strong> — все токены которые знает модель. В v14.1: 32768 токенов. Включает: слова, части слов, знаки препинания, пробелы.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="г">
+  <h2>Г</h2>
+</div>
+
+<p><strong>Gate</strong> — "вентиль". Число от 0 до 1. Контролирует смешивание: <code>output = (1-gate) × старый + gate × новый</code>. gate=0 → берём старое, gate=1 → берём новое, gate=0.5 → поровну. В ThoughtLoop gate обучается: модель сама решает насколько слушать каждую "мысль".</p>
+
+<p><strong>GELU</strong> (Gaussian Error Linear Unit) — нелинейная функция. Похожа на ReLU (<code>max(0, x)</code>) но плавнее: для больших отрицательных x → 0, для больших положительных x → x, в районе нуля — плавный переход. Формула: <code>x × Φ(x)</code> где Φ — CDF нормального распределения.</p>
+
+<p><strong>Gradient / Градиент</strong> — вектор который показывает "в каком направлении loss растёт". Если идти против градиента — loss уменьшается. Для каждого параметра: насколько он влияет на loss.</p>
+
+<p><strong>Gradient Accumulation</strong> — накопление градиентов. Хотим большой batch, но не влезает в память. Решение: делаем 8 маленьких шагов, накапливаем градиенты (они суммируются), потом один шаг оптимизатора. Математически эквивалентно одному большому батчу.</p>
+
+<p><strong>Gradient Checkpointing</strong> — экономия памяти. При forward pass PyTorch хранит все промежуточные результаты (нужны для backward). Много памяти! Checkpointing: не храним → при backward пересчитываем заново. В 2 раза медленнее, в 8 раз меньше памяти. Стоит того.</p>
+
+<p><strong>Gradient Clipping</strong> — страховка от "взрыва". Иногда градиенты становятся огромными → веса прыгают → обучение рушится. Решение: если норма градиента > 1.0, масштабируем все градиенты вниз. Направление сохраняется, размер ограничивается.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="д">
+  <h2>Д</h2>
+</div>
+
+<p><strong>Decay / Затухание</strong> — в HDCMemory: скорость с которой токен "тускнеет" в памяти. Число от 0 до 1. decay=0.9 → токен долго остаётся в памяти. decay=0.1 → быстро забывается. Обучается автоматически.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="з">
+  <h2>З</h2>
+</div>
+
+<p><strong>Zero-shot</strong> — решение задачи без специальной подготовки. Модель не видела примеров этой задачи, но справляется благодаря общему пониманию языка. Например: GPT-4 переводит текст хотя специально переводу не обучалась.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="и">
+  <h2>И</h2>
+</div>
+
+<p><strong>Inference</strong> — использование обученной модели. В отличие от обучения: нет backward pass, нет обновления весов. Просто: токены → модель → предсказание. Обычно быстрее обучения.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="к">
+  <h2>К</h2>
+</div>
+
+<p><strong>Causal Mask</strong> — маска "не заглядывать в будущее". Для языковой модели токен на позиции 5 не должен видеть токены 6, 7, 8... Реализуется нижнетреугольной матрицей: <code>mask[i,j] = 1 если j ≤ i</code>.</p>
+
+<p><strong>Кодбук (Codebook)</strong> — таблица векторов для токенов. <code>vocab_size × dim</code> матрица. Строка i = вектор токена i. В v14.1: 32768 × 4096 биполярных чисел = 131M параметров.</p>
+
+<p><strong>Cosine Schedule</strong> — расписание learning rate. Плавно уменьшается по косинусу: начинаем с max<em>lr, заканчиваем min</em>lr. Форма: <code>min_lr + (max_lr - min_lr) × 0.5 × (1 + cos(π × progress))</code>. С warmup в начале.</p>
+
+<p><strong>Cross-Entropy Loss</strong> — функция потерь. Что модель предсказала вероятность правильного ответа? <code>-log(p_правильного)</code>. Если предсказали правильный токен с вероятностью 1.0 → loss=0. С вероятностью 0.5 → loss=0.69. С вероятностью 0.01 → loss=4.6. Меньше = лучше.</p>
+
+<p><strong>KV Cache</strong> — кэш для ускорения inference. В стандартном трансформере при добавлении нового токена незачем пересчитывать K и V для старых токенов. Кэшируем → намного быстрее. В нашей архитектуре не реализован (из-за HDCMemory).</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="л">
+  <h2>Л</h2>
+</div>
+
+<p><strong>LayerNorm / Нормализация слоя</strong> — нормализация внутри одного примера. Берём вектор из 4096 чисел, вычитаем среднее, делим на стандартное отклонение → числа в разумном диапазоне. Потом масштабируем и сдвигаем (обучаемые γ и β). Нужно для стабильного обучения.</p>
+
+<p><strong>Learning Rate / Скорость обучения</strong> — насколько большой шаг делаем при обновлении параметров. <code>w -= lr × gradient</code>. Слишком большой → прыгаем через минимум → нестабильность. Слишком маленький → учимся вечность.</p>
+
+<p><strong>LLM (Large Language Model)</strong> — большая языковая модель. "Большая" = много параметров (от миллиардов). "Языковая" = обучена предсказывать текст. GPT-4, Claude, LLaMA — LLM. Наш HDC-Brain v14.1 — тоже LLM (маленький, 299M).</p>
+
+<p><strong>Log-Cumsum</strong> — логарифм накопленной суммы. В HDCMemory используем для вычисления decay без числового переполнения: <code>log(decay1 × decay2 × ... × decayN) = log(decay1) + log(decay2) + ... + log(decayN)</code>. Потом <code>exp()</code> возвращает к нормальным числам.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="м">
+  <h2>М</h2>
+</div>
+
+<p><strong>Mass / Масса</strong> — в HDCMemory: важность токена для памяти. Число от 0 до 1. mass=1.0 → токен сильно влияет на контекст следующих токенов. mass=0.0 → токен почти игнорируется. Обучается: модель сама решает что важно помнить.</p>
+
+<p><strong>MHA (Multi-Head Attention)</strong> — многоголовое внимание. Несколько "голов" смотрят на текст независимо с разных точек зрения. Одна голова может смотреть на синтаксические связи, другая на семантику. Результаты объединяются.</p>
+
+<p><strong>Mixed Precision</strong> — смешанная точность. Forward и backward pass в bf16 (быстрее, меньше памяти). Параметры и состояния оптимизатора в float32 (точнее). PyTorch <code>autocast</code> сам выбирает где какой формат.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="н">
+  <h2>Н</h2>
+</div>
+
+<p><strong>nn.Embedding</strong> — слой PyTorch для хранения векторов токенов. <code>layer = nn.Embedding(32768, 4096)</code> → матрица 32768×4096. <code>layer(token_id)</code> → вектор для этого токена. Обучается как обычные параметры.</p>
+
+<p><strong>nn.Linear</strong> — полносвязный слой. Умножает вход на матрицу весов и добавляет смещение: <code>y = x @ W.T + b</code>. Базовый строительный блок. ControllerBlock состоит из двух Linear.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="о">
+  <h2>О</h2>
+</div>
+
+<p><strong>Output Scale</strong> — масштаб выхода. Обучаемый скаляр на который умножаются логиты. В v14.1 инициализируется как 1.0 (важно! не 1/√dim — это убивает обучение, см. главу 18).</p>
+
+<p><strong>Overfitting / Переобучение</strong> — модель "зазубрила" тренировочные данные. Идеально отвечает на виденные примеры, но плохо обобщает. Признак: train loss → 0, val loss остаётся высоким.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="п">
+  <h2>П</h2>
+</div>
+
+<p><strong>Parallel Scan</strong> — параллельный алгоритм для кумулятивных вычислений. Обычно cumsum = O(T) последовательных операций. Parallel scan = O(log T) параллельных уровней. Используем для HDCMemory чтобы не делать O(T²) attention.</p>
+
+<p><strong>Perplexity / Перплексия</strong> — <code>exp(loss)</code>. Интерпретация: "сколько вариантов следующего токена рассматривает модель". Perplexity=10 → модель как будто выбирает из 10 равновероятных токенов. Меньше = увереннее = лучше.</p>
+
+<p><strong>Permute / Перестановка</strong> — операция HDC. Циклический сдвиг вектора: <code>roll(A, k)</code> сдвигает A на k позиций. Разные k → разные уникальные векторы. Используем для кодирования позиции в Cyclic Position Encoding.</p>
+
+<p><strong>Pre-LN</strong> — нормализация ДО подблока. <code>x → LN → sublayer → x + output</code> (а не <code>x → sublayer → x + output → LN</code>). Более стабильные градиенты в глубоких сетях. GPT-2 и наша модель используют Pre-LN.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="р">
+  <h2>Р</h2>
+</div>
+
+<p><strong>Residual Connection / Остаточная связь</strong> — <code>output = x + block(x)</code>. Добавляем вход к выходу блока. Зачем: если блок не знает что делать → пусть просто пропустит вход (<code>block(x) ≈ 0</code>). Градиенты текут через сложение без затухания. Из ResNet (He et al., 2015).</p>
+
+<p><strong>RoPE (Rotary Position Embedding)</strong> — позиционное кодирование через поворот. Q и K векторы поворачиваются на угол пропорциональный позиции. Кодирует относительные позиции: "токен A на 3 позиции раньше B". Лучший современный стандарт. Мы используем Cyclic Permute вместо него.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="с">
+  <h2>С</h2>
+</div>
+
+<p><strong>Sampling / Семплирование</strong> — случайный выбор из распределения. Вместо "всегда берём токен с максимальной вероятностью" (greedy) → случайно выбираем с вероятностями из softmax. Генерация разнообразнее и интереснее.</p>
+
+<p><strong>SentencePiece</strong> — библиотека токенизации от Google. Обучает BPE или Unigram словарь на тексте. Работает без пробелов → подходит для русского, японского, финского (где пробелы не так важны). Мы используем готовую модель на 32K токенов.</p>
+
+<p><strong>Sigmoid</strong> — функция <code>σ(x) = 1 / (1 + e^(-x))</code>. Превращает любое число в (0, 1). σ(0)=0.5, σ(+∞)=1, σ(-∞)=0. Используем для gate значений в ThoughtLoop и для attention весов в BindingAttention (вместо softmax).</p>
+
+<p><strong>Softmax</strong> — превращает вектор в распределение вероятностей (сумма = 1). <code>softmax(x)_i = exp(x_i) / Σ exp(x_j)</code>. "Победитель берёт всё": большие значения получают большую вероятность, маленькие — очень маленькую.</p>
+
+<p><strong>STE (Straight-Through Estimator)</strong> — трюк для обучения через недифференцируемые операции. <code>sign()</code> имеет нулевой градиент везде → невозможно учить. Трюк: <code>(sign(w) - w).detach() + w</code>. Forward: <code>sign(w)</code>. Backward: градиент идёт к <code>w</code> напрямую. Bengio et al. (2013).</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="т">
+  <h2>Т</h2>
+</div>
+
+<p><strong>Temperature / Температура</strong> — параметр генерации. <code>logits_scaled = logits / temperature</code>. T < 1.0 → более уверенная (концентрированная) генерация, ближе к greedy. T > 1.0 → более случайная и разнообразная генерация. T = 1.0 → без изменений.</p>
+
+<p><strong>ThoughtLoop</strong> — наш механизм итеративного мышления. 8 блоков применяются 3 раза с гейтированной интерполяцией между проходами. 8 блоков × 3 прохода = 24 "эффективных слоя". Только 24K параметров для управления тремя проходами (gates + thought positions).</p>
+
+<p><strong>Thought Position</strong> — обучаемый вектор (4096 чисел) добавляемый ко входу каждого дополнительного прохода ThoughtLoop. Сигнализирует блокам "ты сейчас на второй мысли" или "ты на третьей". Инициализируется с маленьким шумом × 0.01.</p>
+
+<p><strong>Токен</strong> — единица текста для модели. Может быть: целое слово ("кот"), часть слова ("косино"), символ ("!"), пробел+слово ("▁кот"). BPE-токенизатор выбирает границы так чтобы частые слова = один токен.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="у">
+  <h2>У</h2>
+</div>
+
+<p><strong>Universal Transformer</strong> — архитектура (Dehghani et al., 2018) где один блок применяется итеративно (N раз). Idea: переиспользование параметров вместо N разных слоёв. ThoughtLoop развил эту идею добавив learned gates и thought positions.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="ф">
+  <h2>Ф</h2>
+</div>
+
+<p><strong>Forward Pass</strong> — прямой проход. Токены → кодбук → блоки → логиты → loss. Никаких обновлений весов. Просто вычисление. После него идёт backward pass (вычисление градиентов) и шаг оптимизатора.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="х">
+  <h2>Х</h2>
+</div>
+
+<p><strong>HDC (Hyperdimensional Computing)</strong> — вычислительная парадигма с высокоразмерными векторами. Ключевые свойства: (1) случайные векторы в 4096D почти ортогональны → уникальность; (2) Bind, Bundle, Permute — базовые операции; (3) можно хранить и извлекать информацию.</p>
+
+<p><strong>HDCMemory</strong> — наш компонент явной памяти. 8192 параметра (mass<em>proj + decay</em>proj). Вычисляет взвешенную накопленную память для каждого токена: <code>context[t] = Σ_{i≤t} decay_factor × mass[i] × x[i]</code>. Параллельно через log-cumsum.</p>
+
+<p><strong>HDCBlock</strong> — основной блок v14.1. Три механизма последовательно: HDCMemory (что было?) → MultiHeadBindingAttention (на что смотреть?) → ControllerBlock (подумать). ~21M параметров, из которых 99.9% — в ControllerBlock.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="ц">
+  <h2>Ц</h2>
+</div>
+
+<p><strong>Cyclic Permutation</strong> — наш метод позиционного кодирования. Токен на позиции t: циклически сдвигаем его вектор на t элементов. Вектор "Кот" на позиции 0 ≠ "Кот" на позиции 5. 0 параметров. Работает для любой длины последовательности.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="э">
+  <h2>Э</h2>
+</div>
+
+<p><strong>Embedding</strong> — вектор который представляет дискретный объект (токен). "Кот" → вектор из 4096 чисел. Похожие слова → похожие векторы (в хорошей модели). Основа всех языковых моделей.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="я">
+  <h2>Я</h2>
+</div>
+
+<p><strong>Языковая модель</strong> — модель которая учится предсказывать следующий токен. Обучение: предсказываем токен, сравниваем с правильным, обновляем веса. После достаточного обучения модель "понимает" язык — и может генерировать, переводить, отвечать на вопросы.</p>
+
+<hr class="chapter-divider" />
+
+<p><em>Приложение B → Математика</em> <em>Приложение C → Полный аннотированный код v14.1</em></p>
+
+      <div class="chapter-nav"><a href="chapter-23.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Финальный проект: реализуй HDC-Brain с нуля</div>
+</a><a href="appendix-b.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Математика: линейная алгебра и теория информации</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

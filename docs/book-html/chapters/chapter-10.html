@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 10 — Позиционное кодирование | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item active">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция III</span> /
+        <span>Глава 10</span>
+      </div>
+      <div class="topbar-progress">
+        <span>10 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 37%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция III</span>
+        <span class="chapter-number">Глава 10</span>
+      </div>
+
+      <h1 class="chapter-title">Позиционное кодирование</h1>
+      <p class="chapter-subtitle"></p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<p>Представь что тебе прислали конверт с тремя карточками внутри:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">СОБАКА  УКУСИЛА  ЧЕЛОВЕКА</code>
+</pre>
+
+<p>Три карточки. Лежат в конверте вперемешку. Ты вытряхиваешь их — и смотришь на три слова.</p>
+
+<p>Но в каком порядке они были? "Собака укусила человека" — одно дело. "Человека укусила собака" — смысл противоположный. И это не шутка: в суде важно кто кого укусил.</p>
+
+<p>Вот именно такая проблема стоит перед нейросетью.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Почему нейросеть не знает порядок</h3>
+
+<p>В предыдущей главе мы узнали: токенайзер превращает текст в числа. В главе 11 узнаем: кодбук превращает числа в векторы.</p>
+
+<p>Получается матрица:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">"Собака укусила человека"
+
+Строка 0: [вектор для "Собака"]
+Строка 1: [вектор для "укусила"]
+Строка 2: [вектор для "человека"]</code>
+</pre>
+
+<p>Нейросеть обрабатывает эту матрицу. Но матрица — это просто набор строк. Строки <strong>не упорядочены</strong> сами по себе.</p>
+
+<p>Если перетасовать строки местами — нейросеть получит ту же информацию, но в другом порядке. Без специальной пометки она не поймёт разницы между "собака укусила" и "укусила собака".</p>
+
+<p>Нужно <strong>пометить каждый вектор его позицией</strong> в предложении.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Первый способ: выучить позицию как часть словаря</h3>
+
+<p>Самое простое решение: добавим к каждому токену ещё один вектор — вектор позиции.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Таблица позиций: позиция → вектор
+position_embedding = nn.Embedding(512, 4096)
+# 512 позиций × 4096 размерность = 2 млн параметров
+
+# Применение:
+token_emb = codebook[idx]            # (B, T, D) — векторы токенов
+positions = torch.arange(T)          # [0, 1, 2, ..., T-1]
+pos_emb = position_embedding(positions)  # (T, D) — векторы позиций
+x = token_emb + pos_emb              # складываем!</code>
+</pre>
+
+<p>Токен "собака" на позиции 0 получит вектор = <code>[вектор_собаки] + [вектор_позиции_0]</code>. На позиции 3 — другой вектор: <code>[вектор_собаки] + [вектор_позиции_3]</code>.</p>
+
+<p>Нейросеть видит разницу. Задача решена.</p>
+
+<p>Так работал оригинальный GPT (2018). Просто и хорошо.</p>
+
+<p><strong>Одна проблема:</strong> если текст длиннее чем 512 токенов — позиция 600 не была обучена. Это как спросить повара о блюде 701, если в меню только 700.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Второй способ: математическая формула (Sinusoidal)</h3>
+
+<p>В оригинальной статье про Transformer (2017) придумали изящное решение: <strong>не учить</strong> векторы позиций, а <strong>вычислять</strong> их по формуле.</p>
+
+<p>Идея: закодировать позицию как набор синусов и косинусов разных частот.</p>
+
+<p>Аналогия: часы. У часов три стрелки — секундная, минутная, часовая. Каждая показывает одно и то же время, но с разной "частотой" вращения. По трём стрелкам вместе можно однозначно определить время.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Позиция  0: sin(0)=0.000, cos(0)=1.000, sin(0/100)=0.000, cos(0/100)=1.000 ...
+Позиция  1: sin(1)=0.841, cos(1)=0.540, sin(1/100)=0.010, cos(1/100)=0.999 ...
+Позиция  5: sin(5)=-0.96, cos(5)=0.284, sin(5/100)=0.050, cos(5/100)=0.998 ...</code>
+</pre>
+
+<p>Каждая позиция = уникальный паттерн из синусов/косинусов. Формула работает для <strong>любого</strong> числа, не только для тех что видели при обучении.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import math
+import torch
+
+def sinusoidal_encoding(max_len, d_model):
+    """Вычисляем sinusoidal позиционные кодировки."""
+    pe = torch.zeros(max_len, d_model)
+    position = torch.arange(0, max_len).float().unsqueeze(1)  # (T, 1)
+
+    # "Делитель" определяет частоту для каждого измерения
+    div_term = torch.exp(
+        torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+    )
+
+    pe[:, 0::2] = torch.sin(position * div_term)  # чётные измерения → sin
+    pe[:, 1::2] = torch.cos(position * div_term)  # нечётные → cos
+
+    return pe
+
+# Пример
+pe = sinusoidal_encoding(10, 8)  # 10 позиций, 8 измерений
+for pos in range(5):
+    vals = [f"{v:.2f}" for v in pe[pos].tolist()]
+    print(f"Позиция {pos}: [{', '.join(vals)}]")</code>
+</pre>
+
+<p>Вывод:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Позиция 0: [0.00, 1.00, 0.00, 1.00, 0.00, 1.00, 0.00, 1.00]
+Позиция 1: [0.84, 0.54, 0.10, 0.99, 0.01, 1.00, 0.00, 1.00]
+Позиция 2: [0.91, -0.42, 0.20, 0.98, 0.02, 1.00, 0.00, 1.00]
+Позиция 3: [0.14, -0.99, 0.30, 0.96, 0.03, 1.00, 0.00, 1.00]</code>
+</pre>
+
+<p>Каждая строка уникальна. 0 параметров. Работает на любой длине.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Третий способ: вращение (RoPE)</h3>
+
+<p>Современный стандарт. Используется в LLaMA, Mistral, SmolLM2.</p>
+
+<p><strong>Идея:</strong> вместо того чтобы <em>добавлять</em> позиционный вектор — <em>вращать</em> токен в пространстве.</p>
+
+<p>Аналогия: представь вектор как стрелку компаса. Позиция — это угол поворота этой стрелки. Токен "собака" на позиции 0 — стрелка указывает на север. На позиции 3 — повернули на 30 градусов.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Обычный подход:   x_новый = x + pos_emb        ← прибавляем
+RoPE:             x_новый = rotate(x, θ × pos)  ← вращаем</code>
+</pre>
+
+<p>Почему вращение лучше прибавления?</p>
+
+<p>Когда нейросеть вычисляет "насколько слово A связано со словом B" (это называется attention), RoPE гарантирует что результат зависит <strong>только от разницы позиций</strong> (A-B), а не от их абсолютных значений.</p>
+
+<p>Это значит: если модель научилась "смотреть на 3 позиции назад" — это работает и в начале предложения, и в конце, и в любом месте.</p>
+
+<p>Мы не будем копать глубоко в математику RoPE — это отдельная тема. Важно знать: RoPE существует, HDC-Brain его <strong>не использует</strong> (мы придумали своё).</p>
+
+<hr class="chapter-divider" />
+
+<h3>Наш способ: циклический сдвиг (0 параметров!)</h3>
+
+<p>А теперь — самое интересное. То что мы сделали в HDC-Brain.</p>
+
+<p>Помнишь операцию <strong>Permute</strong> из главы 6? Это циклический сдвиг вектора.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Вектор [a, b, c, d, e]
+
+Permute на 1:  [e, a, b, c, d]  ← последний становится первым
+Permute на 2:  [d, e, a, b, c]
+Permute на 3:  [c, d, e, a, b]</code>
+</pre>
+
+<p>Идея проста: <strong>позиция токена = количество сдвигов</strong>.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Токен на позиции 0: сдвигаем на 0 → [a, b, c, d, e]  (не меняется)
+Токен на позиции 1: сдвигаем на 1 → [e, a, b, c, d]
+Токен на позиции 2: сдвигаем на 2 → [d, e, a, b, c]
+Токен на позиции 3: сдвигаем на 3 → [c, d, e, a, b]</code>
+</pre>
+
+<p>Один и тот же токен "собака" на разных позициях — разные векторы. Нейросеть видит разницу. Задача решена.</p>
+
+<p><strong>И при этом: ноль дополнительных параметров!</strong> Никакой таблицы, никаких выучиваемых весов. Просто математическая операция.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Код циклического сдвига</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def _cyclic_position(self, x):
+    """Добавляем позиционную информацию через циклический сдвиг."""
+    B, T, D = x.shape
+    # B = размер батча
+    # T = длина последовательности (512 токенов)
+    # D = размерность вектора (4096)
+
+    # Позиции токенов: [0, 1, 2, ..., T-1]
+    positions = torch.arange(T, device=x.device)
+
+    # Для каждой позиции p — считаем новые индексы
+    # Элемент на месте d берётся из позиции (d - p) % D
+    indices = (
+        torch.arange(D, device=x.device).unsqueeze(0)  # (1, D)
+        - positions.unsqueeze(1)                        # (T, 1)
+    ) % D
+    # indices: (T, D) — для каждого токена, какой элемент куда идёт
+
+    # Применяем к батчу
+    return x.gather(2, indices.unsqueeze(0).expand(B, -1, -1))</code>
+</pre>
+
+<p>Разберём <code>indices</code> на маленьком примере (D=5, T=3):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">positions = [0, 1, 2]
+dims      = [0, 1, 2, 3, 4]
+
+Для pos=0: indices = (dims - 0) % 5 = [0, 1, 2, 3, 4]  → берём элементы 0,1,2,3,4 → не меняется
+Для pos=1: indices = (dims - 1) % 5 = [4, 0, 1, 2, 3]  → берём элементы 4,0,1,2,3 → сдвиг на 1
+Для pos=2: indices = (dims - 2) % 5 = [3, 4, 0, 1, 2]  → берём элементы 3,4,0,1,2 → сдвиг на 2</code>
+</pre>
+
+<p>Проверяем на числах:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+x = torch.tensor([[[10, 20, 30, 40, 50]]])  # B=1, T=1, D=5
+# Сдвигаем на позицию 2
+
+B, T, D = 1, 1, 5
+positions = torch.tensor([2])
+indices = (torch.arange(D).unsqueeze(0) - positions.unsqueeze(1)) % D
+# indices = [[3, 4, 0, 1, 2]]
+
+result = x.gather(2, indices.unsqueeze(0).expand(B, -1, -1))
+print(result)  # [[[40, 50, 10, 20, 30]]]
+#                    ↑          ↑
+#                  было 40 (позиция 3)  было 10 (позиция 0)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Формула для любопытных</h3>
+
+<p>Если хочется записать математически:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Cyclic_Shift_p(v)[d] = v[(d - p) mod D]
+
+где:
+  v — исходный вектор (D-мерный)
+  p — позиция токена (0, 1, 2, ...)
+  d — индекс измерения (0, 1, ..., D-1)
+  D — размерность вектора (4096 в нашей модели)
+  mod — остаток от деления (чтобы "закольцовываться")</code>
+</pre>
+
+<p>Вот что это буквально означает:</p>
+
+<ul>
+<li><code>v[(d - p) mod D]</code> — берём элемент вектора с индексом <code>(d - p)</code>, обёрнутым по кругу</li>
+<li>Для <code>p = 0</code>: берём элемент <code>d</code> → ничего не меняется</li>
+<li>Для <code>p = 1</code>: элемент на месте <code>d</code> берётся из позиции <code>d-1</code> → сдвиг</li>
+<li>Для <code>p = D</code>: <code>(d - D) mod D = d</code> → вернулись в начало (цикл!)</li>
+</ul>
+
+<p>Последнее важно: при длине последовательности > D (4096) векторы начнут "повторяться". Позиция 4096 = позиция 0 = позиция 8192 = ...</p>
+
+<p>Это ограничение нашего подхода. Но наш максимальный контекст = 512 токенов — намного меньше 4096.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Сравниваем все подходы</h3>
+
+<table>
+<thead><tr>
+<th>Подход</th>
+<th>Доп. параметров</th>
+<th>Макс. длина</th>
+<th>Умеет "относительные позиции"?</th>
+<th>Используется в</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Learned</td>
+<td>max_len × D</td>
+<td>Ограничена обучением</td>
+<td>Нет</td>
+<td>GPT-2</td>
+</tr>
+<tr>
+<td>Sinusoidal</td>
+<td><strong>0</strong></td>
+<td>Не ограничена</td>
+<td>Нет</td>
+<td>Transformer (2017)</td>
+</tr>
+<tr>
+<td>RoPE</td>
+<td><strong>0</strong></td>
+<td>Не ограничена</td>
+<td><strong>Да</strong></td>
+<td>LLaMA, Mistral, SmolLM2</td>
+</tr>
+<tr>
+<td>Cyclic Permute</td>
+<td><strong>0</strong></td>
+<td>До D (4096)</td>
+<td>Нет</td>
+<td><strong>HDC-Brain v14.1</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p>Наш подход — самый простой. 0 параметров, работает в рамках нашего контекста.</p>
+
+<p><strong>Почему мы выбрали именно это?</strong></p>
+
+<p>Cyclic Permutation — это буквально операция <strong>Permute</strong> из HDC-арифметики (глава 6). В HDC Permute — стандартный способ кодировать порядок в последовательностях. Мы просто использовали тот же инструмент, который уже есть в нашей архитектуре. Никакого лишнего кода, никаких лишних концепций.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Задания</h3>
+
+<p><strong>Задание 10.1</strong> — Наглядно</p>
+
+<p>Напиши код который показывает: "собака" на позиции 0 и "собака" на позиции 3 — разные векторы после сдвига.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+# Вектор токена "собака" (просто для примера)
+sobaka = torch.arange(8).float()  # [0, 1, 2, 3, 4, 5, 6, 7]
+
+def cyclic_shift(v, p):
+    D = len(v)
+    indices = (torch.arange(D) - p) % D
+    return v[indices]
+
+pos0 = cyclic_shift(sobaka, 0)
+pos3 = cyclic_shift(sobaka, 3)
+
+print(f"Позиция 0: {pos0.tolist()}")
+print(f"Позиция 3: {pos3.tolist()}")
+print(f"Одинаковые? {torch.allclose(pos0, pos3)}")</code>
+</pre>
+
+<p><strong>Задание 10.2</strong> — Ограничение</p>
+
+<p>Что происходит при позиции p = D? при p = D + 3?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">D = 8
+sobaka = torch.arange(D).float()
+
+for p in [0, 1, D-1, D, D+1, D+3]:
+    shifted = cyclic_shift(sobaka, p)
+    print(f"p={p}: {shifted.tolist()}")</code>
+</pre>
+
+<p>Запусти и объясни результат. Почему p=0 и p=D дают одинаковый результат?</p>
+
+<p><strong>Задание 10.3</strong> — Подумать</p>
+
+<p>Синусоидальное кодирование и Cyclic Permutation оба используют "волновой" паттерн. В чём принципиальное различие между ними?</p>
+
+<p><em>Подсказка: что происходит с косинусным сходством между двумя разными позициями в каждом подходе?</em></p>
+
+<hr class="chapter-divider" />
+
+<div class="summary-box">
+  <h4>✅ Итоги главы</h4>
+  <p>Без позиционного кодирования нейросеть не знает порядок слов.</p>
+
+<p>Три способа это исправить:</p>
+
+<ul>
+<li><strong>Learned</strong>: учим вектор для каждой позиции → просто, ограничен</li>
+<li><strong>Sinusoidal</strong>: математика (sin/cos) → гибкий, не адаптируется</li>
+<li><strong>RoPE</strong>: вращение векторов → современный стандарт, относительные позиции</li>
+</ul>
+
+<p>Наш способ:</p>
+
+<ul>
+<li><strong>Cyclic Permutation</strong>: циклический сдвиг на p позиций → 0 параметров, HDC-нативный</li>
+</ul>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Токен на позиции p:  x_shifted = roll(x, shift=-p)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 11 → Codebook — словарь как отпечатки пальцев</em></p>
+
+      <div class="chapter-nav"><a href="chapter-09.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Токенизация — BPE с нуля</div>
+</a><a href="chapter-11.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Codebook — словарь как отпечатки пальцев</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

@@ -52,7 +52,8 @@ class HybridModel(torch.nn.Module):
             for _ in range(n_blocks)
         ])
         self.thought_loop = ThoughtLoop(hdc_dim, max_thoughts)
-        self.output_ln = torch.nn.LayerNorm(hdc_dim)
+        from hdc_brain_v14_2 import BinaryNorm
+        self.output_norm = BinaryNorm(hdc_dim)
         self.output_scale = torch.nn.Parameter(torch.tensor(1.0))
 
     def _cyclic_position(self, x):
@@ -72,7 +73,7 @@ class HybridModel(torch.nn.Module):
         h = self.thought_loop(tokens, self.blocks, n_thoughts)
 
         # Output
-        h = self.output_ln(h)
+        h = self.output_norm(h)
 
         # Logits через бинарный кодбук
         cb_float = self.binary_cb.codebook.float()
@@ -210,7 +211,7 @@ def main():
     # Optimizer только для float параметров (blocks + thought_loop + output)
     float_params = list(model.blocks.parameters()) + \
                    list(model.thought_loop.parameters()) + \
-                   list(model.output_ln.parameters()) + \
+                   list(model.output_norm.parameters()) + \
                    [model.output_scale]
     optimizer = torch.optim.AdamW(float_params, lr=args.lr, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

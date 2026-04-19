@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 05 — Зачем придумали HDC | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item active">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция II</span> /
+        <span>Глава 05</span>
+      </div>
+      <div class="topbar-progress">
+        <span>05 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 17%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция II</span>
+        <span class="chapter-number">Глава 05</span>
+      </div>
+
+      <h1 class="chapter-title">Зачем придумали HDC</h1>
+      <p class="chapter-subtitle">Маша — разработчик в стартапе. Её задача: сделать систему которая умеет:</p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<div class="callout warning">
+  <div class="callout-icon">⚠️</div>
+  <div class="callout-body">
+    <div class="callout-title">Важно</div>
+    <p>Перед тем как изучать <em>как</em> что-то работает — важно понять <em>зачем</em> это вообще придумали. В этой главе: история проблемы, история решения, и почему 4096-мерные векторы — это не случайность.</p>
+  </div>
+</div>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="история-первая-маша-обучает-нейросеть">
+  <h2>История первая: Маша обучает нейросеть</h2>
+</div>
+
+<p>Маша — разработчик в стартапе. Её задача: сделать систему которая умеет:</p>
+
+<ol>
+<li>Распознавать котов на фотографиях</li>
+<li>Распознавать собак на фотографиях</li>
+</ol>
+
+<p>Казалось бы просто. Она обучает нейросеть на котах — точность 99%. Отлично!</p>
+
+<p>Теперь добавляет собак. Обучает...</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">До обучения на собаках:
+  Точность котов: 99%
+  Точность собак: 0%
+
+После обучения на собаках:
+  Точность котов: 43%   ← УПАЛА!
+  Точность собак: 97%</code>
+</pre>
+
+<p>Маша в панике. Почему котов стало 43%? Она же ничего не трогала!</p>
+
+<hr class="chapter-divider" />
+
+<h3>Почему это происходит</h3>
+
+<p>Нейросеть — это миллионы чисел (весов). Когда она "учит котов", эти числа меняются так чтобы распознавать котов. Когда потом "учит собак" — <em>те же самые числа</em> меняются снова.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Нейросеть обучается на котах:
+  Веса = [..., 0.7, -0.3, 0.9, 0.1, ...]   ← "знания о котах" закодированы здесь
+
+Потом обучается на собаках:
+  Веса = [..., 0.2, 0.8, -0.1, 0.6, ...]   ← "знания о собаках" перезаписали!
+             ↑
+     Числа изменились — и знания о котах потерялись</code>
+</pre>
+
+<p>Это называется <strong>catastrophic forgetting</strong> — "катастрофическое забывание".</p>
+
+<div class="concept-box">
+  <div class="concept-label">Ключевое понятие</div>
+  <p><strong>Catastrophic forgetting</strong> (произносится "кэтастрофик форгеттинг") = когда нейросеть учит новое и при этом забывает старое. "Катастрофическое" потому что забывание полное и внезапное.</p>
+</div>
+
+<hr class="chapter-divider" />
+
+<h3>Твой мозг не забывает</h3>
+
+<p>А вот твой мозг так не работает. Ты умеешь распознавать котов — и не забудешь это после того как узнаешь как выглядят собаки. Ты умеешь ездить на велосипеде — и не разучишься плавать.</p>
+
+<p>В мозге разные воспоминания хранятся в разных местах. Они не перезаписывают друг друга.</p>
+
+<p>Именно это наблюдение привело к созданию HDC.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="история-вторая-пентти-каэнерва-и-адреса-в-огромном">
+  <h2>История вторая: Пентти Каэнерва и адреса в огромном городе</h2>
+</div>
+
+<p>1988 год. Финский учёный Пентти Каэнерва (произносится "Кэнерва") работает в NASA и думает о памяти.</p>
+
+<div class="callout info">
+  <div class="callout-icon">ℹ️</div>
+  <div class="callout-body">
+    <div class="callout-title">Заметка</div>
+    <p>Нейробиологи знали: каждое воспоминание хранится <em>распределённо</em> — не в одном нейроне, а в тысячах. И мозг устойчив к повреждениям: если убить часть нейронов, воспоминания не исчезают полностью — они "размыты" и сохранились.</p>
+  </div>
+</div>
+
+<p>Каэнерва придумал модель памяти которая работает так же. Ключевая идея:</p>
+
+<p><strong>Информацию нужно кодировать в очень длинных случайных векторах.</strong></p>
+
+<p>Зачем <em>очень длинных</em>? Сейчас объясним. Это одна из самых красивых идей в математике.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="магия-высоких-измерений">
+  <h2>Магия высоких измерений</h2>
+</div>
+
+<h3>Задача: как не мешать друг другу</h3>
+
+<p>Представь огромный город. В нём 10 миллионов жителей — и у каждого должен быть уникальный адрес. Если адреса короткие (например, "дом 7, квартира 3"), они быстро закончатся.</p>
+
+<p>Но если адреса длинные и случайные (например, "дом АГ39Ж, корпус Б7Р, квартира 000471К...") — адреса никогда не закончатся, и два случайных адреса никогда не совпадут.</p>
+
+<p>Это и есть идея: <strong>в пространстве большой размерности случайные векторы почти никогда не похожи друг на друга</strong>.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Эксперимент: насколько похожи случайные векторы</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+def average_similarity(dim, n_pairs=5000):
+    """
+    Создаём n_pairs пар случайных векторов.
+    Считаем среднее косинусное сходство.
+
+    Косинусное сходство:
+    +1.0 = одинаковые
+     0.0 = перпендикулярные (ортогональные, не похожи вообще)
+    -1.0 = противоположные
+    """
+    total = 0
+    for _ in range(n_pairs):
+        a = torch.randn(dim)
+        b = torch.randn(dim)
+        # Формула косинусного сходства:
+        # cos(a, b) = (a · b) / (|a| × |b|)
+        cos = torch.dot(a, b) / (a.norm() * b.norm())
+        total += abs(cos.item())  # берём абсолютное значение
+    return total / n_pairs
+
+
+print("Размерность → среднее сходство случайных векторов:")
+for dim in [2, 10, 100, 1000, 4096]:
+    sim = average_similarity(dim)
+    bar = "█" * int(sim * 50)  # визуализация
+    print(f"  dim={dim:&gt;5}: {bar:&lt;25} {sim:.4f}")</code>
+</pre>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Размерность → среднее сходство случайных векторов:
+  dim=    2: ████████████████████     0.418  ← очень похожи!
+  dim=   10: ████████                 0.176
+  dim=  100: ██                       0.056
+  dim= 1000:                          0.018
+  dim= 4096:                          0.009  ← почти нулевое!</code>
+</pre>
+
+<p><strong>В 4096 измерениях случайные векторы практически перпендикулярны.</strong> Их сходство 0.009 — это почти 90 градусов.</p>
+
+<p>Как это понять? Представь компас. Когда у тебя только 2 направления — почти любые две стрелки будут куда-то "смотреть рядом". Когда у тебя 4096 направлений — две случайные стрелки смотрят в совершенно разные стороны.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Что это нам даёт</h3>
+
+<p>Наш словарь — 32,000 токенов. Каждому нужен уникальный вектор. В 4096 измерениях все они будут практически ортогональными — "не мешают" друг другу:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">"кот"  → [ +1, -1, +1, -1, +1, ...]  (4096 чисел)
+"пёс"  → [ -1, +1, -1, +1, -1, ...]
+"дом"  → [ +1, +1, -1, -1, +1, ...]
+"мир"  → [ -1, -1, +1, +1, -1, ...]
+...
+
+Сходство "кот" и "пёс": 0.009  ← почти нулевое
+Сходство "кот" и "кот": 1.000  ← точно одинаковые (само с собой)</code>
+</pre>
+
+<p>Это значит: каждое слово получает <em>уникальное пространство</em> в векторе. Разные слова не "мешают" друг другу. Добавляешь новое слово — не перезаписываешь старые.</p>
+
+<p><strong>Это и есть решение проблемы Маши.</strong> В HDC каждый факт хранится в своём "адресе". Новые факты не перезаписывают старые.</p>
+
+<div class="callout info">
+  <div class="callout-icon">ℹ️</div>
+  <div class="callout-body">
+    <div class="callout-title">Заметка</div>
+    <p>Научное название для этого: <strong>квазиортогональность</strong>. "Квази" = "почти". "Ортогональность" = перпендикулярность. Квазиортогональность = почти перпендикулярные, почти не пересекаются. Не пугайся слова — ты уже понял суть из примеров выше.</p>
+  </div>
+</div>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="зачем-это-называется-гиперпространственные-вычисле">
+  <h2>Зачем это называется "Гиперпространственные Вычисления"</h2>
+</div>
+
+<p><strong>Hyperdimensional Computing</strong> = <strong>HDC</strong> — дословно "вычисления в гиперпространстве".</p>
+
+<p>"Гиперпространство" — это математический термин для пространств с очень большим числом измерений. Не космос из фантастики, а просто "больше трёх измерений".</p>
+
+<ul>
+<li>2D: плоскость (лист бумаги)</li>
+<li>3D: наш обычный мир</li>
+<li>4096D: гиперпространство, которое невозможно визуализировать, но с ним можно работать математически</li>
+</ul>
+
+<p>В этом гиперпространстве:</p>
+
+<ul>
+<li>Каждое слово = точка (вектор)</li>
+<li>Похожие слова = близкие точки (высокое косинусное сходство)</li>
+<li>Разные слова = далёкие точки (сходство ≈ 0)</li>
+<li>Операции над векторами = "вычисления над смыслами"</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="устойчивость-к-ошибкам-бонус-который-не-ожидали">
+  <h2>Устойчивость к ошибкам: бонус который не ожидали</h2>
+</div>
+
+<p>HDC-векторы имеют ещё одно свойство — устойчивость к случайным ошибкам.</p>
+
+<p><strong>Эксперимент</strong>: возьми вектор слова "кот" (4096 элементов). Случайно поменяй 10% элементов на противоположные. Насколько результат ещё похож на оригинал?</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def add_noise(vector, noise_level=0.1):
+    """
+    Случайно переворачиваем noise_level долю элементов.
+    Например, noise_level=0.1 = 10% элементов перевернём.
+    """
+    n_flip = int(len(vector) * noise_level)
+    indices = torch.randperm(len(vector))[:n_flip]
+    noisy = vector.clone()
+    noisy[indices] = -noisy[indices]  # +1 становится -1 и наоборот
+    return noisy
+
+
+original = torch.sign(torch.randn(4096))  # случайный вектор "кот"
+
+print("Шум → сходство с оригиналом:")
+for noise_pct in [0.01, 0.05, 0.10, 0.20, 0.40]:
+    noisy = add_noise(original, noise_pct)
+    cos = torch.dot(original, noisy) / (original.norm() * noisy.norm())
+    bar = "█" * int(cos.item() * 20)
+    print(f"  {noise_pct*100:4.0f}% шума: {bar:&lt;20} {cos:.3f}")</code>
+</pre>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Шум → сходство с оригиналом:
+    1% шума: ████████████████████ 0.980  ← почти идеально
+    5% шума: ████████████████     0.900
+   10% шума: ████████████████     0.800  ← 80% смысла сохранено!
+   20% шума: ████████████         0.600
+   40% шума: ████                 0.200</code>
+</pre>
+
+<p>10% ошибок → 80% сходства! Это значит: даже если вычисления дали небольшие ошибки (что бывает в реальных GPU) — вектор всё ещё "узнаваем".</p>
+
+<p>В нейросети 10% шума в активациях может полностью разрушить предсказание. В HDC — нет.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="hdc-vs-нейросети-принципиальная-разница">
+  <h2>HDC vs нейросети: принципиальная разница</h2>
+</div>
+
+<p>Не просто "ещё один подход". Фундаментально другой принцип.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">ОБЫЧНАЯ НЕЙРОСЕТЬ (трансформер):
+────────────────────────────────
+  Знания → распределены по ВСЕМ весам
+         → новые знания могут перезаписать старые
+         → нужно обучаться на всех данных одновременно
+         → матрицы весов — "чёрный ящик", непонятно что там
+
+HDC:
+────────────────────────────────
+  Знания → каждый факт = один вектор
+         → факты складываются (Bundle), не мешая друг другу
+         → можно добавлять новые факты без переобучения
+         → операции понятны и интерпретируемы</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Аналогия которую легко запомнить</h3>
+
+<p><strong>Нейросеть</strong> — это человек который выучил 100 стихотворений наизусть. Он умеет их говорить, но объяснить <em>правила</em> стихосложения не может. И если учит 101-е стихотворение — может начать путать 100-е.</p>
+
+<p><strong>HDC</strong> — это человек который изучил правила стихосложения. Размер, рифма, ударения — всё по правилам. Он может применить правила к любому новому стихотворению, не забывая предыдущих.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="где-уже-используется-hdc-прямо-сейчас">
+  <h2>Где уже используется HDC прямо сейчас</h2>
+</div>
+
+<p>HDC — не академическая игрушка. Несколько реальных применений:</p>
+
+<h3>Умные часы (классификация жестов)</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Задача: распознать жест рукой (взмах, тап, поворот)
+Ресурсы: ARM Cortex-M4 процессор, 256KB памяти
+
+Нейросеть: не влезает — слишком тяжёлая
+HDC: работает! Операции с векторами очень дёшевые
+Точность: сравнима с нейросетью, скорость в 100× выше</code>
+</pre>
+
+<h3>Анализ ДНК</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Задача: к какому виду относится этот фрагмент ДНК?
+Данные: миллиарды пар оснований
+
+HDC подход: каждый k-мер (кусочек ДНК) кодируется как вектор,
+           все векторы объединяются через Bundle,
+           классификация за один проход
+Результат: быстрее BLAST (стандарт индустрии)</code>
+</pre>
+
+<h3>HDC-Brain (наш проект)</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Задача: языковая модель (предсказание следующего токена)
+Новизна: HDC не как отдельный классификатор,
+         а как ФУНДАМЕНТ языковой модели
+
+Токены = HDC-векторы
+Attention = HDC-операции (Bind вместо матриц)
+Позиции = HDC-Permute (0 параметров)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="карта-идей-как-hdc-встроен-в-нашу-архитектуру">
+  <h2>Карта идей: как HDC встроен в нашу архитектуру</h2>
+</div>
+
+<p>Прежде чем идти глубже — посмотрим на общую схему.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Стандартный трансформер → HDC-Brain: что изменилось
+
+┌────────────────────────────────────────────────────────────────┐
+│ Компонент          │ Трансформер              │ HDC-Brain      │
+├────────────────────┼──────────────────────────┼────────────────┤
+│ Токен → вектор     │ Embedding (float)         │ Bipolar ±1     │
+│                    │ 32M параметров            │ 32M параметров │
+│                    │                           │ но ±1, не float│
+├────────────────────┼──────────────────────────┼────────────────┤
+│ Позиция токена     │ RoPE (обучаемое)          │ Cyclic Permute │
+│                    │ D/2 параметров            │ 0 параметров!  │
+├────────────────────┼──────────────────────────┼────────────────┤
+│ Query, Key, Value  │ Linear(D, D) × 3          │ Bind (вектор D)│
+│                    │ 3 × D² параметров         │ 3 × D параметров│
+│                    │ = 50 млн каждая           │ = 4,096 каждая │
+├────────────────────┼──────────────────────────┼────────────────┤
+│ Комбинировать      │ Concat + Linear(D,D)      │ Просто Concat  │
+│ головы внимания    │ D² параметров             │ 0 параметров!  │
+├────────────────────┼──────────────────────────┼────────────────┤
+│ Embedding ↔ выход  │ Два разных словаря        │ Один словарь   │
+│                    │ 2 × 32K × D               │ (weight tying) │
+│                    │ = 131M дополнительных     │ экономия 131M  │
+└────────────────────┴──────────────────────────┴────────────────┘</code>
+</pre>
+
+<p>Каждое изменение — это применение HDC-принципа к конкретной задаче. В следующих главах разберём каждый блок.</p>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="задания">
+  <h2>Задания</h2>
+</div>
+
+<div class="exercise">
+  <div class="exercise-header">
+    <span class="exercise-badge">Задание</span>
+    <span class="exercise-title">Задание 5.1 — Квазиортогональность на практике</span>
+  </div>
+  <p>Напиши функцию которая создаёт N случайных бинарных векторов и проверяет их ортогональность:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def check_orthogonality(n_vectors, dim):
+    """
+    Создай n_vectors случайных бинарных векторов.
+    Вычисли все попарные косинусные сходства.
+    Верни: максимум и среднее.
+    """
+    # Подсказка: torch.sign(torch.randn(n_vectors, dim)) создаёт матрицу
+    # Подсказка: нормализованные векторы @ нормализованные.T = матрица сходств
+    pass
+
+
+# Тест:
+print(check_orthogonality(1000, 4096))   # max должен быть &lt; 0.1
+print(check_orthogonality(32000, 4096))  # наш словарь — проверим!</code>
+</pre>
+
+<p><strong>Вопрос</strong>: при каком N max сходство начинает расти выше 0.1? Это и есть "ёмкость" пространства.</p>
+
+<hr class="chapter-divider" />
+
+<div class="exercise">
+  <div class="exercise-header">
+    <span class="exercise-badge">Задание</span>
+    <span class="exercise-title">Задание 5.2 — Объясни Маше (для понимания)</span>
+  </div>
+  <p>Маша из начала главы расстроена. Объясни ей (3-5 предложений) почему catastrophic forgetting — это проблема нейросетей, и как HDC её избегает.</p>
+
+<p>Запиши своими словами — не копируй из книги. Это нужно чтобы идея стала по-настоящему твоей.</p>
+
+<hr class="chapter-divider" />
+</div>
+
+<div class="exercise">
+  <div class="exercise-header">
+    <span class="exercise-badge">Задание</span>
+    <span class="exercise-title">Задание 5.3 — Эксперимент с устойчивостью</span>
+  </div>
+  <p>Исследуй устойчивость HDC к шуму:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">original = torch.sign(torch.randn(4096))
+
+# При каком % шума сходство падает ниже 0.5?
+# (то есть вектор уже "не узнаётся")
+
+# Сравни: что будет с обычным float вектором?
+original_float = torch.randn(4096)
+
+for noise_pct in [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]:
+    # Шум для бинарного вектора: flip noise_pct элементов
+    # Шум для float вектора: добавь gaussian noise std=noise_pct
+    pass</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<div class="section-heading" id="итоги-главы">
+  <h2>Итоги главы</h2>
+</div>
+
+<ul>
+<li><strong>Catastrophic forgetting</strong> — главная проблема нейросетей: новые знания перезаписывают старые</li>
+<li><strong>Каэнерва (1988)</strong> предложил хранить информацию в длинных случайных векторах</li>
+<li><strong>Квазиортогональность</strong>: в 4096D можно иметь 32,000+ практически уникальных векторов</li>
+<li><strong>Устойчивость к ошибкам</strong>: 10% шума → 80% сходства (нейросети так не умеют)</li>
+<li><strong>HDC в нашей архитектуре</strong>: каждый компонент заменён HDC-операцией, экономим сотни миллионов параметров</li>
+</ul>
+
+<p>Но пока мы не видели <em>как именно</em> работают HDC-операции. Это следующая глава — самая важная в книге.</p>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 6 → Три операции HDC: Bind, Bundle, Permute</em></p>
+
+      <div class="chapter-nav"><a href="project-01.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Проект: Наивная языковая модель</div>
+</a><a href="chapter-06.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Три операции: Bind, Bundle, Permute</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

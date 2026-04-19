@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 08 — STE — трюк чтобы обучать необучаемое | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item active">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция II</span> /
+        <span>Глава 08</span>
+      </div>
+      <div class="topbar-progress">
+        <span>08 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 27%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция II</span>
+        <span class="chapter-number">Глава 08</span>
+      </div>
+
+      <h1 class="chapter-title">STE — трюк чтобы обучать необучаемое</h1>
+      <p class="chapter-subtitle"></p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<p>Представь что ты учишь повара делать блюда только из продуктов категории "A" или "B". Никаких промежуточных вариантов — только чёрное или белое.</p>
+
+<p>Повар учится. Пробует. Получает обратную связь: "слишком кисло", "слишком сладко". И <strong>на основе этой обратной связи улучшается</strong>.</p>
+
+<p>Но есть одна проблема.</p>
+
+<hr class="chapter-divider" />
+
+<h3>История про светофор и Диму</h3>
+
+<p>Дима — светофор.</p>
+
+<p>Не человек, не нейросеть — именно светофор. Он показывает либо <strong>красный</strong>, либо <strong>зелёный</strong>. Никакого жёлтого, никакого "почти зелёного", никакого "30% зелёного".</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Дима получает число x (уровень трафика)
+Если x &gt; 0 → загорается ЗЕЛЁНЫЙ  (+1)
+Если x &lt; 0 → загорается КРАСНЫЙ  (-1)</code>
+</pre>
+
+<p>Теперь его нужно обучить. Начальник говорит:</p>
+
+<div class="callout info">
+  <div class="callout-icon">ℹ️</div>
+  <div class="callout-body">
+    <div class="callout-title">Заметка</div>
+    <p>"Дима, ты сегодня ошибся — нужен был красный, а ты показал зелёный. Насколько тебе нужно изменить своё поведение?"</p>
+  </div>
+</div>
+
+<p>Дима думает:</p>
+
+<div class="callout info">
+  <div class="callout-icon">ℹ️</div>
+  <div class="callout-body">
+    <div class="callout-title">Заметка</div>
+    <p>"Хм. Я получил <code>x = 0.7</code> → показал зелёный. Если бы я получил <code>x = 0.5</code> → всё равно показал бы зелёный. Если бы получил <code>x = 100</code> → всё равно зелёный. Если бы получил <code>x = -0.001</code> → красный!</p>
+
+<p>Получается, моё поведение никак не зависит от точного значения x — пока знак не меняется, результат один и тот же. Значит... изменение x почти не влияет на мой результат. <strong>Градиент = 0.</strong>"</p>
+  </div>
+</div>
+
+<p>И Дима не может обучиться. Обратная связь до него не доходит.</p>
+
+<hr class="chapter-divider" />
+
+<h3>В чём математическая суть</h3>
+
+<p>Функция Димы называется <strong>sign(x)</strong> — функция знака:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">sign(x) = +1  если x &gt; 0
+sign(x) = -1  если x &lt; 0
+sign(x) = 0   если x = 0</code>
+</pre>
+
+<p>Вот как она выглядит:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">      +1  ─────────────────────────
+          │
+     ─────┼─────────────────────── x
+          │
+      -1  ─────────────────────────</code>
+</pre>
+
+<p>Резкий скачок в нуле. И именно из-за этого скачка — производная везде равна нулю:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">d/dx sign(x) = 0  при x ≠ 0
+               ∞  при x = 0  (технически не определена)</code>
+</pre>
+
+<p>Вспоминаем главу 4: обучение нейросети — это <strong>градиентный спуск</strong>. Нам нужна производная чтобы понять "в какую сторону двигать веса".</p>
+
+<p>Если производная = 0 → градиент не течёт → веса не обновляются → <strong>обучение остановилось</strong>.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Почему это проблема для нас</h3>
+
+<p>В главе 7 мы узнали: HDC-Brain использует <strong>bipolar векторы {-1, +1}</strong>. Это значит, что в процессе работы мы берём обычные числа (веса нейросети) и бинаризуем их через sign().</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Кодбук хранит:  [-0.37,  0.82, -0.05,  0.61, ...]
+После sign():   [  -1,    +1,    -1,    +1,  ...]</code>
+</pre>
+
+<p>Это хорошо для скорости. Но как <strong>обучать</strong> кодбук, если gradient через sign() = 0?</p>
+
+<p>Без обучения кодбук будет случайным навсегда. Модель не сможет учиться.</p>
+
+<hr class="chapter-divider" />
+
+<h3>А это называется: Straight-Through Estimator (STE)</h3>
+
+<p>В 2013 году Ёша Бенжио (один из трёх "крёстных отцов" глубокого обучения) опубликовал простейшее решение.</p>
+
+<p>Идея такая:</p>
+
+<div class="concept-box">
+  <div class="concept-label">Ключевое понятие</div>
+  <p><strong>На прямом ходу</strong> (forward pass, когда считаем результат) — используем настоящую бинаризацию. <strong>На обратном ходу</strong> (backward pass, когда считаем градиент) — <strong>притворяемся</strong>, что функция была identity.</p>
+</div>
+
+<p>"Identity" — это математический термин для функции <code>f(x) = x</code>. Её производная = 1. Всегда. Везде.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Forward:  y = sign(x)          ← настоящая, честная бинаризация
+Backward: dy/dx = 1            ← ЛОЖЬ! Но полезная ложь</code>
+</pre>
+
+<p>Возвращаемся к Диме.</p>
+
+<p>Дима-с-STE думает по-другому:</p>
+
+<div class="callout info">
+  <div class="callout-icon">ℹ️</div>
+  <div class="callout-body">
+    <div class="callout-title">Заметка</div>
+    <p>"Я покажу красный или зелёный честно. Но когда начальник спросит <code>насколько сильно изменение x влияло на мой результат?</code> — я отвечу: <code>прямо пропорционально</code>. То есть как будто я просто пропустил x без изменений."</p>
+  </div>
+</div>
+
+<p>Это ложь? Да. Точная ложь? Нет. Но Дима теперь <strong>обучается</strong>.</p>
+
+<p>Градиент "проходит сквозь" бинаризацию как через прозрачную трубу:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Без STE:
+  Loss ──→ ... ──→ sign(x) ──→ 0 (стоп!)
+                                ↑
+                        градиент заблокирован
+
+С STE:
+  Loss ──→ ... ──→ sign(x) ──→ продолжается ──→ x.grad = upstream_grad × 1
+                                                            ↑
+                                              "как будто sign не было"</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Как это выглядит в коде</h3>
+
+<p>В PyTorch есть специальный механизм для создания операций с кастомной производной:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+class STESign(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x):
+        # Честная бинаризация
+        return x.sign()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # Притворяемся что f(x) = x → производная = 1
+        # Просто пропускаем градиент дальше без изменений
+        return grad_output  # ← "прозрачная труба"
+
+ste_sign = STESign.apply</code>
+</pre>
+
+<p>Проверяем:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">w = torch.tensor([0.7, -0.3, 0.1, -0.9], requires_grad=True)
+
+# Forward: честная бинаризация
+out = ste_sign(w)
+print(f"Вход:    {w.tolist()}")
+print(f"Выход:   {out.tolist()}")
+# Вход:    [0.7, -0.3, 0.1, -0.9]
+# Выход:   [1.0, -1.0, 1.0, -1.0]  ← настоящие bipolar числа!
+
+# Backward: градиент проходит как будто sign не было
+loss = out.sum()
+loss.backward()
+print(f"Градиент: {w.grad.tolist()}")
+# Градиент: [1.0, 1.0, 1.0, 1.0]  ← прошёл! не ноль!</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Более компактная запись: трюк с detach()</h3>
+
+<p>Наша модель использует чуть другую запись — без явного <code>autograd.Function</code>.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def ste_binarize(w):
+    hard = torch.sign(w)          # бинарный результат
+    return (hard - w).detach() + w  # ← вся магия здесь</code>
+</pre>
+
+<p>Разберём последнюю строку буквально:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">result = (hard - w).detach() + w</code>
+</pre>
+
+<p><strong>Что это значит:</strong></p>
+
+<p><code>.detach()</code> говорит PyTorch: "не считай градиент через эту часть".</p>
+
+<p>Значение при forward:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">result = (hard - w) + w = hard   ← получаем бинарный!</code>
+</pre>
+
+<p>Градиент при backward:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">d(result)/dw = d((hard - w).detach())/dw  +  d(w)/dw
+             =        0         (detach)  +     1
+             =                              1   ← проходит!</code>
+</pre>
+
+<p>Один трюк делает сразу две вещи:</p>
+
+<ul>
+<li>forward выдаёт честный бинарный результат</li>
+<li>backward притворяется что бинаризации не было</li>
+</ul>
+
+<p>Посмотрим на числа:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Допустим w = 0.7:
+
+Forward:
+  hard = sign(0.7) = 1.0
+  result = (1.0 - 0.7) + 0.7 = 0.3 + 0.7 = 1.0  ✓ бинарный
+
+Backward (допустим upstream_grad = -2.0):
+  d(result)/dw = 1
+  w.grad += upstream_grad × 1 = -2.0  ← обновляемся!</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Alpha-scaling: улучшение из статьи XNOR-Net</h3>
+
+<p>В нашем коде есть один бонус сверх обычного STE.</p>
+
+<p>Проблема: если вектор <code>[100, -200, 50, -300]</code>, а мы бинаризуем в <code>[+1, -1, +1, -1]</code> — мы <strong>теряем масштаб</strong>.</p>
+
+<p>Решение из статьи XNOR-Net (2016): сохраняем средний масштаб и умножаем на него:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def _ste_sign(self, w):
+    # Считаем "масштаб" вектора
+    alpha = torch.mean(torch.abs(w), dim=-1, keepdim=True)
+    # alpha = среднее из |w_i| по измерению D
+
+    # Бинаризуем, но сохраняем масштаб
+    hard = alpha * torch.sign(w)
+    # Вместо [+1, -1, +1] получаем [+alpha, -alpha, +alpha]
+
+    # Обрабатываем нули (знак нуля = 0, нам нужно ±alpha)
+    hard = torch.where(hard == 0, alpha * torch.ones_like(hard), hard)
+
+    # STE
+    return (hard - w).detach() + w</code>
+</pre>
+
+<p>На примере:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">w = [0.3, -0.8, 0.1, 0.5]
+
+alpha = mean(|0.3|, |-0.8|, |0.1|, |0.5|) = mean(0.3, 0.8, 0.1, 0.5) = 0.425
+
+hard = 0.425 × sign([0.3, -0.8, 0.1, 0.5])
+     = 0.425 × [+1, -1, +1, +1]
+     = [+0.425, -0.425, +0.425, +0.425]</code>
+</pre>
+
+<p>Почему это лучше? Сравним:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Без alpha:  знак    = [+1,    -1,    +1,    +1]
+С alpha:    hard    = [+0.425, -0.425, +0.425, +0.425]
+Оригинал:           = [+0.300, -0.800, +0.100, +0.500]
+
+Без alpha: потеряли всю информацию о масштабе
+С alpha: сохранили "средний масштаб" — ближе к оригиналу по норме</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Полный код <em>ste</em>encode из HDC-Brain</h3>
+
+<p>Теперь разберём весь <code>_ste_encode</code> построчно:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">def _ste_encode(self, idx):
+    """STE bipolar encoding.
+    Forward:  возвращает бинарные векторы ±alpha
+    Backward: градиент проходит к кодбуку
+    """
+
+    # === Шаг 1: Берём непрерывные векторы из кодбука ===
+    real = self.codebook[idx]
+    # idx: (B, T) — индексы токенов
+    # real: (B, T, D) — непрерывные float числа, например [-0.37, 0.82, -0.05, ...]
+
+    # === Шаг 2: Считаем масштаб (alpha) ===
+    alpha = torch.mean(torch.abs(real), dim=-1, keepdim=True)
+    # alpha: (B, T, 1) — одно число на каждый вектор
+
+    # === Шаг 3: Бинаризуем с сохранением масштаба ===
+    hard = alpha * torch.sign(real)
+    # hard: (B, T, D) — только значения ±alpha
+
+    # === Шаг 4: Обрабатываем нули (sign(0) = 0, а нам нужно ±alpha) ===
+    hard = torch.where(hard == 0, alpha * torch.ones_like(hard), hard)
+
+    # === Шаг 5: STE трюк ===
+    return (hard - real).detach() + real
+    #
+    # Forward:  result = (hard - real) + real = hard  ← бинарный
+    # Backward: d/d(real) = 0 (detach) + 1 = 1       ← градиент проходит</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Что происходит при обучении</h3>
+
+<p>Следим за одним весом во время тренировки:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Шаг 0:  w = +0.10  →  hard = +1  →  loss высокий
+        gradient = -0.5 (нужно уменьшить)
+        w_new = 0.10 - lr × 0.5 = 0.10 - 0.05 = 0.05
+
+Шаг 1:  w = +0.05  →  hard = +1  →  loss высокий
+        gradient = -0.5
+        w_new = 0.05 - 0.05 = 0.00
+
+Шаг 2:  w = +0.00  →  hard = 0 → заменяем на +alpha  ← обрабатываем ноль
+        gradient = -0.5
+        w_new = 0.00 - 0.05 = -0.05
+
+Шаг 3:  w = -0.05  →  hard = -1  ← ЗНАК ПОМЕНЯЛСЯ!
+        loss может стать ниже...
+        gradient = +0.2 (теперь нужно увеличить)
+        w_new = -0.05 + 0.02 = -0.03</code>
+</pre>
+
+<p>Вес "прощупывает" пространство вокруг нуля и находит правильную сторону. В больших моделях (тысячи весов) это работает очень хорошо статистически.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Почему это работает, если это ложь?</h3>
+
+<p>Законный вопрос. Мы передаём <strong>неправильный</strong> градиент — так почему модель обучается?</p>
+
+<p><strong>Причина 1: Направление важнее точности</strong></p>
+
+<p>Нам нужно знать — увеличивать вес или уменьшать? STE передаёт правильное <strong>направление</strong> (знак градиента), даже если неточно передаёт <strong>величину</strong>.</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Правильный градиент: 0     (совсем бесполезен!)
+STE градиент:       -0.7   (говорит "уменьши вес")
+
+Даже "неправильный" -0.7 лучше чем правильный 0!</code>
+</pre>
+
+<p><strong>Причина 2: Эмпирия за нас</strong></p>
+
+<p>За десять лет существования STE — тысячи статей, сотни архитектур. Все работают. BitNet от Microsoft обучает 7B-параметровую модель с 1-bit весами.</p>
+
+<p><strong>Причина 3: Суррогатный градиент</strong></p>
+
+<p>Теоретически (Yin et al., 2019): STE — это оптимизация "непрерывной релаксации" задачи. Мы обучаем непрерывный вес <code>w</code>, а используем бинарный <code>sign(w)</code>. Это как тренироваться на симуляторе, а выступать на настоящих соревнованиях.</p>
+
+<hr class="chapter-divider" />
+
+<h3>STE в истории нейросетей</h3>
+
+<p>STE — не единственная вещь такого рода, но самая популярная:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">BinaryConnect (2015)  — первые бинарные веса с STE, работает!
+BinaryNet (2016)      — бинарные веса И активации, 7x быстрее
+XNOR-Net (2016)       — XNOR+POPCNT inference, 58x ускорение на CPU
+BitNet (2023, MS)     — 1-bit LLM, конкурирует с float16 при 7B параметров
+BitNet b1.58 (2024)   — {-1, 0, +1}, ещё мощнее чем чистый {-1, +1}</code>
+</pre>
+
+<p>Наша архитектура использует alpha-scaled STE как в XNOR-Net — это проверенный подход.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Формула STE (на самом деле простая)</h3>
+
+<p>Запись через "прямой проход" и "обратный проход":</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Forward:   y = sign(x)
+Backward:  ∂L/∂x = ∂L/∂y  (как будто y = x)</code>
+</pre>
+
+<p>Или через "остановку градиента":</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">y = (sign(x) - x).stop_gradient + x
+  = sign(x) - x  +  x      ← значение
+  =       sign(x)           ← forward: честная бинаризация
+
+∂y/∂x = 0  +  1 = 1        ← backward: как identity</code>
+</pre>
+
+<p>Вот что каждый символ означает буквально:</p>
+
+<ul>
+<li><code>sign(x)</code> — берём знак числа: + превращается в +1, − в -1</li>
+<li><code>.stop_gradient</code> / <code>.detach()</code> — говорим PyTorch: "не считай производную через это"</li>
+<li><code>+ x</code> в конце — "добавляем x обратно, чтобы его производная (= 1) работала"</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<h3>Задания</h3>
+
+<p><strong>Задание 8.1</strong> — Базовое</p>
+
+<p>Запусти этот код и объясни что происходит:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+w = torch.tensor([-0.8, -0.1, 0.05, 0.7], requires_grad=True)
+
+# Вариант 1: обычный sign (без STE)
+out1 = w.sign()
+loss1 = out1.sum()
+loss1.backward()
+print(f"Градиент без STE: {w.grad}")  # что получится?
+
+# Сбрасываем градиент
+w.grad = None
+
+# Вариант 2: STE
+hard = w.sign()
+out2 = (hard - w).detach() + w
+loss2 = out2.sum()
+loss2.backward()
+print(f"Градиент с STE:   {w.grad}")  # что получится?</code>
+</pre>
+
+<p>Почему результаты разные?</p>
+
+<p><strong>Задание 8.2</strong> — Эксперимент</p>
+
+<p>Обучи бинарную "нейросеть" из одного нейрона предсказывать +1 для положительных чисел и -1 для отрицательных:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import torch
+
+# Один обучаемый вес
+w = torch.tensor([0.01], requires_grad=True)
+optimizer = torch.optim.SGD([w], lr=0.05)
+
+for step in range(30):
+    # Данные: случайный x
+    x = torch.randn(1)
+    target = x.sign()  # правильный ответ
+
+    # Предсказание через STE
+    w_bin = (w.sign() - w).detach() + w
+    pred = w_bin * x.sign()  # умножаем на знак x
+
+    loss = (pred - target) ** 2
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if step % 5 == 0:
+        print(f"Шаг {step}: w={w.item():.3f}, w_binary={w.sign().item():.0f}, loss={loss.item():.3f}")</code>
+</pre>
+
+<p>Как меняется <code>w</code> во время обучения? В чём смысл обучения непрерывного <code>w</code> если мы используем только <code>sign(w)</code>?</p>
+
+<p><strong>Задание 8.3</strong> — Понимание</p>
+
+<p>Объясни своими словами (без формул): зачем нам обучать непрерывный вес <code>w</code>, если в реальной работе модели мы используем только <code>sign(w)</code>?</p>
+
+<p>*Подсказка: думай о <code>w</code> как о "степени уверенности" в нужном знаке.*</p>
+
+<hr class="chapter-divider" />
+
+<div class="summary-box">
+  <h4>✅ Итоги главы</h4>
+  <p>STE — трюк позволяющий обучать бинарные веса:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Проблема:  sign(x) → производная = 0 → нет обучения
+
+Решение:   В forward  → используем настоящий sign(x)
+           В backward → притворяемся что функция = identity → производная = 1
+
+Код:  (sign(w) - w).detach() + w
+      ↑                         ↑
+    значение = sign(w)     производная = 1</code>
+</pre>
+
+<p>В HDC-Brain STE применяется дважды:</p>
+
+<ul>
+<li><code>_ste_encode</code> — бинаризует кодбук при кодировании токенов</li>
+<li><code>_ste_sign</code> — бинаризует binding vectors в MultiHeadBindingAttention</li>
+</ul>
+
+<p>Почему работает несмотря на "ложь":</p>
+
+<ul>
+<li>Направление градиента <strong>верное</strong> → обновляем веса в правильную сторону</li>
+<li>Подтверждено тысячами работ: BinaryConnect, XNOR-Net, BitNet</li>
+<li>Альтернатива (настоящий градиент = 0) хуже любой лжи</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 9 → Токенизация — как разбить текст на кусочки</em></p>
+
+      <div class="chapter-nav"><a href="chapter-07.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Bipolar — почему +1 и −1</div>
+</a><a href="project-02.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Проект: HDC-классификатор</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>

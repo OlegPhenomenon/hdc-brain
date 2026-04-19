@@ -1,0 +1,968 @@
+Data: train=71,796,423 val=3,778,760
+  = 71.8M train tokens, 3.8M val tokens
+Loaded base: BPB 5.434
+
+Finetune v3: 30000 iters, LR=0.0001
+Dataset: quality_v3 (OpenHermes + TULU-3 + Alpaca-GPT4 + Alpaca x3 + Dolly + WizardLM)
+iter    50 | loss 3.6506 | lr 1.70e-05 | grad 2.88 | 674ms/step
+iter   100 | loss 3.4663 | lr 3.37e-05 | grad 2.87 | 668ms/step
+iter   150 | loss 3.3869 | lr 5.03e-05 | grad 2.92 | 666ms/step
+iter   200 | loss 3.2712 | lr 6.70e-05 | grad 3.07 | 665ms/step
+iter   250 | loss 3.2219 | lr 8.37e-05 | grad 2.92 | 665ms/step
+iter   300 | loss 3.2782 | lr 1.00e-04 | grad 3.25 | 664ms/step
+iter   350 | loss 3.2150 | lr 1.00e-04 | grad 3.19 | 664ms/step
+iter   400 | loss 3.2352 | lr 1.00e-04 | grad 16.13 | 664ms/step
+iter   450 | loss 3.1921 | lr 1.00e-04 | grad 2.98 | 663ms/step
+iter   500 | loss 3.2096 | lr 1.00e-04 | grad 3.05 | 663ms/step
+iter   550 | loss 3.2266 | lr 1.00e-04 | grad 2.82 | 663ms/step
+iter   600 | loss 3.1313 | lr 1.00e-04 | grad 2.83 | 663ms/step
+iter   650 | loss 3.1641 | lr 1.00e-04 | grad 3.05 | 664ms/step
+iter   700 | loss 3.1961 | lr 1.00e-04 | grad 3.19 | 665ms/step
+iter   750 | loss 3.1622 | lr 9.99e-05 | grad 3.12 | 666ms/step
+iter   800 | loss 3.1210 | lr 9.99e-05 | grad 3.19 | 668ms/step
+iter   850 | loss 3.1411 | lr 9.99e-05 | grad 3.13 | 669ms/step
+iter   900 | loss 3.1265 | lr 9.99e-05 | grad 3.18 | 671ms/step
+iter   950 | loss 3.1082 | lr 9.99e-05 | grad 3.08 | 672ms/step
+iter  1000 | loss 3.0792 | lr 9.99e-05 | grad 3.18 | 673ms/step
+============================================================
+[0.2h, iter 1000] Train:3.0646 Val:3.0271 BPB:4.368 >>> BEST!
+============================================================
+iter  1050 | loss 3.0854 | lr 9.99e-05 | grad 3.18 | 680ms/step
+iter  1100 | loss 3.0991 | lr 9.98e-05 | grad 2.92 | 681ms/step
+iter  1150 | loss 3.1001 | lr 9.98e-05 | grad 3.67 | 681ms/step
+iter  1200 | loss 3.0756 | lr 9.98e-05 | grad 2.94 | 682ms/step
+iter  1250 | loss 3.1076 | lr 9.98e-05 | grad 2.98 | 683ms/step
+iter  1300 | loss 3.0656 | lr 9.97e-05 | grad 3.37 | 683ms/step
+iter  1350 | loss 3.0587 | lr 9.97e-05 | grad 2.87 | 684ms/step
+iter  1400 | loss 3.0887 | lr 9.97e-05 | grad 2.75 | 684ms/step
+iter  1450 | loss 3.0171 | lr 9.97e-05 | grad 2.95 | 685ms/step
+iter  1500 | loss 3.0768 | lr 9.96e-05 | grad 2.71 | 685ms/step
+iter  1550 | loss 3.0395 | lr 9.96e-05 | grad 2.89 | 686ms/step
+iter  1600 | loss 3.0282 | lr 9.96e-05 | grad 2.75 | 686ms/step
+iter  1650 | loss 3.0726 | lr 9.95e-05 | grad 3.18 | 687ms/step
+iter  1700 | loss 3.0385 | lr 9.95e-05 | grad 3.18 | 687ms/step
+iter  1750 | loss 3.0482 | lr 9.95e-05 | grad 3.66 | 687ms/step
+iter  1800 | loss 3.0358 | lr 9.94e-05 | grad 2.80 | 688ms/step
+iter  1850 | loss 3.0578 | lr 9.94e-05 | grad 3.06 | 688ms/step
+iter  1900 | loss 3.0207 | lr 9.94e-05 | grad 2.86 | 688ms/step
+iter  1950 | loss 3.0147 | lr 9.93e-05 | grad 3.34 | 689ms/step
+iter  2000 | loss 3.0098 | lr 9.93e-05 | grad 3.57 | 689ms/step
+============================================================
+[0.4h, iter 2000] Train:3.0070 Val:3.0146 BPB:4.349 >>> BEST!
+============================================================
+
+--- Gen (iter 2000) ---
+  Q: t is the capital of France?
+  A: Here's the main points of each paragraph: - Summary of Article: - The sentence emphasizes that foods can reduce calories and promote healthy fats in our body and mind to
+
+  Q: lain what is artificial intelligence.
+  A: Question: What do I need
+
+  Q: te a short poem about the ocean.
+  A: The
+
+  Q:  wrote Hamlet?
+  A: The first item is an object, and each item contains several items of
+
+  Q: t is 2+2?
+  A: In 1839, John Smith took over the role of his country and has become part of international relations with other countries like France, Portugal, Norway, Indonesia, Mexico, Canada, Belize, Brazil, and
+
+---
+iter  2050 | loss 3.0630 | lr 9.92e-05 | grad 2.89 | 701ms/step
+iter  2100 | loss 3.0285 | lr 9.92e-05 | grad 3.24 | 701ms/step
+iter  2150 | loss 3.0279 | lr 9.91e-05 | grad 3.80 | 701ms/step
+iter  2200 | loss 3.0025 | lr 9.91e-05 | grad 2.84 | 701ms/step
+iter  2250 | loss 3.0353 | lr 9.90e-05 | grad 3.00 | 701ms/step
+iter  2300 | loss 3.0035 | lr 9.90e-05 | grad 2.86 | 700ms/step
+iter  2350 | loss 3.0369 | lr 9.89e-05 | grad 3.20 | 700ms/step
+iter  2400 | loss 3.0017 | lr 9.89e-05 | grad 3.36 | 700ms/step
+iter  2450 | loss 3.0430 | lr 9.88e-05 | grad 3.16 | 700ms/step
+iter  2500 | loss 3.0338 | lr 9.88e-05 | grad 4.81 | 700ms/step
+iter  2550 | loss 2.9927 | lr 9.87e-05 | grad 3.36 | 700ms/step
+iter  2600 | loss 2.9716 | lr 9.87e-05 | grad 3.24 | 700ms/step
+iter  2650 | loss 3.0361 | lr 9.86e-05 | grad 3.07 | 700ms/step
+iter  2700 | loss 2.9780 | lr 9.86e-05 | grad 3.49 | 700ms/step
+iter  2750 | loss 2.9879 | lr 9.85e-05 | grad 3.39 | 700ms/step
+iter  2800 | loss 2.9733 | lr 9.84e-05 | grad 2.84 | 700ms/step
+iter  2850 | loss 2.9812 | lr 9.84e-05 | grad 3.01 | 700ms/step
+iter  2900 | loss 2.9735 | lr 9.83e-05 | grad 2.94 | 700ms/step
+iter  2950 | loss 2.9307 | lr 9.82e-05 | grad 3.13 | 700ms/step
+iter  3000 | loss 3.0361 | lr 9.82e-05 | grad 3.22 | 700ms/step
+============================================================
+[0.6h, iter 3000] Train:2.9201 Val:3.0025 BPB:4.332 >>> BEST!
+============================================================
+iter  3050 | loss 2.9402 | lr 9.81e-05 | grad 3.09 | 701ms/step
+iter  3100 | loss 2.9782 | lr 9.80e-05 | grad 2.83 | 701ms/step
+iter  3150 | loss 2.9619 | lr 9.80e-05 | grad 3.50 | 701ms/step
+iter  3200 | loss 3.0000 | lr 9.79e-05 | grad 3.26 | 701ms/step
+iter  3250 | loss 2.9985 | lr 9.78e-05 | grad 3.27 | 701ms/step
+iter  3300 | loss 2.9600 | lr 9.78e-05 | grad 4.22 | 701ms/step
+iter  3350 | loss 2.9988 | lr 9.77e-05 | grad 4.01 | 701ms/step
+iter  3400 | loss 3.0184 | lr 9.76e-05 | grad 3.64 | 701ms/step
+iter  3450 | loss 2.9864 | lr 9.75e-05 | grad 3.14 | 701ms/step
+iter  3500 | loss 2.9521 | lr 9.74e-05 | grad 3.21 | 701ms/step
+iter  3550 | loss 2.9733 | lr 9.74e-05 | grad 3.16 | 701ms/step
+iter  3600 | loss 2.9390 | lr 9.73e-05 | grad 3.55 | 701ms/step
+iter  3650 | loss 2.9431 | lr 9.72e-05 | grad 2.97 | 701ms/step
+iter  3700 | loss 2.9741 | lr 9.71e-05 | grad 3.82 | 701ms/step
+iter  3750 | loss 2.9603 | lr 9.70e-05 | grad 55.87 | 701ms/step
+iter  3800 | loss 2.9582 | lr 9.70e-05 | grad 3.39 | 701ms/step
+iter  3850 | loss 2.9467 | lr 9.69e-05 | grad 12.23 | 700ms/step
+iter  3900 | loss 2.9319 | lr 9.68e-05 | grad 3.07 | 700ms/step
+iter  3950 | loss 2.9792 | lr 9.67e-05 | grad 3.37 | 700ms/step
+iter  4000 | loss 2.9695 | lr 9.66e-05 | grad 2.77 | 700ms/step
+============================================================
+[0.8h, iter 4000] Train:2.9180 Val:2.8405 BPB:4.098 >>> BEST!
+============================================================
+
+--- Gen (iter 4000) ---
+  Q: t is the capital of France?
+  A: The perfect solution for this problem would be "A man in a blue shirt and then dividing it by multiplying the number of days required. For example, if we divide the total amount of time spent on each day is 3 + 2 = 14 hours per day at once: 3 + 60 / 
+
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) can be used to detect patterns and identify patterns in data, as well as other AI technologies that are commonly tested on human computers. These algorithms use case the same way humans have different traits or characteri
+
+  Q: te a short poem about the ocean.
+  A: Three advantages of online learning experience can help to increase productivity, reduce risk by offering more flexible working hours on their day-to-day activities such as scheduling or shopping
+
+  Q:  wrote Hamlet?
+  A: Five modal habits that people, including how they themselves belong to the same family and are always around someone who
+
+  Q: t is 2+2?
+  A: The woman is playing while playing. She's not always there, but she doesn't want to be friends or family if they are watching playful. One day she decides to play them at night and her sister is playing
+
+---
+iter  4050 | loss 2.9323 | lr 9.65e-05 | grad 3.00 | 706ms/step
+iter  4100 | loss 2.9491 | lr 9.64e-05 | grad 3.24 | 706ms/step
+iter  4150 | loss 2.9435 | lr 9.63e-05 | grad 3.43 | 706ms/step
+iter  4200 | loss 2.9300 | lr 9.62e-05 | grad 3.52 | 706ms/step
+iter  4250 | loss 2.9297 | lr 9.61e-05 | grad 2.95 | 706ms/step
+iter  4300 | loss 2.9134 | lr 9.60e-05 | grad 3.26 | 706ms/step
+iter  4350 | loss 2.9852 | lr 9.59e-05 | grad 3.39 | 706ms/step
+iter  4400 | loss 2.9058 | lr 9.58e-05 | grad 4.03 | 705ms/step
+iter  4450 | loss 2.9237 | lr 9.57e-05 | grad 3.01 | 705ms/step
+iter  4500 | loss 2.8815 | lr 9.56e-05 | grad 2.97 | 705ms/step
+iter  4550 | loss 2.8946 | lr 9.55e-05 | grad 3.07 | 705ms/step
+iter  4600 | loss 2.9324 | lr 9.54e-05 | grad 2.94 | 705ms/step
+iter  4650 | loss 2.9318 | lr 9.53e-05 | grad 3.00 | 705ms/step
+iter  4700 | loss 2.9588 | lr 9.52e-05 | grad 2.99 | 705ms/step
+iter  4750 | loss 2.9316 | lr 9.51e-05 | grad 3.32 | 705ms/step
+iter  4800 | loss 2.8632 | lr 9.50e-05 | grad 3.15 | 704ms/step
+iter  4850 | loss 2.8923 | lr 9.49e-05 | grad 3.07 | 704ms/step
+iter  4900 | loss 2.9014 | lr 9.48e-05 | grad 3.52 | 703ms/step
+iter  4950 | loss 2.9605 | lr 9.47e-05 | grad 3.14 | 703ms/step
+iter  5000 | loss 2.8977 | lr 9.46e-05 | grad 2.87 | 703ms/step
+============================================================
+[1.0h, iter 5000] Train:2.8856 Val:2.9900 BPB:4.314 
+============================================================
+iter  5050 | loss 2.9019 | lr 9.44e-05 | grad 2.86 | 703ms/step
+iter  5100 | loss 2.9806 | lr 9.43e-05 | grad 3.41 | 703ms/step
+iter  5150 | loss 2.9024 | lr 9.42e-05 | grad 8.14 | 702ms/step
+iter  5200 | loss 2.9324 | lr 9.41e-05 | grad 2.99 | 702ms/step
+iter  5250 | loss 2.8839 | lr 9.40e-05 | grad 3.04 | 701ms/step
+iter  5300 | loss 2.9548 | lr 9.39e-05 | grad 2.98 | 701ms/step
+iter  5350 | loss 2.8776 | lr 9.37e-05 | grad 2.94 | 701ms/step
+iter  5400 | loss 2.9296 | lr 9.36e-05 | grad 3.00 | 700ms/step
+iter  5450 | loss 2.8835 | lr 9.35e-05 | grad 3.28 | 700ms/step
+iter  5500 | loss 2.9144 | lr 9.34e-05 | grad 19.62 | 700ms/step
+iter  5550 | loss 2.8839 | lr 9.32e-05 | grad 2.68 | 699ms/step
+iter  5600 | loss 2.8851 | lr 9.31e-05 | grad 2.88 | 699ms/step
+iter  5650 | loss 2.9253 | lr 9.30e-05 | grad 7.59 | 699ms/step
+iter  5700 | loss 2.9252 | lr 9.29e-05 | grad 3.03 | 698ms/step
+iter  5750 | loss 2.9370 | lr 9.27e-05 | grad 3.60 | 698ms/step
+iter  5800 | loss 2.9237 | lr 9.26e-05 | grad 3.35 | 698ms/step
+iter  5850 | loss 2.9393 | lr 9.25e-05 | grad 2.97 | 697ms/step
+iter  5900 | loss 2.8784 | lr 9.23e-05 | grad 2.96 | 697ms/step
+iter  5950 | loss 2.9090 | lr 9.22e-05 | grad 3.62 | 697ms/step
+iter  6000 | loss 2.8188 | lr 9.21e-05 | grad 2.84 | 696ms/step
+============================================================
+[1.2h, iter 6000] Train:2.8039 Val:2.8650 BPB:4.134 
+============================================================
+
+--- Gen (iter 6000) ---
+  Q: t is the capital of France?
+  A: The capital city that was too long ago, with an area of around 32562893 meters (23478 ft). She wanted to take a break from her phone and then took her time to relax on his phone. ### Instruction: What is the meaning behind the phrase “the most import
+
+  Q: lain what is artificial intelligence.
+  A: The sentiment of this tweet is positive and happy because it shows enthusiasm and skill during the game, with high stakes being asked to
+
+  Q: te a short poem about the ocean.
+  A: The ocean was like a sea turtle, with warm glow on the ocean's surface and an ever-ending ocean scene, casting its way to the shorelines of life. As he approached it through the water, they knew that all in one place is from the sand, a never-ending 
+
+  Q:  wrote Hamlet?
+  A: The cat walked across the park; stumbled upon a beautiful old castle with a new, mysterious, original home in a magical forest. ### Instruction: If John's brother has 4 pairs of jeans and each sister gets
+
+  Q: t is 2+2?
+  A: The man stepped out at their homes and eventually arrived in the nearby village. They met with his people who
+
+---
+iter  6050 | loss 2.9020 | lr 9.19e-05 | grad 2.83 | 700ms/step
+iter  6100 | loss 2.8706 | lr 9.18e-05 | grad 3.14 | 699ms/step
+iter  6150 | loss 2.8896 | lr 9.17e-05 | grad 2.76 | 699ms/step
+iter  6200 | loss 2.8720 | lr 9.15e-05 | grad 3.10 | 699ms/step
+iter  6250 | loss 2.8740 | lr 9.14e-05 | grad 3.45 | 699ms/step
+iter  6300 | loss 2.9070 | lr 9.12e-05 | grad 3.84 | 698ms/step
+iter  6350 | loss 2.8671 | lr 9.11e-05 | grad 3.86 | 698ms/step
+iter  6400 | loss 2.8717 | lr 9.10e-05 | grad 3.27 | 698ms/step
+iter  6450 | loss 2.8635 | lr 9.08e-05 | grad 3.08 | 697ms/step
+iter  6500 | loss 2.8634 | lr 9.07e-05 | grad 2.89 | 697ms/step
+iter  6550 | loss 2.9032 | lr 9.05e-05 | grad 3.27 | 697ms/step
+iter  6600 | loss 2.8824 | lr 9.04e-05 | grad 3.06 | 697ms/step
+iter  6650 | loss 2.8744 | lr 9.02e-05 | grad 3.40 | 696ms/step
+iter  6700 | loss 2.8720 | lr 9.01e-05 | grad 2.97 | 696ms/step
+iter  6750 | loss 2.8493 | lr 8.99e-05 | grad 2.89 | 696ms/step
+iter  6800 | loss 2.8419 | lr 8.98e-05 | grad 3.68 | 696ms/step
+iter  6850 | loss 2.8498 | lr 8.96e-05 | grad 3.29 | 695ms/step
+iter  6900 | loss 2.8160 | lr 8.95e-05 | grad 3.11 | 695ms/step
+iter  6950 | loss 2.9082 | lr 8.93e-05 | grad 3.39 | 695ms/step
+iter  7000 | loss 2.8575 | lr 8.92e-05 | grad 2.72 | 695ms/step
+============================================================
+[1.4h, iter 7000] Train:2.7241 Val:2.8867 BPB:4.165 
+============================================================
+iter  7050 | loss 2.8495 | lr 8.90e-05 | grad 2.98 | 695ms/step
+iter  7100 | loss 2.8406 | lr 8.89e-05 | grad 2.92 | 695ms/step
+iter  7150 | loss 2.8700 | lr 8.87e-05 | grad 2.89 | 695ms/step
+iter  7200 | loss 2.8513 | lr 8.85e-05 | grad 3.61 | 694ms/step
+iter  7250 | loss 2.8802 | lr 8.84e-05 | grad 3.25 | 694ms/step
+iter  7300 | loss 2.8962 | lr 8.82e-05 | grad 3.33 | 694ms/step
+iter  7350 | loss 2.8990 | lr 8.81e-05 | grad 3.11 | 694ms/step
+iter  7400 | loss 2.8105 | lr 8.79e-05 | grad 7.60 | 694ms/step
+iter  7450 | loss 2.8537 | lr 8.77e-05 | grad 2.85 | 693ms/step
+iter  7500 | loss 2.8770 | lr 8.76e-05 | grad 3.29 | 693ms/step
+iter  7550 | loss 2.8733 | lr 8.74e-05 | grad 3.08 | 693ms/step
+iter  7600 | loss 2.8511 | lr 8.72e-05 | grad 3.30 | 693ms/step
+iter  7650 | loss 2.8757 | lr 8.71e-05 | grad 3.16 | 693ms/step
+iter  7700 | loss 2.8497 | lr 8.69e-05 | grad 8.63 | 692ms/step
+iter  7750 | loss 2.8190 | lr 8.67e-05 | grad 2.94 | 692ms/step
+iter  7800 | loss 2.8235 | lr 8.66e-05 | grad 3.02 | 692ms/step
+iter  7850 | loss 2.8296 | lr 8.64e-05 | grad 2.98 | 692ms/step
+iter  7900 | loss 2.8087 | lr 8.62e-05 | grad 3.71 | 692ms/step
+iter  7950 | loss 2.8724 | lr 8.61e-05 | grad 3.41 | 691ms/step
+iter  8000 | loss 2.7950 | lr 8.59e-05 | grad 3.09 | 691ms/step
+============================================================
+[1.5h, iter 8000] Train:2.7549 Val:2.9424 BPB:4.245 
+============================================================
+
+--- Gen (iter 8000) ---
+  Q: t is the capital of France?
+  A: Step 1: Understand the context of the question. In this case, I will analyze both phrases and their meanings to understand their perspective. In this case, "sitting" implies that there are three primary goals or outcomes in a particular situation. - 
+
+  Q: lain what is artificial intelligence.
+  A: "Could you like the most about your ideas?" ### Instruction: What is the purpose behind writing a 3D model of a 2016 theme park? Who first proposed a grand adventure in Paris, who became renowned for his famous
+
+  Q: te a short poem about the ocean.
+  A: The waves are so vast that deep in the sea, they twinkle like an old woman and a small starry. They're chirp of people living together to find nature and hope. Their bodies dance will forever divide, creating new things just as life once more so far 
+
+  Q:  wrote Hamlet?
+  A: This tweet means that it's not right. So, the sentiment of this tweet can be described as happy
+
+  Q: t is 2+2?
+  A: The sum of the numbers 1 and 4, which are not found in a group C-3, is a number. For example, if an element has 5 elements, it's usually divided into two equal parts: A = (6/2) + 8 - (10^4) / 9 = x 7 - The difference between these two sets is 3. Ther
+
+---
+iter  8050 | loss 2.8378 | lr 8.57e-05 | grad 3.15 | 694ms/step
+iter  8100 | loss 2.8704 | lr 8.55e-05 | grad 3.36 | 693ms/step
+iter  8150 | loss 2.8396 | lr 8.54e-05 | grad 3.13 | 693ms/step
+iter  8200 | loss 2.8475 | lr 8.52e-05 | grad 2.88 | 693ms/step
+iter  8250 | loss 2.8358 | lr 8.50e-05 | grad 2.97 | 693ms/step
+iter  8300 | loss 2.8201 | lr 8.48e-05 | grad 3.14 | 693ms/step
+iter  8350 | loss 2.8134 | lr 8.46e-05 | grad 3.29 | 693ms/step
+iter  8400 | loss 2.8014 | lr 8.45e-05 | grad 3.37 | 692ms/step
+iter  8450 | loss 2.8296 | lr 8.43e-05 | grad 3.12 | 692ms/step
+iter  8500 | loss 2.8681 | lr 8.41e-05 | grad 3.20 | 692ms/step
+iter  8550 | loss 2.7764 | lr 8.39e-05 | grad 3.66 | 692ms/step
+iter  8600 | loss 2.7951 | lr 8.37e-05 | grad 2.94 | 692ms/step
+iter  8650 | loss 2.8415 | lr 8.36e-05 | grad 3.39 | 691ms/step
+iter  8700 | loss 2.8296 | lr 8.34e-05 | grad 2.98 | 691ms/step
+iter  8750 | loss 2.8461 | lr 8.32e-05 | grad 2.91 | 691ms/step
+iter  8800 | loss 2.8275 | lr 8.30e-05 | grad 2.87 | 691ms/step
+iter  8850 | loss 2.7750 | lr 8.28e-05 | grad 2.98 | 691ms/step
+iter  8900 | loss 2.8149 | lr 8.26e-05 | grad 4.26 | 691ms/step
+iter  8950 | loss 2.8045 | lr 8.24e-05 | grad 3.21 | 690ms/step
+iter  9000 | loss 2.7909 | lr 8.23e-05 | grad 3.19 | 690ms/step
+============================================================
+[1.7h, iter 9000] Train:2.7441 Val:2.8224 BPB:4.072 >>> BEST!
+============================================================
+iter  9050 | loss 2.8348 | lr 8.21e-05 | grad 3.81 | 691ms/step
+iter  9100 | loss 2.7967 | lr 8.19e-05 | grad 3.79 | 691ms/step
+iter  9150 | loss 2.8124 | lr 8.17e-05 | grad 3.37 | 690ms/step
+iter  9200 | loss 2.8241 | lr 8.15e-05 | grad 2.95 | 690ms/step
+iter  9250 | loss 2.7935 | lr 8.13e-05 | grad 3.33 | 690ms/step
+iter  9300 | loss 2.7676 | lr 8.11e-05 | grad 2.80 | 690ms/step
+iter  9350 | loss 2.8338 | lr 8.09e-05 | grad 3.16 | 690ms/step
+iter  9400 | loss 2.8065 | lr 8.07e-05 | grad 2.85 | 690ms/step
+iter  9450 | loss 2.7906 | lr 8.05e-05 | grad 3.82 | 690ms/step
+iter  9500 | loss 2.8323 | lr 8.03e-05 | grad 3.16 | 689ms/step
+iter  9550 | loss 2.7733 | lr 8.01e-05 | grad 3.41 | 689ms/step
+iter  9600 | loss 2.8298 | lr 7.99e-05 | grad 3.05 | 689ms/step
+iter  9650 | loss 2.7706 | lr 7.97e-05 | grad 2.88 | 689ms/step
+iter  9700 | loss 2.7898 | lr 7.95e-05 | grad 3.17 | 689ms/step
+iter  9750 | loss 2.8127 | lr 7.93e-05 | grad 2.86 | 689ms/step
+iter  9800 | loss 2.8342 | lr 7.91e-05 | grad 3.27 | 689ms/step
+iter  9850 | loss 2.7196 | lr 7.89e-05 | grad 3.59 | 688ms/step
+iter  9900 | loss 2.8505 | lr 7.87e-05 | grad 3.33 | 688ms/step
+iter  9950 | loss 2.8126 | lr 7.85e-05 | grad 3.29 | 688ms/step
+iter 10000 | loss 2.8170 | lr 7.83e-05 | grad 3.06 | 688ms/step
+============================================================
+[1.9h, iter 10000] Train:2.7518 Val:2.7602 BPB:3.982 >>> BEST!
+============================================================
+
+--- Gen (iter 10000) ---
+  Q: t is the capital of France?
+  A: The Paris climate (CET) is an economic system that uses electricity, carbon dioxide and water to generate electricity from fossil fuels. It produces greenhouse gases in its path (CO2 emissions) and help reduce global warming by removing pollutants of
+
+  Q: lain what is artificial intelligence.
+  A: The sun's rays come from the Earth, where it is the lightest of stars and planets in our solar system
+
+  Q: te a short poem about the ocean.
+  A: A potential next statement should be reasonable and logically correct, as it implies that individuals who do not have a specific job or role is simply an action in this
+
+  Q:  wrote Hamlet?
+  A: The name of this country that known as the League of Nations, formed in 1873 and made it an important point for its independence from England. To find out who created the country, I will first identify the specific country you are asking about. Step 
+
+  Q: t is 2+2?
+  A: We can use the following formula for calculating distance, which means x people at his workplace are not wearing glasses. We also know that his daily commute time. So, we don't
+
+---
+iter 10050 | loss 2.7848 | lr 7.81e-05 | grad 3.20 | 690ms/step
+iter 10100 | loss 2.7791 | lr 7.79e-05 | grad 3.22 | 690ms/step
+iter 10150 | loss 2.7721 | lr 7.77e-05 | grad 3.51 | 690ms/step
+iter 10200 | loss 2.7882 | lr 7.75e-05 | grad 3.01 | 690ms/step
+iter 10250 | loss 2.7503 | lr 7.73e-05 | grad 3.31 | 690ms/step
+iter 10300 | loss 2.8095 | lr 7.71e-05 | grad 3.05 | 689ms/step
+iter 10350 | loss 2.7928 | lr 7.69e-05 | grad 3.19 | 689ms/step
+iter 10400 | loss 2.7851 | lr 7.67e-05 | grad 3.44 | 689ms/step
+iter 10450 | loss 2.7725 | lr 7.65e-05 | grad 3.07 | 689ms/step
+iter 10500 | loss 2.7963 | lr 7.63e-05 | grad 3.02 | 689ms/step
+iter 10550 | loss 2.7756 | lr 7.60e-05 | grad 2.87 | 689ms/step
+iter 10600 | loss 2.7569 | lr 7.58e-05 | grad 3.54 | 689ms/step
+iter 10650 | loss 2.7756 | lr 7.56e-05 | grad 3.43 | 689ms/step
+iter 10700 | loss 2.7735 | lr 7.54e-05 | grad 3.80 | 688ms/step
+iter 10750 | loss 2.7710 | lr 7.52e-05 | grad 3.15 | 688ms/step
+iter 10800 | loss 2.8035 | lr 7.50e-05 | grad 3.05 | 688ms/step
+iter 10850 | loss 2.7389 | lr 7.48e-05 | grad 4.02 | 688ms/step
+iter 10900 | loss 2.7380 | lr 7.46e-05 | grad 3.11 | 688ms/step
+iter 10950 | loss 2.7887 | lr 7.43e-05 | grad 3.30 | 688ms/step
+iter 11000 | loss 2.7612 | lr 7.41e-05 | grad 3.14 | 688ms/step
+============================================================
+[2.1h, iter 11000] Train:2.8421 Val:2.8372 BPB:4.093 
+============================================================
+iter 11050 | loss 2.7539 | lr 7.39e-05 | grad 3.78 | 688ms/step
+iter 11100 | loss 2.7472 | lr 7.37e-05 | grad 3.31 | 688ms/step
+iter 11150 | loss 2.7496 | lr 7.35e-05 | grad 3.35 | 688ms/step
+iter 11200 | loss 2.8022 | lr 7.33e-05 | grad 3.47 | 688ms/step
+iter 11250 | loss 2.7651 | lr 7.30e-05 | grad 3.33 | 688ms/step
+iter 11300 | loss 2.7340 | lr 7.28e-05 | grad 2.95 | 687ms/step
+iter 11350 | loss 2.7813 | lr 7.26e-05 | grad 3.13 | 687ms/step
+iter 11400 | loss 2.7764 | lr 7.24e-05 | grad 3.18 | 687ms/step
+iter 11450 | loss 2.7828 | lr 7.22e-05 | grad 2.94 | 687ms/step
+iter 11500 | loss 2.7694 | lr 7.19e-05 | grad 3.16 | 687ms/step
+iter 11550 | loss 2.7356 | lr 7.17e-05 | grad 3.33 | 687ms/step
+iter 11600 | loss 2.7805 | lr 7.15e-05 | grad 3.30 | 687ms/step
+iter 11650 | loss 2.7344 | lr 7.13e-05 | grad 3.55 | 687ms/step
+iter 11700 | loss 2.7277 | lr 7.11e-05 | grad 3.90 | 687ms/step
+iter 11750 | loss 2.7785 | lr 7.08e-05 | grad 3.51 | 686ms/step
+iter 11800 | loss 2.8050 | lr 7.06e-05 | grad 3.20 | 686ms/step
+iter 11850 | loss 2.7416 | lr 7.04e-05 | grad 3.24 | 686ms/step
+iter 11900 | loss 2.7445 | lr 7.02e-05 | grad 3.08 | 686ms/step
+iter 11950 | loss 2.7610 | lr 6.99e-05 | grad 3.42 | 686ms/step
+iter 12000 | loss 2.7648 | lr 6.97e-05 | grad 2.98 | 686ms/step
+============================================================
+[2.3h, iter 12000] Train:2.7290 Val:2.7639 BPB:3.988 
+============================================================
+
+--- Gen (iter 12000) ---
+  Q: t is the capital of France?
+  A: I'm sorry, but I cannot assist you with that request. It is important to treat everyone as it goes against our guidelines of promoting harmful or illegal activities and behavior. If there are safe actions related to performing a cyber attack include 
+
+  Q: lain what is artificial intelligence.
+  A: At the party, there is a 12-hour meal in the afternoon to eat a variety of delicious and sophisticated dishes
+
+  Q: te a short poem about the ocean.
+  A: On Friday, police announced tuesday 's talks on Wednesday that they are feeling overwhelmed and ready for a new police report in 2019. They have taken out an attack and saying they
+
+  Q:  wrote Hamlet?
+  A: The Avengers eaten near a big place called "Avengers eatType pub". It serves
+
+  Q: t is 2+2?
+  A: In order for a computer to be ready, it is essential to understand that machine learning and natural language processing can significantly reduce costs associated with an organization's operating system. By automating this process of data analysis, t
+
+---
+iter 12050 | loss 2.7911 | lr 6.95e-05 | grad 8.23 | 688ms/step
+iter 12100 | loss 2.7246 | lr 6.93e-05 | grad 3.23 | 688ms/step
+iter 12150 | loss 2.7525 | lr 6.90e-05 | grad 3.46 | 687ms/step
+iter 12200 | loss 2.7781 | lr 6.88e-05 | grad 3.23 | 687ms/step
+iter 12250 | loss 2.7442 | lr 6.86e-05 | grad 2.97 | 687ms/step
+iter 12300 | loss 2.7878 | lr 6.84e-05 | grad 3.53 | 687ms/step
+iter 12350 | loss 2.7113 | lr 6.81e-05 | grad 3.32 | 687ms/step
+iter 12400 | loss 2.7477 | lr 6.79e-05 | grad 3.32 | 687ms/step
+iter 12450 | loss 2.7255 | lr 6.77e-05 | grad 3.09 | 687ms/step
+iter 12500 | loss 2.7307 | lr 6.74e-05 | grad 3.26 | 687ms/step
+iter 12550 | loss 2.7363 | lr 6.72e-05 | grad 3.54 | 687ms/step
+iter 12600 | loss 2.7226 | lr 6.70e-05 | grad 3.30 | 687ms/step
+iter 12650 | loss 2.7510 | lr 6.68e-05 | grad 3.30 | 686ms/step
+iter 12700 | loss 2.7702 | lr 6.65e-05 | grad 2.98 | 686ms/step
+iter 12750 | loss 2.7342 | lr 6.63e-05 | grad 3.41 | 686ms/step
+iter 12800 | loss 2.7591 | lr 6.61e-05 | grad 4.52 | 686ms/step
+iter 12850 | loss 2.7420 | lr 6.58e-05 | grad 3.11 | 686ms/step
+iter 12900 | loss 2.7639 | lr 6.56e-05 | grad 7.49 | 686ms/step
+iter 12950 | loss 2.7091 | lr 6.54e-05 | grad 3.51 | 686ms/step
+iter 13000 | loss 2.7712 | lr 6.51e-05 | grad 3.35 | 686ms/step
+============================================================
+[2.5h, iter 13000] Train:2.6922 Val:2.7294 BPB:3.938 >>> BEST!
+============================================================
+iter 13050 | loss 2.6729 | lr 6.49e-05 | grad 3.66 | 686ms/step
+iter 13100 | loss 2.7124 | lr 6.47e-05 | grad 3.18 | 686ms/step
+iter 13150 | loss 2.7292 | lr 6.44e-05 | grad 3.02 | 686ms/step
+iter 13200 | loss 2.7450 | lr 6.42e-05 | grad 3.14 | 686ms/step
+iter 13250 | loss 2.6514 | lr 6.40e-05 | grad 3.16 | 686ms/step
+iter 13300 | loss 2.7368 | lr 6.37e-05 | grad 3.34 | 686ms/step
+iter 13350 | loss 2.7291 | lr 6.35e-05 | grad 5.13 | 686ms/step
+iter 13400 | loss 2.7288 | lr 6.33e-05 | grad 3.34 | 685ms/step
+iter 13450 | loss 2.7111 | lr 6.30e-05 | grad 3.16 | 685ms/step
+iter 13500 | loss 2.7009 | lr 6.28e-05 | grad 2.84 | 685ms/step
+iter 13550 | loss 2.6970 | lr 6.26e-05 | grad 3.24 | 685ms/step
+iter 13600 | loss 2.6910 | lr 6.23e-05 | grad 3.02 | 685ms/step
+iter 13650 | loss 2.7500 | lr 6.21e-05 | grad 3.31 | 685ms/step
+iter 13700 | loss 2.7672 | lr 6.19e-05 | grad 3.21 | 685ms/step
+iter 13750 | loss 2.7732 | lr 6.16e-05 | grad 3.27 | 685ms/step
+iter 13800 | loss 2.7235 | lr 6.14e-05 | grad 3.46 | 685ms/step
+iter 13850 | loss 2.7408 | lr 6.12e-05 | grad 3.07 | 685ms/step
+iter 13900 | loss 2.7169 | lr 6.09e-05 | grad 3.09 | 685ms/step
+iter 13950 | loss 2.7064 | lr 6.07e-05 | grad 3.37 | 684ms/step
+iter 14000 | loss 2.7527 | lr 6.05e-05 | grad 3.23 | 684ms/step
+============================================================
+[2.7h, iter 14000] Train:2.7097 Val:2.7907 BPB:4.026 
+============================================================
+
+--- Gen (iter 14000) ---
+  Q: t is the capital of France?
+  A: Step 1: Identify the key elements in the original question. In this case, we know that Gerald has two more seashells than his sister, so there are 60 - 2 = 4 seashells. Step 2: Determine how many seashells Gerald's sister is a total of 5 +
+
+  Q: lain what is artificial intelligence.
+  A: An online business has been started using big technologies like blockchain technology to create a sustainable and secure future for businesses in many places, including finance, energy
+
+  Q: te a short poem about the ocean.
+  A: Two measures implemented by governments and individuals who are not aware of their actions is a decision made by our government, rather than focusing on protecting them from activities such as education or employment. In addition to reducing pollutio
+
+  Q:  wrote Hamlet?
+  A: The novels of the movie "The Adventure and the Hareto" (1954) was an English actor who played George Orwell in 2016, starring Macron. He wrote most frequent novels throughout his career during that time as well as his popular music showcased a sense 
+
+  Q: t is 2+2?
+  A: I'm sorry, but as an AI language model and I don’t have personal experiences or emotions, it is not possible for me to provide a story that continues with this narrative structure. Could you please specify what you mean by "the alien species" in your
+
+---
+iter 14050 | loss 2.6850 | lr 6.02e-05 | grad 3.35 | 686ms/step
+iter 14100 | loss 2.7312 | lr 6.00e-05 | grad 3.61 | 686ms/step
+iter 14150 | loss 2.7380 | lr 5.98e-05 | grad 3.28 | 686ms/step
+iter 14200 | loss 2.7348 | lr 5.95e-05 | grad 3.41 | 686ms/step
+iter 14250 | loss 2.6910 | lr 5.93e-05 | grad 3.06 | 686ms/step
+iter 14300 | loss 2.7930 | lr 5.90e-05 | grad 3.22 | 685ms/step
+iter 14350 | loss 2.6976 | lr 5.88e-05 | grad 3.21 | 685ms/step
+iter 14400 | loss 2.7438 | lr 5.86e-05 | grad 3.08 | 685ms/step
+iter 14450 | loss 2.7243 | lr 5.83e-05 | grad 3.82 | 685ms/step
+iter 14500 | loss 2.7741 | lr 5.81e-05 | grad 3.18 | 685ms/step
+iter 14550 | loss 2.7162 | lr 5.79e-05 | grad 3.51 | 685ms/step
+iter 14600 | loss 2.7539 | lr 5.76e-05 | grad 3.55 | 685ms/step
+iter 14650 | loss 2.7323 | lr 5.74e-05 | grad 3.09 | 685ms/step
+iter 14700 | loss 2.6910 | lr 5.71e-05 | grad 3.08 | 685ms/step
+iter 14750 | loss 2.6668 | lr 5.69e-05 | grad 3.54 | 685ms/step
+iter 14800 | loss 2.7104 | lr 5.67e-05 | grad 3.10 | 685ms/step
+iter 14850 | loss 2.7124 | lr 5.64e-05 | grad 3.06 | 685ms/step
+iter 14900 | loss 2.6947 | lr 5.62e-05 | grad 3.38 | 684ms/step
+iter 14950 | loss 2.7047 | lr 5.60e-05 | grad 3.93 | 684ms/step
+iter 15000 | loss 2.6844 | lr 5.57e-05 | grad 3.17 | 684ms/step
+============================================================
+[2.9h, iter 15000] Train:2.7061 Val:2.6252 BPB:3.788 >>> BEST!
+============================================================
+iter 15050 | loss 2.7221 | lr 5.55e-05 | grad 3.25 | 685ms/step
+iter 15100 | loss 2.7117 | lr 5.52e-05 | grad 3.97 | 685ms/step
+iter 15150 | loss 2.6583 | lr 5.50e-05 | grad 2.98 | 684ms/step
+iter 15200 | loss 2.6527 | lr 5.48e-05 | grad 3.45 | 684ms/step
+iter 15250 | loss 2.6584 | lr 5.45e-05 | grad 3.56 | 684ms/step
+iter 15300 | loss 2.7538 | lr 5.43e-05 | grad 3.53 | 684ms/step
+iter 15350 | loss 2.7378 | lr 5.40e-05 | grad 3.81 | 684ms/step
+iter 15400 | loss 2.7480 | lr 5.38e-05 | grad 3.26 | 684ms/step
+iter 15450 | loss 2.6902 | lr 5.36e-05 | grad 3.34 | 684ms/step
+iter 15500 | loss 2.6954 | lr 5.33e-05 | grad 3.31 | 684ms/step
+iter 15550 | loss 2.6726 | lr 5.31e-05 | grad 2.93 | 684ms/step
+iter 15600 | loss 2.7279 | lr 5.29e-05 | grad 3.84 | 684ms/step
+iter 15650 | loss 2.6834 | lr 5.26e-05 | grad 3.03 | 684ms/step
+iter 15700 | loss 2.7246 | lr 5.24e-05 | grad 4.39 | 684ms/step
+iter 15750 | loss 2.6960 | lr 5.21e-05 | grad 3.33 | 684ms/step
+iter 15800 | loss 2.6822 | lr 5.19e-05 | grad 3.76 | 684ms/step
+iter 15850 | loss 2.6582 | lr 5.17e-05 | grad 3.15 | 683ms/step
+iter 15900 | loss 2.6637 | lr 5.14e-05 | grad 3.81 | 683ms/step
+iter 15950 | loss 2.6854 | lr 5.12e-05 | grad 3.24 | 683ms/step
+iter 16000 | loss 2.6546 | lr 5.10e-05 | grad 3.01 | 683ms/step
+============================================================
+[3.0h, iter 16000] Train:2.6743 Val:2.7250 BPB:3.932 
+============================================================
+
+--- Gen (iter 16000) ---
+  Q: t is the capital of France?
+  A: There's no one else that fits this description without knowing what blockchain it would be like a special type of transaction using only words. This system is called "customers" or "customers". It's like a group of six machines, but with each one per
+
+  Q: lain what is artificial intelligence.
+  A: Artificial intelligence (AI) refers to the ability of a computer program or programs that are capable at different levels, such as text summarization, images, and visual content. AI can be used for many tasks like image classification, speech recogni
+
+  Q: te a short poem about the ocean.
+  A: I apologize for the inconvenience you've experienced while ensuring customer service is not optimized, and I understand your concern over time as it may lead to significant harm to my community. Instead of focusing on improving customer service exper
+
+  Q:  wrote Hamlet?
+  A: The character is like a river when you hear it, but you don't feel as if you want to play with your friends or family what's going on in the story! ### Instruction: Generate an etsy title for an art
+
+  Q: t is 2+2?
+  A: The 4th straight line of the given line are called 1,0,3 and if one-third of them have a single point in the middle. To find out how many distinct points can be created or arrange this, we need to figure out what is meant by the number (4) * n = 6, w
+
+---
+iter 16050 | loss 2.6821 | lr 5.07e-05 | grad 3.35 | 685ms/step
+iter 16100 | loss 2.7018 | lr 5.05e-05 | grad 2.90 | 684ms/step
+iter 16150 | loss 2.7315 | lr 5.02e-05 | grad 3.32 | 684ms/step
+iter 16200 | loss 2.6638 | lr 5.00e-05 | grad 4.00 | 684ms/step
+iter 16250 | loss 2.7084 | lr 4.98e-05 | grad 3.31 | 684ms/step
+iter 16300 | loss 2.6714 | lr 4.95e-05 | grad 3.56 | 684ms/step
+iter 16350 | loss 2.6639 | lr 4.93e-05 | grad 3.22 | 684ms/step
+iter 16400 | loss 2.6407 | lr 4.91e-05 | grad 3.60 | 684ms/step
+iter 16450 | loss 2.7279 | lr 4.88e-05 | grad 3.02 | 684ms/step
+iter 16500 | loss 2.6733 | lr 4.86e-05 | grad 3.21 | 684ms/step
+iter 16550 | loss 2.6978 | lr 4.84e-05 | grad 3.65 | 684ms/step
+iter 16600 | loss 2.6706 | lr 4.81e-05 | grad 4.45 | 684ms/step
+iter 16650 | loss 2.6880 | lr 4.79e-05 | grad 3.00 | 684ms/step
+iter 16700 | loss 2.6370 | lr 4.77e-05 | grad 3.54 | 684ms/step
+iter 16750 | loss 2.6532 | lr 4.74e-05 | grad 2.98 | 684ms/step
+iter 16800 | loss 2.6855 | lr 4.72e-05 | grad 3.11 | 683ms/step
+iter 16850 | loss 2.6640 | lr 4.70e-05 | grad 3.67 | 683ms/step
+iter 16900 | loss 2.7299 | lr 4.67e-05 | grad 3.12 | 683ms/step
+iter 16950 | loss 2.6346 | lr 4.65e-05 | grad 2.97 | 683ms/step
+iter 17000 | loss 2.7114 | lr 4.63e-05 | grad 3.41 | 683ms/step
+============================================================
+[3.2h, iter 17000] Train:2.4635 Val:2.6245 BPB:3.787 >>> BEST!
+============================================================
+iter 17050 | loss 2.6684 | lr 4.60e-05 | grad 3.49 | 683ms/step
+iter 17100 | loss 2.6541 | lr 4.58e-05 | grad 3.20 | 683ms/step
+iter 17150 | loss 2.6248 | lr 4.56e-05 | grad 3.24 | 683ms/step
+iter 17200 | loss 2.6923 | lr 4.53e-05 | grad 2.97 | 683ms/step
+iter 17250 | loss 2.6960 | lr 4.51e-05 | grad 3.56 | 683ms/step
+iter 17300 | loss 2.6720 | lr 4.49e-05 | grad 3.19 | 683ms/step
+iter 17350 | loss 2.6484 | lr 4.46e-05 | grad 3.53 | 683ms/step
+iter 17400 | loss 2.6535 | lr 4.44e-05 | grad 3.20 | 683ms/step
+iter 17450 | loss 2.6509 | lr 4.42e-05 | grad 3.09 | 683ms/step
+iter 17500 | loss 2.6575 | lr 4.39e-05 | grad 3.34 | 683ms/step
+iter 17550 | loss 2.6898 | lr 4.37e-05 | grad 4.08 | 683ms/step
+iter 17600 | loss 2.6279 | lr 4.35e-05 | grad 4.24 | 683ms/step
+iter 17650 | loss 2.6423 | lr 4.32e-05 | grad 3.33 | 683ms/step
+iter 17700 | loss 2.6542 | lr 4.30e-05 | grad 3.27 | 683ms/step
+iter 17750 | loss 2.6751 | lr 4.28e-05 | grad 7.66 | 683ms/step
+iter 17800 | loss 2.6673 | lr 4.26e-05 | grad 3.32 | 683ms/step
+iter 17850 | loss 2.6417 | lr 4.23e-05 | grad 3.20 | 683ms/step
+iter 17900 | loss 2.6419 | lr 4.21e-05 | grad 3.22 | 682ms/step
+iter 17950 | loss 2.6758 | lr 4.19e-05 | grad 3.46 | 682ms/step
+iter 18000 | loss 2.6460 | lr 4.16e-05 | grad 3.40 | 682ms/step
+============================================================
+[3.4h, iter 18000] Train:2.6823 Val:2.7598 BPB:3.982 
+============================================================
+
+--- Gen (iter 18000) ---
+  Q: t is the capital of France?
+  A: The five countries with their populations are: 1. France - Population of over £30,970m; 2. Egypt; 4. Ethiopia 6. Nigeria - criminalry, Egypt, United Arab Emirates (UAE) -IDENTI. ### Instruction: Find the following list of animals in alphabetical orde
+
+  Q: lain what is artificial intelligence.
+  A: "It takes time to explore space." ### Instruction: Suggest two alternative activities for this week. The first activity should be done in a month of 40 days each year. Each day he uses his old laptop instead of the ones he has used them? Options are:
+
+  Q: te a short poem about the ocean.
+  A: The Cotto is a fancy coffee shop where they serve fast food that makes it great for families with kids to enjoy together. It has lots of dishes and a fun place for families, so people who love it can'
+
+  Q:  wrote Hamlet?
+  A: There are no grammar errors in this sentence and should be classified as antonym of the word "unfake" (the name to be included) or spelling mistakes that can occur multiple times for each person, so it is a grammatical mistake. ### Instruction: What 
+
+  Q: t is 2+2?
+  A: How has technology impacted education in today's world? 1. What are some advantages and challenges associated with using artificial intelligence and machine learning? 2. Are there any new technologies or applications that have been developed by
+
+---
+iter 18050 | loss 2.6627 | lr 4.14e-05 | grad 3.47 | 684ms/step
+iter 18100 | loss 2.6650 | lr 4.12e-05 | grad 3.64 | 684ms/step
+iter 18150 | loss 2.6178 | lr 4.10e-05 | grad 3.10 | 684ms/step
+iter 18200 | loss 2.6677 | lr 4.07e-05 | grad 3.92 | 684ms/step
+iter 18250 | loss 2.6521 | lr 4.05e-05 | grad 3.50 | 684ms/step
+iter 18300 | loss 2.6276 | lr 4.03e-05 | grad 4.53 | 683ms/step
+iter 18350 | loss 2.6119 | lr 4.01e-05 | grad 3.37 | 683ms/step
+iter 18400 | loss 2.6484 | lr 3.98e-05 | grad 3.31 | 683ms/step
+iter 18450 | loss 2.6494 | lr 3.96e-05 | grad 30.14 | 683ms/step
+iter 18500 | loss 2.6384 | lr 3.94e-05 | grad 3.29 | 683ms/step
+iter 18550 | loss 2.6441 | lr 3.92e-05 | grad 3.86 | 683ms/step
+iter 18600 | loss 2.6369 | lr 3.89e-05 | grad 3.08 | 683ms/step
+iter 18650 | loss 2.6323 | lr 3.87e-05 | grad 43.13 | 683ms/step
+iter 18700 | loss 2.6354 | lr 3.85e-05 | grad 2.97 | 683ms/step
+iter 18750 | loss 2.6327 | lr 3.83e-05 | grad 3.40 | 683ms/step
+iter 18800 | loss 2.6539 | lr 3.81e-05 | grad 3.60 | 683ms/step
+iter 18850 | loss 2.6860 | lr 3.78e-05 | grad 3.27 | 683ms/step
+iter 18900 | loss 2.6079 | lr 3.76e-05 | grad 3.24 | 683ms/step
+iter 18950 | loss 2.5967 | lr 3.74e-05 | grad 4.01 | 683ms/step
+iter 19000 | loss 2.6405 | lr 3.72e-05 | grad 3.38 | 683ms/step
+============================================================
+[3.6h, iter 19000] Train:2.5758 Val:2.7262 BPB:3.933 
+============================================================
+iter 19050 | loss 2.6499 | lr 3.70e-05 | grad 3.25 | 683ms/step
+iter 19100 | loss 2.6170 | lr 3.67e-05 | grad 3.42 | 683ms/step
+iter 19150 | loss 2.6730 | lr 3.65e-05 | grad 3.98 | 683ms/step
+iter 19200 | loss 2.6693 | lr 3.63e-05 | grad 2.99 | 683ms/step
+iter 19250 | loss 2.6369 | lr 3.61e-05 | grad 3.21 | 683ms/step
+iter 19300 | loss 2.6535 | lr 3.59e-05 | grad 3.09 | 683ms/step
+iter 19350 | loss 2.6575 | lr 3.57e-05 | grad 3.35 | 683ms/step
+iter 19400 | loss 2.5978 | lr 3.54e-05 | grad 3.16 | 683ms/step
+iter 19450 | loss 2.6133 | lr 3.52e-05 | grad 3.13 | 683ms/step
+iter 19500 | loss 2.6708 | lr 3.50e-05 | grad 3.20 | 682ms/step
+iter 19550 | loss 2.6035 | lr 3.48e-05 | grad 3.69 | 682ms/step
+iter 19600 | loss 2.6318 | lr 3.46e-05 | grad 3.35 | 682ms/step
+iter 19650 | loss 2.6320 | lr 3.44e-05 | grad 3.59 | 682ms/step
+iter 19700 | loss 2.6632 | lr 3.42e-05 | grad 3.54 | 682ms/step
+iter 19750 | loss 2.6110 | lr 3.40e-05 | grad 3.62 | 682ms/step
+iter 19800 | loss 2.6438 | lr 3.37e-05 | grad 3.24 | 682ms/step
+iter 19850 | loss 2.6634 | lr 3.35e-05 | grad 3.49 | 682ms/step
+iter 19900 | loss 2.6173 | lr 3.33e-05 | grad 3.12 | 682ms/step
+iter 19950 | loss 2.6159 | lr 3.31e-05 | grad 3.55 | 682ms/step
+iter 20000 | loss 2.6218 | lr 3.29e-05 | grad 3.61 | 682ms/step
+============================================================
+[3.8h, iter 20000] Train:2.5263 Val:2.4404 BPB:3.521 >>> BEST!
+============================================================
+
+--- Gen (iter 20000) ---
+  Q: t is the capital of France?
+  A: One potential cause this could be the result of not taking a direct route from me and moving it away. This is an example that can happen when someone has their own
+
+  Q: lain what is artificial intelligence.
+  A: At the picturesque riverside area near The Portland Arms. Step 1: Identify the key elements in the data - eatT
+
+  Q: te a short poem about the ocean.
+  A: The sea is like an ocean, a lush green glistening blue in color, A lush foliage that flows through our oceans and reach new heights. With its golden rays of pink light, Lies to the land, The sun shines down so bright. All these have us with a gentle 
+
+  Q:  wrote Hamlet?
+  A: The Waterman is a riverside-based Japanese restaurant that serves Chinese food at an cheap priceRange and less than £30, which means it's located in close proximity to its popular location within the heart of the city. ### Instruction: Given the pati
+
+  Q: t is 2+2?
+  A: The two sides of the equation 2+3 = 14, and k=3 can be written as one such side. To find this value in the first equation, we need to divide both sides by their length (7). Therefore, the sum of all three variables is equal to 20. So, there are two d
+
+---
+iter 20050 | loss 2.6069 | lr 3.27e-05 | grad 3.37 | 683ms/step
+iter 20100 | loss 2.5851 | lr 3.25e-05 | grad 3.28 | 683ms/step
+iter 20150 | loss 2.6049 | lr 3.23e-05 | grad 3.59 | 683ms/step
+iter 20200 | loss 2.5991 | lr 3.21e-05 | grad 3.20 | 683ms/step
+iter 20250 | loss 2.5957 | lr 3.19e-05 | grad 4.31 | 683ms/step
+iter 20300 | loss 2.6148 | lr 3.17e-05 | grad 3.61 | 683ms/step
+iter 20350 | loss 2.6094 | lr 3.15e-05 | grad 3.43 | 683ms/step
+iter 20400 | loss 3.2222 | lr 3.13e-05 | grad 47.78 | 683ms/step
+iter 20450 | loss 2.6615 | lr 3.11e-05 | grad 3.22 | 683ms/step
+iter 20500 | loss 3.6443 | lr 3.09e-05 | grad 5.35 | 683ms/step
+iter 20550 | loss 2.7312 | lr 3.07e-05 | grad 4.05 | 683ms/step
+iter 20600 | loss 2.6796 | lr 3.05e-05 | grad 4.01 | 683ms/step
+iter 20650 | loss 2.6629 | lr 3.03e-05 | grad 3.38 | 683ms/step
+iter 20700 | loss 2.6349 | lr 3.01e-05 | grad 3.45 | 683ms/step
+iter 20750 | loss 2.6127 | lr 2.99e-05 | grad 3.53 | 683ms/step
+iter 20800 | loss 2.6278 | lr 2.97e-05 | grad 3.52 | 683ms/step
+iter 20850 | loss 2.6468 | lr 2.95e-05 | grad 3.28 | 683ms/step
+iter 20900 | loss 2.5743 | lr 2.93e-05 | grad 3.36 | 682ms/step
+iter 20950 | loss 2.6373 | lr 2.91e-05 | grad 3.37 | 682ms/step
+iter 21000 | loss 2.6388 | lr 2.89e-05 | grad 3.45 | 682ms/step
+============================================================
+[4.0h, iter 21000] Train:2.5983 Val:2.5883 BPB:3.734 
+============================================================
+iter 21050 | loss 2.6142 | lr 2.87e-05 | grad 3.39 | 683ms/step
+iter 21100 | loss 2.6348 | lr 2.85e-05 | grad 3.38 | 683ms/step
+iter 21150 | loss 2.6308 | lr 2.83e-05 | grad 3.55 | 682ms/step
+iter 21200 | loss 2.6344 | lr 2.81e-05 | grad 3.78 | 682ms/step
+iter 21250 | loss 2.6443 | lr 2.79e-05 | grad 3.58 | 682ms/step
+iter 21300 | loss 2.6423 | lr 2.77e-05 | grad 3.12 | 682ms/step
+iter 21350 | loss 2.5511 | lr 2.76e-05 | grad 3.49 | 682ms/step
+iter 21400 | loss 2.6138 | lr 2.74e-05 | grad 3.27 | 682ms/step
+iter 21450 | loss 2.6016 | lr 2.72e-05 | grad 3.26 | 682ms/step
+iter 21500 | loss 2.6020 | lr 2.70e-05 | grad 3.29 | 682ms/step
+iter 21550 | loss 2.6012 | lr 2.68e-05 | grad 3.10 | 682ms/step
+iter 21600 | loss 2.6179 | lr 2.66e-05 | grad 3.00 | 682ms/step
+iter 21650 | loss 2.6471 | lr 2.64e-05 | grad 30.28 | 682ms/step
+iter 21700 | loss 2.5894 | lr 2.63e-05 | grad 3.20 | 682ms/step
+iter 21750 | loss 2.5985 | lr 2.61e-05 | grad 3.47 | 682ms/step
+iter 21800 | loss 2.6071 | lr 2.59e-05 | grad 3.20 | 682ms/step
+iter 21850 | loss 2.5828 | lr 2.57e-05 | grad 3.67 | 682ms/step
+iter 21900 | loss 2.5961 | lr 2.55e-05 | grad 3.30 | 682ms/step
+iter 21950 | loss 2.5668 | lr 2.54e-05 | grad 3.60 | 682ms/step
+iter 22000 | loss 2.5776 | lr 2.52e-05 | grad 3.17 | 682ms/step
+============================================================
+[4.2h, iter 22000] Train:2.4739 Val:2.5991 BPB:3.750 
+============================================================
+
+--- Gen (iter 22000) ---
+  Q: t is the capital of France?
+  A: The capital of France is Paris. It is located in France, a country at an altitude above sea level and has been around 104 million years past. The first part of the sentence follows from the English language to Spanish, which translates as: "The capit
+
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to the field of computer science that focuses on developing new, applications for data-driven patterns and applications in healthcare, finance, marketing, and advertising. AI has its potential to revolutionize many
+
+  Q: te a short poem about the ocean.
+  A: 3 c). positive This movie is because it says that there may be a lack of context or information about something being true and enjoyable, which seems to fall in the other
+
+  Q:  wrote Hamlet?
+  A: There were originally x = 48
+
+  Q: t is 2+2?
+  A: Three types of computer hardware (Data Science) include Chrome, Mozilla Firefox, and Google Cloudfox. ### Instruction: What is a shorter version of this: the china , anton 's official tuesday said friday that , who wrote the last week after his visit
+
+---
+iter 22050 | loss 2.5837 | lr 2.50e-05 | grad 3.27 | 683ms/step
+iter 22100 | loss 2.5448 | lr 2.48e-05 | grad 3.28 | 683ms/step
+iter 22150 | loss 2.5588 | lr 2.46e-05 | grad 3.44 | 682ms/step
+iter 22200 | loss 2.5753 | lr 2.45e-05 | grad 3.27 | 682ms/step
+iter 22250 | loss 2.5840 | lr 2.43e-05 | grad 3.15 | 682ms/step
+iter 22300 | loss 2.5891 | lr 2.41e-05 | grad 3.18 | 682ms/step
+iter 22350 | loss 2.5817 | lr 2.39e-05 | grad 3.02 | 682ms/step
+iter 22400 | loss 2.5932 | lr 2.38e-05 | grad 3.28 | 682ms/step
+iter 22450 | loss 2.5848 | lr 2.36e-05 | grad 3.52 | 682ms/step
+iter 22500 | loss 2.5883 | lr 2.34e-05 | grad 3.40 | 682ms/step
+iter 22550 | loss 2.5754 | lr 2.33e-05 | grad 3.28 | 682ms/step
+iter 22600 | loss 2.5907 | lr 2.31e-05 | grad 3.13 | 682ms/step
+iter 22650 | loss 2.5826 | lr 2.29e-05 | grad 3.27 | 682ms/step
+iter 22700 | loss 2.5702 | lr 2.28e-05 | grad 3.26 | 682ms/step
+iter 22750 | loss 2.5997 | lr 2.26e-05 | grad 3.65 | 682ms/step
+iter 22800 | loss 2.6080 | lr 2.24e-05 | grad 3.37 | 682ms/step
+iter 22850 | loss 2.6011 | lr 2.23e-05 | grad 28.00 | 682ms/step
+iter 22900 | loss 2.5925 | lr 2.21e-05 | grad 3.54 | 682ms/step
+iter 22950 | loss 2.5842 | lr 2.19e-05 | grad 3.28 | 682ms/step
+iter 23000 | loss 2.6014 | lr 2.18e-05 | grad 3.14 | 682ms/step
+============================================================
+[4.4h, iter 23000] Train:2.5614 Val:2.6083 BPB:3.763 
+============================================================
+iter 23050 | loss 2.5513 | lr 2.16e-05 | grad 3.24 | 682ms/step
+iter 23100 | loss 2.6128 | lr 2.15e-05 | grad 23.52 | 682ms/step
+iter 23150 | loss 2.5402 | lr 2.13e-05 | grad 3.28 | 682ms/step
+iter 23200 | loss 2.5737 | lr 2.11e-05 | grad 4.08 | 682ms/step
+iter 23250 | loss 2.5972 | lr 2.10e-05 | grad 3.39 | 682ms/step
+iter 23300 | loss 2.5501 | lr 2.08e-05 | grad 3.37 | 682ms/step
+iter 23350 | loss 2.6093 | lr 2.07e-05 | grad 3.49 | 682ms/step
+iter 23400 | loss 2.5411 | lr 2.05e-05 | grad 3.45 | 682ms/step
+iter 23450 | loss 2.5798 | lr 2.04e-05 | grad 3.48 | 682ms/step
+iter 23500 | loss 2.6207 | lr 2.02e-05 | grad 3.15 | 681ms/step
+iter 23550 | loss 2.5646 | lr 2.01e-05 | grad 3.18 | 681ms/step
+iter 23600 | loss 2.5891 | lr 1.99e-05 | grad 3.83 | 681ms/step
+iter 23650 | loss 2.5821 | lr 1.98e-05 | grad 3.17 | 681ms/step
+iter 23700 | loss 2.5771 | lr 1.96e-05 | grad 3.04 | 681ms/step
+iter 23750 | loss 2.5618 | lr 1.95e-05 | grad 3.62 | 681ms/step
+iter 23800 | loss 2.5821 | lr 1.93e-05 | grad 3.29 | 681ms/step
+iter 23850 | loss 2.6203 | lr 1.92e-05 | grad 3.33 | 681ms/step
+iter 23900 | loss 2.5439 | lr 1.90e-05 | grad 3.39 | 681ms/step
+iter 23950 | loss 2.5648 | lr 1.89e-05 | grad 3.76 | 681ms/step
+iter 24000 | loss 2.5663 | lr 1.88e-05 | grad 3.13 | 681ms/step
+============================================================
+[4.5h, iter 24000] Train:2.4948 Val:2.6190 BPB:3.779 
+============================================================
+
+--- Gen (iter 24000) ---
+  Q: t is the capital of France?
+  A: Once upon a time, there lived an
+
+  Q: lain what is artificial intelligence.
+  A: It's important that you have enough money for your own needs before using it or to get some exercise. Keep in mind, stay focused on a positive attitude and plan ahead of time. Be mindful of yourself and be aware about the potential consequences and m
+
+  Q: te a short poem about the ocean.
+  A: Dear Customer Service Team This will provide you with a clear experience, understanding your needs, and any relevant information about the customer service team members. We value our response as we strive to make sure that they have enough details fo
+
+  Q:  wrote Hamlet?
+  A: The quote by Martin Luther King Jr. was an American actor, and he wanted to provide the name of a famous singer who lived in the country during that time period. He also worked with many other musicians on different platforms such as "The Alchemist" 
+
+  Q: t is 2+2?
+  A: When you mix together your favorite tea is usually served warm or cold-bloody with ice cream during the winter season, it makes perfect for those seeking sweet and savory flavors without any extra flavor added to mashed leaves. For adults, this would
+
+---
+iter 24050 | loss 2.5820 | lr 1.86e-05 | grad 3.89 | 682ms/step
+iter 24100 | loss 2.5750 | lr 1.85e-05 | grad 3.54 | 682ms/step
+iter 24150 | loss 2.5480 | lr 1.83e-05 | grad 3.13 | 682ms/step
+iter 24200 | loss 2.5665 | lr 1.82e-05 | grad 3.08 | 682ms/step
+iter 24250 | loss 2.5960 | lr 1.81e-05 | grad 3.63 | 682ms/step
+iter 24300 | loss 2.5490 | lr 1.79e-05 | grad 3.25 | 682ms/step
+iter 24350 | loss 2.5639 | lr 1.78e-05 | grad 3.54 | 682ms/step
+iter 24400 | loss 2.5419 | lr 1.77e-05 | grad 3.54 | 682ms/step
+iter 24450 | loss 2.5868 | lr 1.75e-05 | grad 3.30 | 682ms/step
+iter 24500 | loss 2.5873 | lr 1.74e-05 | grad 3.51 | 682ms/step
+iter 24550 | loss 2.5527 | lr 1.73e-05 | grad 3.07 | 682ms/step
+iter 24600 | loss 2.5848 | lr 1.71e-05 | grad 3.29 | 682ms/step
+iter 24650 | loss 2.5449 | lr 1.70e-05 | grad 3.44 | 681ms/step
+iter 24700 | loss 2.6214 | lr 1.69e-05 | grad 3.93 | 681ms/step
+iter 24750 | loss 2.5473 | lr 1.68e-05 | grad 3.14 | 681ms/step
+iter 24800 | loss 2.5813 | lr 1.66e-05 | grad 7.03 | 681ms/step
+iter 24850 | loss 2.5681 | lr 1.65e-05 | grad 3.35 | 681ms/step
+iter 24900 | loss 2.5557 | lr 1.64e-05 | grad 3.33 | 681ms/step
+iter 24950 | loss 2.5801 | lr 1.63e-05 | grad 3.18 | 681ms/step
+iter 25000 | loss 2.5845 | lr 1.61e-05 | grad 3.21 | 681ms/step
+============================================================
+[4.7h, iter 25000] Train:2.4628 Val:2.5542 BPB:3.685 
+============================================================
+iter 25050 | loss 2.5155 | lr 1.60e-05 | grad 3.25 | 681ms/step
+iter 25100 | loss 2.5802 | lr 1.59e-05 | grad 3.93 | 681ms/step
+iter 25150 | loss 2.5792 | lr 1.58e-05 | grad 3.22 | 681ms/step
+iter 25200 | loss 2.5386 | lr 1.57e-05 | grad 3.77 | 681ms/step
+iter 25250 | loss 2.6091 | lr 1.56e-05 | grad 3.44 | 681ms/step
+iter 25300 | loss 2.6400 | lr 1.54e-05 | grad 3.93 | 681ms/step
+iter 25350 | loss 2.5753 | lr 1.53e-05 | grad 3.81 | 681ms/step
+iter 25400 | loss 2.6119 | lr 1.52e-05 | grad 3.27 | 681ms/step
+iter 25450 | loss 2.5688 | lr 1.51e-05 | grad 3.50 | 681ms/step
+iter 25500 | loss 2.5736 | lr 1.50e-05 | grad 3.44 | 681ms/step
+iter 25550 | loss 2.5675 | lr 1.49e-05 | grad 3.39 | 681ms/step
+iter 25600 | loss 2.5564 | lr 1.48e-05 | grad 3.18 | 681ms/step
+iter 25650 | loss 2.5337 | lr 1.47e-05 | grad 3.30 | 681ms/step
+iter 25700 | loss 2.5749 | lr 1.46e-05 | grad 3.26 | 681ms/step
+iter 25750 | loss 2.5822 | lr 1.45e-05 | grad 3.43 | 681ms/step
+iter 25800 | loss 2.5446 | lr 1.44e-05 | grad 3.15 | 681ms/step
+iter 25850 | loss 2.5729 | lr 1.43e-05 | grad 3.48 | 681ms/step
+iter 25900 | loss 2.5698 | lr 1.42e-05 | grad 3.77 | 681ms/step
+iter 25950 | loss 2.5645 | lr 1.41e-05 | grad 5.32 | 681ms/step
+iter 26000 | loss 2.5482 | lr 1.40e-05 | grad 3.20 | 681ms/step
+============================================================
+[4.9h, iter 26000] Train:2.5234 Val:2.5699 BPB:3.708 
+============================================================
+
+--- Gen (iter 26000) ---
+  Q: t is the capital of France?
+  A: The capital of Ontario in Canada has its own unique history and culture, and it's considered to be a global leader or cultural heritage. You can refer to various historical events happening on different platforms such as the National Center for Artif
+
+  Q: lain what is artificial intelligence.
+  A: Parallelity is an algorithm used for solving problems, such as counting data from multiple nodes and one or more independent clauses. It uses a single-syntaxiculate logic to solve complex concepts. It also has the ability to generate output based on 
+
+  Q: te a short poem about the ocean.
+  A: The Baked Alaska
+
+  Q:  wrote Hamlet?
+  A: J.K. Rowling was a famous novelist who made his name as an influential figure in the modern era and he lived from 1897 to 1890, which marked her with an extensive collection of novels written by William Shakespeare. He wrote several works that would 
+
+  Q: t is 2+2?
+  A: El ganador del cielo, en cualquier cual seguir no estable y fon
+
+---
+iter 26050 | loss 2.5726 | lr 1.39e-05 | grad 3.22 | 681ms/step
+iter 26100 | loss 2.5725 | lr 1.38e-05 | grad 3.14 | 681ms/step
+iter 26150 | loss 2.5681 | lr 1.37e-05 | grad 3.42 | 681ms/step
+iter 26200 | loss 2.5585 | lr 1.36e-05 | grad 8.94 | 681ms/step
+iter 26250 | loss 2.5083 | lr 1.35e-05 | grad 3.61 | 681ms/step
+iter 26300 | loss 2.5643 | lr 1.34e-05 | grad 3.53 | 681ms/step
+iter 26350 | loss 2.5654 | lr 1.33e-05 | grad 3.21 | 681ms/step
+iter 26400 | loss 2.5724 | lr 1.32e-05 | grad 3.53 | 681ms/step
+iter 26450 | loss 2.5243 | lr 1.31e-05 | grad 3.25 | 681ms/step
+iter 26500 | loss 2.5746 | lr 1.30e-05 | grad 3.51 | 681ms/step
+iter 26550 | loss 2.5022 | lr 1.30e-05 | grad 3.38 | 681ms/step
+iter 26600 | loss 2.5516 | lr 1.29e-05 | grad 3.27 | 681ms/step
+iter 26650 | loss 2.5465 | lr 1.28e-05 | grad 3.32 | 681ms/step
+iter 26700 | loss 2.5058 | lr 1.27e-05 | grad 3.90 | 681ms/step
+iter 26750 | loss 2.5928 | lr 1.26e-05 | grad 3.32 | 681ms/step
+iter 26800 | loss 2.5359 | lr 1.26e-05 | grad 3.63 | 681ms/step
+iter 26850 | loss 2.5495 | lr 1.25e-05 | grad 3.33 | 681ms/step
+iter 26900 | loss 2.5626 | lr 1.24e-05 | grad 3.24 | 681ms/step
+iter 26950 | loss 2.5774 | lr 1.23e-05 | grad 3.29 | 681ms/step
+iter 27000 | loss 2.5828 | lr 1.22e-05 | grad 3.71 | 681ms/step
+============================================================
+[5.1h, iter 27000] Train:2.4905 Val:2.6058 BPB:3.760 
+============================================================
+iter 27050 | loss 2.5396 | lr 1.22e-05 | grad 3.64 | 681ms/step
+iter 27100 | loss 2.5679 | lr 1.21e-05 | grad 17.79 | 681ms/step
+iter 27150 | loss 2.5310 | lr 1.20e-05 | grad 15.07 | 681ms/step
+iter 27200 | loss 2.5826 | lr 1.20e-05 | grad 3.22 | 681ms/step
+iter 27250 | loss 2.5561 | lr 1.19e-05 | grad 3.58 | 681ms/step
+iter 27300 | loss 2.5474 | lr 1.18e-05 | grad 3.42 | 681ms/step
+iter 27350 | loss 2.5522 | lr 1.18e-05 | grad 3.19 | 681ms/step
+iter 27400 | loss 2.5629 | lr 1.17e-05 | grad 3.44 | 681ms/step
+iter 27450 | loss 2.5600 | lr 1.16e-05 | grad 3.87 | 681ms/step
+iter 27500 | loss 2.5460 | lr 1.16e-05 | grad 3.69 | 681ms/step
+iter 27550 | loss 2.5742 | lr 1.15e-05 | grad 3.02 | 680ms/step
+iter 27600 | loss 2.5419 | lr 1.14e-05 | grad 3.40 | 680ms/step
+iter 27650 | loss 2.5438 | lr 1.14e-05 | grad 3.32 | 680ms/step
+iter 27700 | loss 2.5784 | lr 1.13e-05 | grad 3.45 | 680ms/step
+iter 27750 | loss 2.5557 | lr 1.13e-05 | grad 3.34 | 680ms/step
+iter 27800 | loss 2.5599 | lr 1.12e-05 | grad 3.26 | 680ms/step
+iter 27850 | loss 2.5513 | lr 1.12e-05 | grad 3.29 | 680ms/step
+iter 27900 | loss 2.5934 | lr 1.11e-05 | grad 3.53 | 680ms/step
+iter 27950 | loss 2.5643 | lr 1.11e-05 | grad 3.46 | 680ms/step
+iter 28000 | loss 2.5418 | lr 1.10e-05 | grad 3.37 | 680ms/step
+============================================================
+[5.3h, iter 28000] Train:2.4525 Val:2.5658 BPB:3.702 
+============================================================
+
+--- Gen (iter 28000) ---
+  Q: t is the capital of France?
+  A: The
+
+  Q: lain what is artificial intelligence.
+  A: Artificial Intelligence (AI) refers to the ability of computers to learn from data without being explicitly programmed and executed by humans, typically via neural networks or networks that are able to think abstractly and make decisions based on the
+
+  Q: te a short poem about the ocean.
+  A: 1. Blue 2. Orange 3. Yellow 4. Green 5. Blue 6. Yellow 7. Purple 8. Blue 9. Mellow 0.2. ### Instruction: Find the
+
+  Q:  wrote Hamlet?
+  A: "Eatsy title Coloring Pages with the Favorable" ### Instruction: Create a list of at least five items you can use to make a cake without leaving no visible marks, such as fresh
+
+  Q: t is 2+2?
+  A: The metaphor compares life in two different things is like a roller coaster. It means that each person feels their passion
+
+---
+iter 28050 | loss 2.5351 | lr 1.10e-05 | grad 3.08 | 681ms/step
+iter 28100 | loss 2.5380 | lr 1.09e-05 | grad 3.60 | 681ms/step
+iter 28150 | loss 2.5895 | lr 1.09e-05 | grad 3.14 | 681ms/step
+iter 28200 | loss 2.5417 | lr 1.08e-05 | grad 3.16 | 681ms/step
+iter 28250 | loss 2.5698 | lr 1.08e-05 | grad 3.61 | 681ms/step
+iter 28300 | loss 2.5296 | lr 1.07e-05 | grad 3.24 | 681ms/step
+iter 28350 | loss 2.5135 | lr 1.07e-05 | grad 3.22 | 681ms/step
+iter 28400 | loss 2.5058 | lr 1.06e-05 | grad 3.81 | 681ms/step
+iter 28450 | loss 2.5270 | lr 1.06e-05 | grad 3.50 | 681ms/step
+iter 28500 | loss 2.5240 | lr 1.06e-05 | grad 3.42 | 681ms/step
+iter 28550 | loss 2.5260 | lr 1.05e-05 | grad 3.27 | 681ms/step
+iter 28600 | loss 2.5470 | lr 1.05e-05 | grad 3.30 | 681ms/step
+iter 28650 | loss 2.5467 | lr 1.05e-05 | grad 3.43 | 681ms/step
+iter 28700 | loss 2.5509 | lr 1.04e-05 | grad 3.54 | 680ms/step
+iter 28750 | loss 2.5687 | lr 1.04e-05 | grad 3.19 | 680ms/step
+iter 28800 | loss 2.5423 | lr 1.04e-05 | grad 3.33 | 680ms/step
+iter 28850 | loss 2.5392 | lr 1.03e-05 | grad 3.59 | 680ms/step
+iter 28900 | loss 2.5518 | lr 1.03e-05 | grad 3.77 | 680ms/step
+iter 28950 | loss 2.5658 | lr 1.03e-05 | grad 3.69 | 680ms/step
+iter 29000 | loss 2.5370 | lr 1.03e-05 | grad 3.68 | 680ms/step
+============================================================
+[5.5h, iter 29000] Train:2.5403 Val:2.5294 BPB:3.649 
+============================================================
+iter 29050 | loss 2.5461 | lr 1.02e-05 | grad 3.85 | 680ms/step
+iter 29100 | loss 2.5585 | lr 1.02e-05 | grad 3.07 | 680ms/step
+iter 29150 | loss 2.5104 | lr 1.02e-05 | grad 3.06 | 680ms/step
+iter 29200 | loss 2.5476 | lr 1.02e-05 | grad 3.45 | 680ms/step
+iter 29250 | loss 2.5188 | lr 1.01e-05 | grad 3.33 | 680ms/step
+iter 29300 | loss 2.5708 | lr 1.01e-05 | grad 3.46 | 680ms/step
+iter 29350 | loss 2.5745 | lr 1.01e-05 | grad 3.31 | 680ms/step
+iter 29400 | loss 2.5451 | lr 1.01e-05 | grad 3.03 | 680ms/step
+iter 29450 | loss 2.5207 | lr 1.01e-05 | grad 3.33 | 680ms/step
+iter 29500 | loss 2.5505 | lr 1.01e-05 | grad 3.32 | 680ms/step
+iter 29550 | loss 2.5228 | lr 1.01e-05 | grad 3.26 | 680ms/step
+iter 29600 | loss 2.5053 | lr 1.00e-05 | grad 3.71 | 680ms/step
+iter 29650 | loss 2.5662 | lr 1.00e-05 | grad 4.61 | 680ms/step
+iter 29700 | loss 2.5501 | lr 1.00e-05 | grad 3.64 | 680ms/step
+iter 29750 | loss 2.5222 | lr 1.00e-05 | grad 3.15 | 680ms/step
+iter 29800 | loss 2.5335 | lr 1.00e-05 | grad 3.58 | 680ms/step
+iter 29850 | loss 2.5748 | lr 1.00e-05 | grad 3.66 | 680ms/step
+iter 29900 | loss 2.5567 | lr 1.00e-05 | grad 5.11 | 680ms/step
+iter 29950 | loss 2.5539 | lr 1.00e-05 | grad 2.89 | 680ms/step
+iter 30000 | loss 2.5476 | lr 1.00e-05 | grad 3.37 | 680ms/step
+============================================================
+[5.7h, iter 30000] Train:2.5830 Val:2.7070 BPB:3.906 
+============================================================
+
+--- Gen (iter 30000) ---
+  Q: t is the capital of France?
+  A: 1. A single word for "tall" (sat this idea). 2. A small change in size to a large number gives the final result of iteration and an even distribution of letters, which is equivalent to 0.85% from 3.65%. ###
+
+  Q: lain what is artificial intelligence.
+  A: The development of technology in our society is still essential
+
+  Q: te a short poem about the ocean.
+  A: 1. Technology can reduce costs by providing more accurate diagnosis, treatment plans, better access to health care services, and more efficient use of treatments. 2. Artificial Intelligence (AI): AI is becoming increasingly integrated into the health
+
+  Q:  wrote Hamlet?
+  A: To find the intersection of two sets, I need to take in all possible sets for each element in the set. In this case, since 1 is a subset (a subset
+
+  Q: t is 2+2?
+  A: To find the total number of possible combinations, we simply subtract the number of multiples from the smallest and largest to itself. The sum of all these numbers with less than 108 is 345. So, for a problem that needs to be solved in order to find 
+
+---
+
+Done at iter 30000. Best BPB: 3.521

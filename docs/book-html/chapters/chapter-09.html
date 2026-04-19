@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Глава 09 — Токенизация — BPE с нуля | HDC Brain</title>
+  <link rel="stylesheet" href="../assets/css/book.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">HDC Brain</div>
+      <div class="sidebar-title">Думающие векторы</div>
+      <div class="sidebar-subtitle">HDC-Brain v14.1 — языковая модель с нуля</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Начало</div>
+        <a href="../index.html" class="nav-item">
+          <span class="chapter-num">—</span>
+          Оглавление
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция I — Разбираемся что вообще происходит</div>        <a href="../chapters/chapter-01.html" class="nav-item">
+          <span class="chapter-num">01</span>
+          Что делает языковая модель
+        </a>        <a href="../chapters/chapter-02.html" class="nav-item">
+          <span class="chapter-num">02</span>
+          Вектор — единственный язык компьютера
+        </a>        <a href="../chapters/chapter-03.html" class="nav-item">
+          <span class="chapter-num">03</span>
+          Нейронная сеть — функция с параметрами
+        </a>        <a href="../chapters/chapter-04.html" class="nav-item">
+          <span class="chapter-num">04</span>
+          Как нейронная сеть учится
+        </a>        <a href="../chapters/project-01.html" class="nav-item">
+          <span class="chapter-num">🏗️ I</span>
+          Проект: Наивная языковая модель
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция II — HDC — когда обычных нейросетей недостаточно</div>        <a href="../chapters/chapter-05.html" class="nav-item">
+          <span class="chapter-num">05</span>
+          Зачем придумали HDC
+        </a>        <a href="../chapters/chapter-06.html" class="nav-item">
+          <span class="chapter-num">06</span>
+          Три операции: Bind, Bundle, Permute
+        </a>        <a href="../chapters/chapter-07.html" class="nav-item">
+          <span class="chapter-num">07</span>
+          Bipolar — почему +1 и −1
+        </a>        <a href="../chapters/chapter-08.html" class="nav-item">
+          <span class="chapter-num">08</span>
+          STE — трюк чтобы обучать необучаемое
+        </a>        <a href="../chapters/project-02.html" class="nav-item">
+          <span class="chapter-num">🏗️ II</span>
+          Проект: HDC-классификатор
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция III — Язык — как текст становится векторами</div>        <a href="../chapters/chapter-09.html" class="nav-item active">
+          <span class="chapter-num">09</span>
+          Токенизация — BPE с нуля
+        </a>        <a href="../chapters/chapter-10.html" class="nav-item">
+          <span class="chapter-num">10</span>
+          Позиционное кодирование
+        </a>        <a href="../chapters/chapter-11.html" class="nav-item">
+          <span class="chapter-num">11</span>
+          Codebook — словарь как отпечатки пальцев
+        </a>        <a href="../chapters/project-03.html" class="nav-item">
+          <span class="chapter-num">🏗️ III</span>
+          Проект: Мини-кодбук для русских слов
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция IV — Блоки — собираем архитектуру</div>        <a href="../chapters/chapter-12.html" class="nav-item">
+          <span class="chapter-num">12</span>
+          HDC Memory — как модель помнит прошлое
+        </a>        <a href="../chapters/chapter-13.html" class="nav-item">
+          <span class="chapter-num">13</span>
+          Attention — самый важный механизм в NLP
+        </a>        <a href="../chapters/chapter-14.html" class="nav-item">
+          <span class="chapter-num">14</span>
+          HDC Binding Attention — наш главный трюк
+        </a>        <a href="../chapters/chapter-15.html" class="nav-item">
+          <span class="chapter-num">15</span>
+          HDCBlock — собираем блок целиком
+        </a>        <a href="../chapters/chapter-16.html" class="nav-item">
+          <span class="chapter-num">16</span>
+          Thought Loops — многопроходное мышление
+        </a>        <a href="../chapters/project-04.html" class="nav-item">
+          <span class="chapter-num">🏗️ IV</span>
+          Проект: Мини-HDCBrain (4M параметров)
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция V — Доказательства — почему это работает</div>        <a href="../chapters/chapter-17.html" class="nav-item">
+          <span class="chapter-num">17</span>
+          Доказательства: почему 3 мысли работают
+        </a>        <a href="../chapters/chapter-18.html" class="nav-item">
+          <span class="chapter-num">18</span>
+          Loss и метрики — как читать тренировочные логи
+        </a>        <a href="../chapters/chapter-19.html" class="nav-item">
+          <span class="chapter-num">19</span>
+          AdamW и расписание скорости обучения
+        </a>        <a href="../chapters/chapter-20.html" class="nav-item">
+          <span class="chapter-num">20</span>
+          Эффективное обучение на GPU
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Экспедиция VI — Вершина — полная картина</div>        <a href="../chapters/chapter-21.html" class="nav-item">
+          <span class="chapter-num">21</span>
+          Трансформер vs HDC-Brain: детальное сравнение
+        </a>        <a href="../chapters/chapter-22.html" class="nav-item">
+          <span class="chapter-num">22</span>
+          Полный путь токена: от символа до предсказания
+        </a>        <a href="../chapters/chapter-23.html" class="nav-item">
+          <span class="chapter-num">23</span>
+          Финальный проект: реализуй HDC-Brain с нуля
+        </a>      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Приложения</div>        <a href="../chapters/appendix-a.html" class="nav-item">
+          <span class="chapter-num">A</span>
+          Глоссарий всех терминов
+        </a>        <a href="../chapters/appendix-b.html" class="nav-item">
+          <span class="chapter-num">B</span>
+          Математика: линейная алгебра и теория информации
+        </a>        <a href="../chapters/appendix-c.html" class="nav-item">
+          <span class="chapter-num">C</span>
+          Полный аннотированный код v14.1
+        </a>      </div>
+    </nav></aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <a href="../index.html">HDC Brain</a> /
+        <span>Экспедиция III</span> /
+        <span>Глава 09</span>
+      </div>
+      <div class="topbar-progress">
+        <span>09 из 30</span>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 33%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="chapter-meta">
+        <span class="chapter-tag">Экспедиция III</span>
+        <span class="chapter-number">Глава 09</span>
+      </div>
+
+      <h1 class="chapter-title">Токенизация — BPE с нуля</h1>
+      <p class="chapter-subtitle"></p>
+
+      <hr class="chapter-divider" />
+
+      <hr class="chapter-divider" />
+
+<p>Саша работает переводчиком.</p>
+
+<p>Однажды ему дали задание: перевести огромную книгу. 800 страниц.</p>
+
+<p>Первая идея: переводить <strong>побуквенно</strong>. Буква за буквой. Это точно, но безумно медленно — на каждую страницу уходит день.</p>
+
+<p>Вторая идея: переводить <strong>постранично</strong>. Целая страница за раз. Быстро! Но проблема — редкие технические термины. Целая страница = один "кусок". Что делать, если страница содержит слово, которого нет в словаре? Пишем <code>[НЕИЗВЕСТНО]</code> и теряем смысл.</p>
+
+<p>Третья идея, которую придумал Саша: <strong>переводить по смысловым кускам</strong>. Обычные слова — целиком. Редкие — по частям (корень + суффикс + окончание). Нет такого понятия "неизвестное слово" — любое слово раскладывается на знакомые куски.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Та же проблема у нейросети</h3>
+
+<p>Нейросеть работает с числами. Текст — это символы: буквы, пробелы, знаки препинания. Нужно превратить текст в числа.</p>
+
+<p><strong>Вариант 1: побуквенно</strong></p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">"Hello" → [H, e, l, l, o] → [72, 101, 108, 108, 111]</code>
+</pre>
+
+<p>Просто, работает. Но предложение из 100 символов = 100 токенов. Нейросеть должна "запомнить" связь между первым и последним символом слова — это сложно.</p>
+
+<p><strong>Вариант 2: по словам</strong></p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">"Hello world" → ["Hello", "world"] → [4521, 8203]</code>
+</pre>
+
+<p>Лучше. Но что если встречается слово "нейрохирургический"? Его нет в словаре. Пишем <code>[UNK]</code> — "неизвестный токен". Теряем информацию.</p>
+
+<p><strong>Правильный ответ: между символами и словами</strong></p>
+
+<p>Именно это и делает <strong>токенизация</strong>. А конкретный алгоритм, который все используют — <strong>BPE</strong>.</p>
+
+<hr class="chapter-divider" />
+
+<h3>История BPE</h3>
+
+<p>В 1994 году Philip Gage придумал <strong>Byte-Pair Encoding (BPE)</strong> — алгоритм <strong>сжатия данных</strong>. Идея: если в тексте часто встречается пара байт <code>"th"</code> — замени её одним новым символом. Повторяй пока не уменьшишь файл достаточно.</p>
+
+<p>В 2016 году Rico Sennrich взял этот алгоритм сжатия и применил к задаче токенизации в NLP. Идея: используй BPE не для сжатия, а для построения словаря "подслов".</p>
+
+<p>Получилось отлично. Сейчас BPE используют GPT-4, Claude, LLaMA — все крупные модели.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Как работает BPE: пошагово</h3>
+
+<p>Начнём с небольшого примера.</p>
+
+<p>Допустим, у нас есть текст:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">"low low low lower lower newest newest newest widest widest"</code>
+</pre>
+
+<p><strong>Шаг 0: Считаем частоты слов</strong></p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">"low"    × 3
+"lower"  × 2
+"newest" × 3
+"widest" × 2</code>
+</pre>
+
+<p><strong>Разбиваем каждое слово на буквы</strong>, добавляем <code>&lt;/w&gt;</code> (маркер конца слова):</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">l o w &lt;/w&gt;        × 3
+l o w e r &lt;/w&gt;    × 2
+n e w e s t &lt;/w&gt;  × 3
+w i d e s t &lt;/w&gt;  × 2</code>
+</pre>
+
+<p><strong>Шаг 1: Ищем самую частую пару</strong></p>
+
+<p>Считаем все встречающиеся пары:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">(l, o)    : 3 + 2 = 5 раз
+(o, w)    : 3 + 2 = 5 раз
+(e, s)    : 3 + 2 = 5 раз
+(w, &lt;/w&gt;) : 3 раза
+...</code>
+</pre>
+
+<p>Берём <code>(e, s)</code> — частота 5. Объединяем <code>e</code> + <code>s</code> → <code>es</code>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">l o w &lt;/w&gt;         × 3
+l o w e r &lt;/w&gt;     × 2
+n e w es t &lt;/w&gt;    × 3   ← объединили!
+w i d es t &lt;/w&gt;    × 2   ← и здесь!</code>
+</pre>
+
+<p><strong>Шаг 2: Снова ищем самую частую пару</strong></p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">(es, t): 3 + 2 = 5 раз  ← самая частая</code>
+</pre>
+
+<p>Объединяем <code>es</code> + <code>t</code> → <code>est</code>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">l o w &lt;/w&gt;          × 3
+l o w e r &lt;/w&gt;      × 2
+n e w est &lt;/w&gt;      × 3
+w i d est &lt;/w&gt;      × 2</code>
+</pre>
+
+<p><strong>Шаг 3, 4, 5...</strong> и так далее.</p>
+
+<p>После нескольких итераций:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">low&lt;/w&gt;              × 3
+l o w e r &lt;/w&gt;       × 2
+newest&lt;/w&gt;           × 3
+w i d est &lt;/w&gt;       × 2</code>
+</pre>
+
+<p>Слово <code>"low"</code> собралось в один токен. Слово <code>"newest"</code> тоже. Слово <code>"widest"</code> — пока нет, будет собрано позже.</p>
+
+<p>В реальности алгоритм делает <strong>32,000 итераций</strong> и обучается на миллиардах слов. После этого большинство обычных слов = 1 токен. Редкие слова = 2-3 токена (раскладываются на части).</p>
+
+<hr class="chapter-divider" />
+
+<h3>Код BPE с нуля</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">from collections import Counter
+
+def get_vocab(corpus):
+    """Разбиваем корпус на слова, слова на символы."""
+    vocab = Counter()
+    for word in corpus.split():
+        # Каждое слово: символы через пробел + маркер конца &lt;/w&gt;
+        chars = ' '.join(list(word)) + ' &lt;/w&gt;'
+        vocab[chars] += 1
+    return vocab
+
+def get_pairs(vocab):
+    """Находим все пары рядом стоящих символов и их частоты."""
+    pairs = Counter()
+    for word, freq in vocab.items():
+        symbols = word.split()
+        for i in range(len(symbols) - 1):
+            pairs[(symbols[i], symbols[i+1])] += freq
+    return pairs
+
+def merge_vocab(pair, vocab):
+    """Объединяем заданную пару в один токен во всём словаре."""
+    new_vocab = {}
+    bigram = ' '.join(pair)        # "e s"
+    replacement = ''.join(pair)    # "es"
+    for word, freq in vocab.items():
+        new_word = word.replace(bigram, replacement)
+        new_vocab[new_word] = freq
+    return new_vocab
+
+def train_bpe(corpus, num_merges=10):
+    """Обучаем BPE токенайзер."""
+    vocab = get_vocab(corpus)
+    merges = []
+
+    print("Начальный словарь:")
+    for word, freq in vocab.items():
+        print(f"  '{word}': {freq}")
+    print()
+
+    for i in range(num_merges):
+        pairs = get_pairs(vocab)
+        if not pairs:
+            break
+
+        # Самая частая пара
+        best = max(pairs, key=pairs.get)
+        merges.append(best)
+
+        vocab = merge_vocab(best, vocab)
+        print(f"Слияние {i+1}: '{best[0]}' + '{best[1]}' → '{''.join(best)}' (частота {pairs[best]})")
+
+    return vocab, merges
+
+# Запускаем
+corpus = "low low low lower lower newest newest newest widest widest"
+vocab, merges = train_bpe(corpus, num_merges=8)
+
+print("\nФинальный словарь:")
+for word, freq in vocab.items():
+    print(f"  '{word}': {freq}")</code>
+</pre>
+
+<p>Вывод:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Слияние 1: 'e' + 's' → 'es' (частота 5)
+Слияние 2: 'es' + 't' → 'est' (частота 5)
+Слияние 3: 'l' + 'o' → 'lo' (частота 5)
+Слияние 4: 'lo' + 'w' → 'low' (частота 5)
+Слияние 5: 'n' + 'e' → 'ne' (частота 3)
+Слияние 6: 'ne' + 'w' → 'new' (частота 3)
+Слияние 7: 'new' + 'est' → 'newest' (частота 3)
+Слияние 8: 'low' + '&lt;/w&gt;' → 'low&lt;/w&gt;' (частота 3)</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Почему 32,000 токенов?</h3>
+
+<p>Это баланс между двумя крайностями:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Мало токенов (например, 1000):
+  + Меньше параметров в кодбуке
+  - "Нейросеть" превращается в ["ней", "ро", "сеть"] — 3 токена
+  - Текст становится длиннее → сложнее обучать
+
+Много токенов (например, 200,000):
+  + Каждое слово = один токен
+  - Кодбук огромный (200K × 4096 = 800M параметров!)
+  - Редкие токены почти не встречаются → плохо обучены
+
+32,000 токенов — золотая середина:
+  Кодбук = 32K × 4096 = 131M параметров (приемлемо)
+  Обычные слова = 1 токен
+  Редкие слова = 2-3 токена</code>
+</pre>
+
+<p>Для сравнения:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">GPT-2:      50K токенов
+GPT-4:     100K токенов
+LLaMA:      32K токенов
+HDC-Brain v14.1:  32K токенов</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>SentencePiece: библиотека для реального использования</h3>
+
+<p>В нашем коде используется библиотека <strong>SentencePiece</strong> от Google. Это BPE со множеством улучшений для production.</p>
+
+<p>Обучение токенайзера:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">import sentencepiece as spm
+
+spm.SentencePieceTrainer.train(
+    input='train_text.txt',    # наш текстовый корпус
+    model_prefix='bpe_en_32k', # имя файла модели
+    vocab_size=32000,          # размер словаря
+    model_type='bpe',          # алгоритм BPE
+    character_coverage=0.9999, # покрываем 99.99% символов
+    pad_id=0,                  # &lt;pad&gt; = id 0
+    bos_id=1,                  # &lt;bos&gt; = id 1 (начало текста)
+    eos_id=2,                  # &lt;eos&gt; = id 2 (конец текста)
+    unk_id=3,                  # &lt;unk&gt; = id 3 (неизвестный символ)
+)</code>
+</pre>
+
+<p>Использование:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">sp = spm.SentencePieceProcessor(model_file='bpe_en_32k.model')
+
+# Текст → числа
+ids = sp.encode("The capital of France is Paris")
+print(ids)    # [450, 5473, 310, 6355, 338, 3681]
+
+# Числа → текст
+text = sp.decode(ids)
+print(text)   # "The capital of France is Paris"
+
+# Посмотреть на кусочки
+pieces = sp.encode_as_pieces("The capital of France is Paris")
+print(pieces) # ['▁The', '▁capital', '▁of', '▁France', '▁is', '▁Paris']</code>
+</pre>
+
+<p>Знак <code>▁</code> (маленький квадратик внизу) означает "здесь был пробел". SentencePiece кодирует пробелы прямо внутри токенов — очень удобно.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Что происходит с разными словами</h3>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Обычные слова — один токен
+print(sp.encode_as_pieces("The quick fox"))
+# ['▁The', '▁quick', '▁fox']
+
+# Длинное редкое слово — несколько токенов
+print(sp.encode_as_pieces("supercalifragilistic"))
+# ['▁super', 'cali', 'frag', 'il', 'istic']
+
+# Числа — тоже несколько токенов
+print(sp.encode_as_pieces("12345"))
+# ['▁123', '45']   или  ['▁1', '2', '3', '4', '5']
+
+# Код — разбивается интересно
+print(sp.encode_as_pieces("torch.nn.Module"))
+# ['▁torch', '.', 'nn', '.', 'Module']</code>
+</pre>
+
+<p>Один токен = в среднем <strong>4-5 символов</strong> для английского текста.</p>
+
+<hr class="chapter-divider" />
+
+<h3>Специальные токены</h3>
+
+<p>В кодбуке первые 4 позиции зарезервированы:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">id = 0  →  &lt;pad&gt;   — "заполнитель" (когда тексты разной длины, короткие дополняем)
+id = 1  →  &lt;bos&gt;   — Beginning of Sequence (начало текста)
+id = 2  →  &lt;eos&gt;   — End of Sequence (конец текста)
+id = 3  →  &lt;unk&gt;   — Unknown (символ, которого нет в словаре — почти не используется)</code>
+</pre>
+
+<p>Пример использования в нашей модели:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Кодируем предложение
+text = "Hello world"
+ids = sp.encode(text)  # [450, 8203]
+
+# Добавляем служебные токены
+ids_with_special = [BOS_ID] + ids + [EOS_ID]
+# [1, 450, 8203, 2]
+
+# Модель обучается предсказывать следующий токен:
+# Input:  [1, 450, 8203]      ← &lt;bos&gt; Hello world
+# Target: [450, 8203, 2]      ←  Hello world &lt;eos&gt;</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Как это используется в HDC-Brain</h3>
+
+<p>В нашем коде <code>prepare.py</code>:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Шаг 1: Обучаем токенайзер (один раз)
+spm.SentencePieceTrainer.train(
+    input='data/train.txt',
+    model_prefix='bpe_en_32k',
+    vocab_size=32000,
+    ...
+)
+
+# Шаг 2: Токенизируем весь корпус
+sp = spm.SentencePieceProcessor(model_file='bpe_en_32k.model')
+
+with open('data/train.txt') as f:
+    text = f.read()
+
+ids = sp.encode(text)
+# ids = [450, 8203, 1234, 5678, ...]  — список из миллиардов чисел
+
+# Шаг 3: Сохраняем в бинарный файл (быстро читать при обучении)
+import numpy as np
+arr = np.array(ids, dtype=np.uint16)  # uint16 = 2 байта, хватает для 32K
+arr.tofile('data/train.bin')</code>
+</pre>
+
+<p>При обучении:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># Читаем кусок из файла
+data = np.memmap('data/train.bin', dtype=np.uint16, mode='r')
+
+# Берём случайный кусок длиной 512 токенов
+i = random.randint(0, len(data) - 512 - 1)
+x = torch.tensor(data[i:i+512])       # input
+y = torch.tensor(data[i+1:i+513])     # target (сдвинут на 1)
+
+# x[0] → предсказываем x[1]
+# x[1] → предсказываем x[2]
+# ...
+# x[511] → предсказываем x[512]</code>
+</pre>
+
+<hr class="chapter-divider" />
+
+<h3>Формула токенизации (на самом деле не формула)</h3>
+
+<p>Токенизация — это <strong>алгоритм</strong>, не формула. Но можно записать так:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Токенайзер T: текст → последовательность чисел
+
+T("Hello world") = [id_1, id_2, ..., id_n]
+
+где id_i ∈ {0, 1, ..., V-1}   (V = размер словаря = 32,000)</code>
+</pre>
+
+<p>Вот что это означает буквально:</p>
+
+<ul>
+<li><code>T</code> — функция, которую мы <strong>обучили</strong> на корпусе</li>
+<li>Один и тот же текст всегда даёт одинаковые id</li>
+<li>Любой текст можно закодировать (нет "неизвестных" слов — раскладываем на части)</li>
+<li>По id всегда можно восстановить исходный текст обратно</li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<h3>Задания</h3>
+
+<p><strong>Задание 9.1</strong> — Базовое</p>
+
+<p>Запусти код BPE из раздела выше на этом корпусе:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python">corpus = "the cat sat on the mat the cat ate the rat"
+vocab, merges = train_bpe(corpus, num_merges=6)</code>
+</pre>
+
+<p>Какие пары объединились первыми? Почему именно они?</p>
+
+<p><strong>Задание 9.2</strong> — Эксперимент</p>
+
+<p>Установи SentencePiece и потокенизируй эти строки:</p>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">PYTHON</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-python"># pip install sentencepiece
+import sentencepiece as spm
+
+# Используем публичную модель (например от facebook/mbart)
+# или обучи свою на маленьком тексте
+
+texts = [
+    "The quick brown fox",
+    "supercalifragilistic",
+    "1 + 1 = 2",
+    "print('Hello, world!')",
+    "нейронная сеть",  # если модель поддерживает кириллицу
+]</code>
+</pre>
+
+<p>Найди: слово которое токенизируется в 1 токен и в 5+ токенов.</p>
+
+<p><strong>Задание 9.3</strong> — Подумать</p>
+
+<p>Почему числа (<code>"12345"</code>) разбиваются на много токенов? Это проблема для задач с математикой? Почему GPT-4 плохо умножает большие числа?</p>
+
+<p><em>Подсказка: "123 × 456" — это 6 отдельных токенов, и модель не "видит" их как число.</em></p>
+
+<p><strong>Задание 9.4</strong> — Глубже</p>
+
+<p>Сколько токенов займёт текст из 1000 символов? Сколько байт займёт закодированный файл, если id = uint16?</p>
+
+<p><em>Ответ: ~250 токенов × 2 байта = ~500 байт. Это в 2× меньше исходного текста!</em></p>
+
+<hr class="chapter-divider" />
+
+<div class="summary-box">
+  <h4>✅ Итоги главы</h4>
+  <p>Токенизация — мост между текстом и числами:</p>
+</div>
+
+<pre>
+  <div class="code-header">
+    <span class="code-lang">CODE</span>
+    <button class="code-copy">Копировать</button>
+  </div>
+  <code class="language-text">Текст:   "Hello world"
+         ↓ токенайзер (BPE)
+Числа:   [450, 8203]
+         ↓ кодбук
+Векторы: [[0.3, -0.7, ...], [0.1, 0.5, ...]]
+         ↓ модель
+Предсказание следующего токена</code>
+</pre>
+
+<ul>
+<li><strong>BPE</strong>: начинаем с символов, многократно объединяем самую частую пару</li>
+<li><strong>32K токенов</strong>: золотая середина размера словаря</li>
+<li><strong>SentencePiece</strong>: production BPE, используется в HDC-Brain</li>
+<li>Один токен ≈ 4-5 символов для английского</li>
+<li>Специальные токены: <code>&lt;pad&gt;</code>, <code>&lt;bos&gt;</code>, <code>&lt;eos&gt;</code>, <code>&lt;unk&gt;</code></li>
+</ul>
+
+<hr class="chapter-divider" />
+
+<p><em>Глава 10 → Позиционное кодирование — как модель понимает порядок слов</em></p>
+
+      <div class="chapter-nav"><a href="project-02.html" class="chapter-nav-item prev">
+  <div class="nav-direction">← Предыдущая</div>
+  <div class="nav-chapter-title">Проект: HDC-классификатор</div>
+</a><a href="chapter-10.html" class="chapter-nav-item next">
+  <div class="nav-direction">Следующая →</div>
+  <div class="nav-chapter-title">Позиционное кодирование</div>
+</a></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/book.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
+</script>
+</body>
+</html>
