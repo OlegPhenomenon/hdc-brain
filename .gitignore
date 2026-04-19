@@ -20,6 +20,7 @@ venv/
 # SentencePiece models/vocab (ship separately with release)
 *.model
 *.vocab
+!hdc-brain-v14.1/bpe_en_32k.model
 
 # Large preprocessed corpora (reproduce via prep scripts)
 docs/experiments/*.bin
