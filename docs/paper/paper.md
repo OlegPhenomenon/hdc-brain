@@ -4,6 +4,9 @@
 *Independent Researcher, Tallinn, Estonia*
 *oleg.phenomenon@gmail.com*
 
+**Code:** <https://github.com/OlegPhenomenon/hdc-brain>
+**Weights:** <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-base> (pretrain) · <https://huggingface.co/olegphenomenon/hdc-brain-v14.1-finetune-v3> (instruction-tuned)
+
 ---
 
 ## Abstract
