@@ -33,3 +33,7 @@ target/
 # Editor
 *.swp
 *.swo
+
+# Built paper artifacts (regenerate via docs/paper/build.sh)
+docs/paper/paper.pdf
+docs/paper/paper.tex

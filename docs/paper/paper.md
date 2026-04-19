@@ -18,7 +18,7 @@ The model was pretrained on 3B tokens of FineWeb-Edu for 88 hours on a single RT
 
 Transformer-based language models have become the de-facto standard for natural language processing, but their deployment on resource-constrained devices remains challenging. A 1B parameter transformer requires ~4 GB of memory in float32 and relies on float matrix multiplication. Architectures whose weights are natively binary could, in principle, require far less memory and run on integer-only hardware (XNOR + POPCNT); realising the compute advantage in practice, however, requires binary kernels tuned for the target device, which are not part of this work.
 
-**Hyperdimensional Computing (HDC)** [Kanerva, 2009] offers a natural fit: in HDC, information is represented by very high-dimensional vectors (typically thousands of dimensions) whose components are binary (±1). Similarity is cosine similarity, binding is element-wise multiplication (XNOR for bipolar), and bundling is summation. HDC has been successfully applied to classification and reasoning tasks, but — to the author's knowledge — has not been extended to full generative language modeling at scale.
+**Hyperdimensional Computing (HDC)** [@kanerva2009hyperdimensional] offers a natural fit: in HDC, information is represented by very high-dimensional vectors (typically thousands of dimensions) whose components are binary (±1). Similarity is cosine similarity, binding is element-wise multiplication (XNOR for bipolar), and bundling is summation. HDC has been successfully applied to classification and reasoning tasks, but — to the author's knowledge — has not been extended to full generative language modeling at scale.
 
 This work bridges HDC and language modeling. The contributions are:
 
@@ -33,15 +33,15 @@ This architecture is pretrained from scratch on 3B tokens and instruction-finetu
 
 ## 2. Related Work
 
-**Hyperdimensional Computing.** The framework of vector symbolic architectures (VSA) [Plate 1995, Kanerva 2009] provides the mathematical foundation for our architecture: high-dimensional vectors, binding (⊗), bundling (+), and cleanup (cosine search). Prior work has applied HDC to classification and biosignal processing [Rahimi et al. 2019], to cognitive and semiotic AGI architectures [Kovalev et al. 2020], and to adversarial robustness studies in NLP classification [Yu et al. 2023]; however, generative language modelling at scale has remained unexplored.
+**Hyperdimensional Computing.** The framework of vector symbolic architectures (VSA) [@plate1995holographic; @kanerva2009hyperdimensional] provides the mathematical foundation for our architecture: high-dimensional vectors, binding ($\otimes$), bundling (+), and cleanup (cosine search). Prior work has applied HDC to classification and biosignal processing [@rahimi2019efficient], to cognitive and semiotic AGI architectures [@kovalev2020hyperdimensional], and to adversarial robustness studies in NLP classification [@yu2023adversarial]; however, generative language modelling at scale has remained unexplored.
 
-**Binary Neural Networks.** BinaryConnect [Courbariaux et al. 2015] and XNOR-Net [Rastegari et al. 2016] established that neural networks can be trained with binary weights using straight-through estimators. Our bipolar codebook extends this principle to token embeddings in a language model, which (to our knowledge) has not been done before at the 300M parameter scale.
+**Binary Neural Networks.** BinaryConnect [@courbariaux2015binaryconnect] and XNOR-Net [@rastegari2016xnor] established that neural networks can be trained with binary weights using straight-through estimators. Our bipolar codebook extends this principle to token embeddings in a language model, which (to our knowledge) has not been done before at the 300M parameter scale.
 
-**1-bit and Low-Precision Language Models.** BitNet b1.58 [Ma et al. 2024] shows that ternary (±1, 0) weights can match full-precision transformers at scale when trained from scratch with quantization-aware procedures. BitNet's contribution is *weight precision* — it retains the full transformer block (QKV projections, attention softmax, SwiGLU) and only quantizes weight matrices. Our work differs in scope: we do not merely quantize a transformer, we replace its core primitives with HDC-native operations (binding attention in place of QKV, parallel-scan HDC memory in place of KV-cache, thought loops in place of depth). The bipolar codebook is one component among several; the architectural claim is about the operation primitives, not only about bit-width. BitNet and HDC-Brain are therefore complementary rather than competing — a future design could apply BitNet-style ternary weights to our controller while preserving binding attention.
+**1-bit and Low-Precision Language Models.** BitNet b1.58 [@ma2024era] shows that ternary (±1, 0) weights can match full-precision transformers at scale when trained from scratch with quantization-aware procedures. BitNet's contribution is *weight precision* — it retains the full transformer block (QKV projections, attention softmax, SwiGLU) and only quantizes weight matrices. Our work differs in scope: we do not merely quantize a transformer, we replace its core primitives with HDC-native operations (binding attention in place of QKV, parallel-scan HDC memory in place of KV-cache, thought loops in place of depth). The bipolar codebook is one component among several; the architectural claim is about the operation primitives, not only about bit-width. BitNet and HDC-Brain are therefore complementary rather than competing — a future design could apply BitNet-style ternary weights to our controller while preserving binding attention.
 
-**Efficient Language Models.** Recent work has explored architectures for efficient inference: Mamba [Gu & Dao, 2023] uses selective state-space models, RWKV [Peng et al. 2023] combines RNN and transformer features, and LLaMA-family models rely on transformer variants. Our architecture differs in that it *embraces* binary operations from the bottom up rather than quantizing a float network post-hoc.
+**Efficient Language Models.** Recent work has explored architectures for efficient inference: Mamba [@gu2023mamba] uses selective state-space models, RWKV [@peng2023rwkv] combines RNN and transformer features, and LLaMA-family models rely on transformer variants. Our architecture differs in that it *embraces* binary operations from the bottom up rather than quantizing a float network post-hoc.
 
-**Thought Loops and Iterative Reasoning.** Universal Transformer [Dehghani et al. 2019] introduced depth-recurrent transformers, and Adaptive Computation Time [Graves 2016] provided the earlier learned-halting framework for recurrent depth. Our thought loops share the shared-weight depth idea but use a learned per-pass gate rather than a halting confidence signal, and operate on bipolar representations.
+**Thought Loops and Iterative Reasoning.** Universal Transformer [@dehghani2019universal] introduced depth-recurrent transformers, and Adaptive Computation Time [@graves2016adaptive] provided the earlier learned-halting framework for recurrent depth. Our thought loops share the shared-weight depth idea but use a learned per-pass gate rather than a halting confidence signal, and operate on bipolar representations.
 
 ---
 
@@ -128,7 +128,7 @@ Total: 299,290,629 parameters (see Figure 3):
 
 ### 4.1 Pretrain
 
-Pretraining uses **FineWeb-Edu** [Penedo et al. 2024], a 3B-token curated web dataset. Training runs on a single NVIDIA RTX 3090 (24 GB VRAM) for 88 hours.
+Pretraining uses **FineWeb-Edu** [@penedo2024fineweb], a 3B-token curated web dataset. Training runs on a single NVIDIA RTX 3090 (24 GB VRAM) for 88 hours.
 
 **Hyperparameters:**
 - Batch size: 16 × 8 (gradient accumulation) = 128 effective
@@ -150,12 +150,12 @@ The model reaches **best 5.434 bits/token** (1.246 bits/byte on raw FineWeb-Edu;
 
 From the best pretrained checkpoint, supervised instruction tuning is performed. An earlier iteration of this work used a 140K-pair mix (Alpaca, Alpaca-GPT4, filtered SlimOrca) that reached BPB 4.076; exploratory inference on the released checkpoint showed weak instruction-following. The final SFT corpus used here — **quality_v3** — is 4× larger and drawn from higher-quality sources:
 
-- **OpenHermes 2.5** [Teknium, 2023]: 264K filtered pairs — GPT-4-augmented instructions, broadest coverage
-- **TULU-3 SFT mixture** [AllenAI, 2024]: 146K filtered pairs — 2024 curated mix
-- **Alpaca** [Taori et al. 2023]: 42K unique pairs, repeated 3× (= 126K) to emphasise simple factoid patterns
-- **Alpaca-GPT4** [Peng et al. 2023]: 31K pairs — GPT-4 responses
-- **WizardLM Evol-Instruct** [Xu et al. 2023]: 15K pairs — evolved Alpaca seeds
-- **Dolly-15K** [Databricks, 2023]: 9K human-written pairs
+- **OpenHermes 2.5** [@teknium2023openhermes]: 264K filtered pairs — GPT-4-augmented instructions, broadest coverage
+- **TULU-3 SFT mixture** [@allenai2024tulu3]: 146K filtered pairs — 2024 curated mix
+- **Alpaca** [@taori2023alpaca]: 42K unique pairs, repeated 3× (= 126K) to emphasise simple factoid patterns
+- **Alpaca-GPT4** [@peng2023alpacagpt4]: 31K pairs — GPT-4 responses
+- **WizardLM Evol-Instruct** [@xu2023wizardlm]: 15K pairs — evolved Alpaca seeds
+- **Dolly-15K** [@databricks2023dolly]: 9K human-written pairs
 
 The strict filter applied to every source requires responses of 30–1000 characters, ≥92% ASCII ratio, at most one code marker, no heavy-math signatures, and no chat role-marker artifacts leaking through. The resulting 591,835 pairs tokenise to **75.5M tokens** (71.8M train, 3.8M val). Prompts are formatted as:
 
@@ -288,191 +288,8 @@ Source datasets retain their original licenses: FineWeb-Edu (ODC-BY), OpenHermes
 
 ## References
 
-### Hyperdimensional Computing / VSA
+Bibliography is compiled from `refs.bib` via Pandoc / BibTeX. See individual `@bibkey` references inline.
 
-```bibtex
-@article{kanerva2009hyperdimensional,
-  title={Hyperdimensional computing: An introduction to computing in distributed representation with high-dimensional random vectors},
-  author={Kanerva, Pentti},
-  journal={Cognitive Computation},
-  volume={1}, number={2}, pages={139--159}, year={2009}
-}
-
-@article{plate1995holographic,
-  title={Holographic reduced representations},
-  author={Plate, Tony A.},
-  journal={IEEE Transactions on Neural Networks},
-  volume={6}, number={3}, pages={623--641}, year={1995}
-}
-
-@article{rahimi2019efficient,
-  title={Efficient biosignal processing using hyperdimensional computing},
-  author={Rahimi, Abbas and Benatti, Simone and Kanerva, Pentti and Benini, Luca and Rabaey, Jan M.},
-  journal={Proceedings of the IEEE},
-  volume={107}, number={1}, pages={123--143}, year={2019}
-}
-
-@inproceedings{kovalev2020hyperdimensional,
-  title={Hyperdimensional representations in semiotic approach to {AGI}},
-  author={Kovalev, Alexey K. and Panov, Aleksandr I. and Osipov, Evgeny},
-  booktitle={Artificial General Intelligence: 13th International Conference (AGI 2020)},
-  pages={231--241}, year={2020}, publisher={Springer}
-}
-
-@inproceedings{yu2023adversarial,
-  title={Adversarial attack on hyperdimensional computing-based {NLP} applications},
-  author={Yu, Sizhe and Chen, Jiecao and others},
-  booktitle={Design, Automation \& Test in Europe Conference (DATE)},
-  year={2023}
-}
-```
-
-### Binary / Quantized Neural Networks
-
-```bibtex
-@inproceedings{courbariaux2015binaryconnect,
-  title={{BinaryConnect}: Training deep neural networks with binary weights during propagations},
-  author={Courbariaux, Matthieu and Bengio, Yoshua and David, Jean-Pierre},
-  booktitle={NeurIPS}, year={2015}
-}
-
-@inproceedings{rastegari2016xnor,
-  title={{XNOR-Net}: {ImageNet} classification using binary convolutional neural networks},
-  author={Rastegari, Mohammad and Ordonez, Vicente and Redmon, Joseph and Farhadi, Ali},
-  booktitle={ECCV}, year={2016}
-}
-
-@article{bengio2013estimating,
-  title={Estimating or propagating gradients through stochastic neurons for conditional computation},
-  author={Bengio, Yoshua and L{\'e}onard, Nicholas and Courville, Aaron},
-  journal={arXiv:1308.3432}, year={2013}
-}
-
-@article{ma2024era,
-  title={The era of 1-bit {LLMs}: All large language models are in 1.58 bits},
-  author={Ma, Shuming and Wang, Hongyu and others},
-  journal={arXiv:2402.17764}, year={2024}
-}
-```
-
-### Architecture
-
-```bibtex
-@inproceedings{vaswani2017attention,
-  title={Attention is all you need},
-  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, {\L}ukasz and Polosukhin, Illia},
-  booktitle={NeurIPS}, year={2017}
-}
-
-@inproceedings{dehghani2019universal,
-  title={Universal Transformers},
-  author={Dehghani, Mostafa and Gouws, Stephan and Vinyals, Oriol and Uszkoreit, Jakob and Kaiser, {\L}ukasz},
-  booktitle={ICLR}, year={2019}
-}
-
-@article{graves2016adaptive,
-  title={Adaptive computation time for recurrent neural networks},
-  author={Graves, Alex},
-  journal={arXiv:1603.08983}, year={2016}
-}
-
-@inproceedings{giannou2023looped,
-  title={Looped transformers as programmable computers},
-  author={Giannou, Angeliki and Rajput, Shashank and Sohn, Jy-yong and Lee, Kangwook and Lee, Jason D. and Papailiopoulos, Dimitris},
-  booktitle={ICML}, year={2023}
-}
-
-@article{gu2023mamba,
-  title={Mamba: Linear-time sequence modeling with selective state spaces},
-  author={Gu, Albert and Dao, Tri},
-  journal={arXiv:2312.00752}, year={2023}
-}
-
-@article{peng2023rwkv,
-  title={{RWKV}: Reinventing {RNNs} for the transformer era},
-  author={Peng, Bo and others},
-  journal={arXiv:2305.13048}, year={2023}
-}
-
-@article{touvron2023llama,
-  title={{LLaMA}: Open and efficient foundation language models},
-  author={Touvron, Hugo and Lavril, Thibaut and Izacard, Gautier and others},
-  journal={arXiv:2302.13971}, year={2023}
-}
-```
-
-### Retrieval-Augmented Memory
-
-```bibtex
-@inproceedings{borgeaud2022retro,
-  title={Improving language models by retrieving from trillions of tokens},
-  author={Borgeaud, Sebastian and Mensch, Arthur and Hoffmann, Jordan and others},
-  booktitle={ICML}, year={2022}
-}
-```
-
-### Data / Training
-
-```bibtex
-@article{penedo2024fineweb,
-  title={The {FineWeb} datasets: Decanting the web for the finest text data at scale},
-  author={Penedo, Guilherme and Kydl{\'\i}{\v{c}}ek, Hynek and Lozhkov, Anton and others},
-  journal={arXiv:2406.17557}, year={2024}
-}
-
-@misc{taori2023alpaca,
-  title={Stanford {Alpaca}: An instruction-following {LLaMA} model},
-  author={Taori, Rohan and Gulrajani, Ishaan and Zhang, Tianyi and Dubois, Yann and Li, Xuechen and Guestrin, Carlos and Liang, Percy and Hashimoto, Tatsunori B.},
-  year={2023},
-  howpublished={\url{https://github.com/tatsu-lab/stanford_alpaca}}
-}
-
-@article{peng2023alpacagpt4,
-  title={Instruction tuning with {GPT-4}},
-  author={Peng, Baolin and Li, Chunyuan and He, Pengcheng and Galley, Michel and Gao, Jianfeng},
-  journal={arXiv:2304.03277}, year={2023}
-}
-
-@misc{lian2023slimorca,
-  title={{SlimOrca}: An open dataset of {GPT-4} augmented {FLAN} reasoning traces},
-  author={Lian, Wing and Wang, Guan and Goodson, Bleys and Pentland, Eugene and Cook, Austin and Vong, Chanvichet and Teknium},
-  year={2023},
-  howpublished={\url{https://huggingface.co/Open-Orca/SlimOrca}}
-}
-
-@misc{teknium2023openhermes,
-  title={{OpenHermes 2.5}: An Open Dataset of Synthetic Data for Generalist {LLM} Assistants},
-  author={Teknium},
-  year={2023},
-  howpublished={\url{https://huggingface.co/datasets/teknium/OpenHermes-2.5}}
-}
-
-@misc{allenai2024tulu3,
-  title={{TÜLU 3}: Pushing Frontiers in Open Language Model Post-Training},
-  author={{AllenAI}},
-  year={2024},
-  howpublished={\url{https://huggingface.co/datasets/allenai/tulu-3-sft-mixture}}
-}
-
-@article{xu2023wizardlm,
-  title={{WizardLM}: Empowering large language models to follow complex instructions},
-  author={Xu, Can and Sun, Qingfeng and Zheng, Kai and Geng, Xiubo and Zhao, Pu and Feng, Jiazhan and Tao, Chongyang and Jiang, Daxin},
-  journal={arXiv:2304.12244}, year={2023}
-}
-
-@misc{databricks2023dolly,
-  title={Free {Dolly}: Introducing the World's First Truly Open Instruction-Tuned {LLM}},
-  author={{Databricks}},
-  year={2023},
-  howpublished={\url{https://huggingface.co/datasets/databricks/databricks-dolly-15k}}
-}
-
-@article{zhou2023lima,
-  title={{LIMA}: Less is more for alignment},
-  author={Zhou, Chunting and Liu, Pengfei and Xu, Puxin and others},
-  journal={arXiv:2305.11206}, year={2023}
-}
-```
 
 ---
 
