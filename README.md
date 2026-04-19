@@ -1,8 +1,10 @@
 # HDC-Brain
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19653726.svg)](https://doi.org/10.5281/zenodo.19653726)
+
 A 300M-parameter hyperdimensional language model with a bipolar (±1) codebook and binding-based attention — built as an alternative to the standard transformer stack.
 
-> **Paper:** [`docs/paper/paper.md`](docs/paper/paper.md) — *HDC-Brain: A 300M Hyperdimensional Language Model with Bipolar Codebook* (Oleg Hasjanov, 2026).
+> **Paper:** *HDC-Brain: A 300M Hyperdimensional Language Model with Bipolar Codebook* (Oleg Hasjanov, 2026). [Zenodo DOI 10.5281/zenodo.19653726](https://doi.org/10.5281/zenodo.19653726) · [`docs/paper/paper.md`](docs/paper/paper.md) (source).
 
 ## What this is
 
@@ -124,16 +126,15 @@ Full discussion in paper §6.
 ## Citation
 
 ```bibtex
-@article{hasjanov2026hdcbrain,
-  author  = {Oleg Hasjanov},
-  title   = {HDC-Brain: A 300M Hyperdimensional Language Model with Bipolar Codebook},
-  journal = {arXiv preprint},
-  year    = {2026},
-  note    = {Preprint}
+@misc{hasjanov2026hdcbrain,
+  author    = {Oleg Hasjanov},
+  title     = {HDC-Brain: A 300M Hyperdimensional Language Model with Bipolar Codebook},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.19653726},
+  url       = {https://doi.org/10.5281/zenodo.19653726}
 }
 ```
-
-*(arXiv ID added after submission.)*
 
 ## License
 

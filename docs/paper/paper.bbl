@@ -1,0 +1,130 @@
+\begin{thebibliography}{19}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{AllenAI}(2024)]{allenai2024tulu3}
+{AllenAI}.
+\newblock {TÜLU 3}: Pushing frontiers in open language model post-training.
+\newblock \url{https://huggingface.co/datasets/allenai/tulu-3-sft-mixture},
+  2024.
+
+\bibitem[Courbariaux et~al.(2015)Courbariaux, Bengio, and
+  David]{courbariaux2015binaryconnect}
+Matthieu Courbariaux, Yoshua Bengio, and Jean-Pierre David.
+\newblock {BinaryConnect}: Training deep neural networks with binary weights
+  during propagations.
+\newblock In \emph{NeurIPS}, 2015.
+
+\bibitem[{Databricks}(2023)]{databricks2023dolly}
+{Databricks}.
+\newblock Free {Dolly}: Introducing the world's first truly open
+  instruction-tuned {LLM}.
+\newblock
+  \url{https://huggingface.co/datasets/databricks/databricks-dolly-15k}, 2023.
+
+\bibitem[Dehghani et~al.(2019)Dehghani, Gouws, Vinyals, Uszkoreit, and
+  Kaiser]{dehghani2019universal}
+Mostafa Dehghani, Stephan Gouws, Oriol Vinyals, Jakob Uszkoreit, and {\L}ukasz
+  Kaiser.
+\newblock Universal transformers.
+\newblock In \emph{ICLR}, 2019.
+
+\bibitem[Graves(2016)]{graves2016adaptive}
+Alex Graves.
+\newblock Adaptive computation time for recurrent neural networks.
+\newblock \emph{arXiv:1603.08983}, 2016.
+
+\bibitem[Gu and Dao(2023)]{gu2023mamba}
+Albert Gu and Tri Dao.
+\newblock Mamba: Linear-time sequence modeling with selective state spaces.
+\newblock \emph{arXiv:2312.00752}, 2023.
+
+\bibitem[Kanerva(2009)]{kanerva2009hyperdimensional}
+Pentti Kanerva.
+\newblock Hyperdimensional computing: An introduction to computing in
+  distributed representation with high-dimensional random vectors.
+\newblock \emph{Cognitive Computation}, 1\penalty0 (2):\penalty0 139--159,
+  2009.
+
+\bibitem[Kovalev et~al.(2020)Kovalev, Panov, and
+  Osipov]{kovalev2020hyperdimensional}
+Alexey~K. Kovalev, Aleksandr~I. Panov, and Evgeny Osipov.
+\newblock Hyperdimensional representations in semiotic approach to {AGI}.
+\newblock In \emph{Artificial General Intelligence: 13th International
+  Conference (AGI 2020)}, pages 231--241. Springer, 2020.
+
+\bibitem[Ma et~al.(2024)Ma, Wang, et~al.]{ma2024era}
+Shuming Ma, Hongyu Wang, et~al.
+\newblock The era of 1-bit {LLMs}: All large language models are in 1.58 bits.
+\newblock \emph{arXiv:2402.17764}, 2024.
+
+\bibitem[Penedo et~al.(2024)Penedo, Kydl{\'\i}{\v{c}}ek, Lozhkov,
+  et~al.]{penedo2024fineweb}
+Guilherme Penedo, Hynek Kydl{\'\i}{\v{c}}ek, Anton Lozhkov, et~al.
+\newblock The {FineWeb} datasets: Decanting the web for the finest text data at
+  scale.
+\newblock \emph{arXiv:2406.17557}, 2024.
+
+\bibitem[Peng et~al.(2023{\natexlab{a}})Peng, Li, He, Galley, and
+  Gao]{peng2023alpacagpt4}
+Baolin Peng, Chunyuan Li, Pengcheng He, Michel Galley, and Jianfeng Gao.
+\newblock Instruction tuning with {GPT-4}.
+\newblock \emph{arXiv:2304.03277}, 2023{\natexlab{a}}.
+
+\bibitem[Peng et~al.(2023{\natexlab{b}})]{peng2023rwkv}
+Bo~Peng et~al.
+\newblock {RWKV}: Reinventing {RNNs} for the transformer era.
+\newblock \emph{arXiv:2305.13048}, 2023{\natexlab{b}}.
+
+\bibitem[Plate(1995)]{plate1995holographic}
+Tony~A. Plate.
+\newblock Holographic reduced representations.
+\newblock \emph{IEEE Transactions on Neural Networks}, 6\penalty0 (3):\penalty0
+  623--641, 1995.
+
+\bibitem[Rahimi et~al.(2019)Rahimi, Benatti, Kanerva, Benini, and
+  Rabaey]{rahimi2019efficient}
+Abbas Rahimi, Simone Benatti, Pentti Kanerva, Luca Benini, and Jan~M. Rabaey.
+\newblock Efficient biosignal processing using hyperdimensional computing.
+\newblock \emph{Proceedings of the IEEE}, 107\penalty0 (1):\penalty0 123--143,
+  2019.
+
+\bibitem[Rastegari et~al.(2016)Rastegari, Ordonez, Redmon, and
+  Farhadi]{rastegari2016xnor}
+Mohammad Rastegari, Vicente Ordonez, Joseph Redmon, and Ali Farhadi.
+\newblock {XNOR-Net}: {ImageNet} classification using binary convolutional
+  neural networks.
+\newblock In \emph{ECCV}, 2016.
+
+\bibitem[Taori et~al.(2023)Taori, Gulrajani, Zhang, Dubois, Li, Guestrin,
+  Liang, and Hashimoto]{taori2023alpaca}
+Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos
+  Guestrin, Percy Liang, and Tatsunori~B. Hashimoto.
+\newblock Stanford {Alpaca}: An instruction-following {LLaMA} model.
+\newblock \url{https://github.com/tatsu-lab/stanford_alpaca}, 2023.
+
+\bibitem[Teknium(2023)]{teknium2023openhermes}
+Teknium.
+\newblock {OpenHermes 2.5}: An open dataset of synthetic data for generalist
+  {LLM} assistants.
+\newblock \url{https://huggingface.co/datasets/teknium/OpenHermes-2.5}, 2023.
+
+\bibitem[Xu et~al.(2023)Xu, Sun, Zheng, Geng, Zhao, Feng, Tao, and
+  Jiang]{xu2023wizardlm}
+Can Xu, Qingfeng Sun, Kai Zheng, Xiubo Geng, Pu~Zhao, Jiazhan Feng, Chongyang
+  Tao, and Daxin Jiang.
+\newblock {WizardLM}: Empowering large language models to follow complex
+  instructions.
+\newblock \emph{arXiv:2304.12244}, 2023.
+
+\bibitem[Yu et~al.(2023)Yu, Chen, et~al.]{yu2023adversarial}
+Sizhe Yu, Jiecao Chen, et~al.
+\newblock Adversarial attack on hyperdimensional computing-based {NLP}
+  applications.
+\newblock In \emph{Design, Automation \& Test in Europe Conference (DATE)},
+  2023.
+
+\end{thebibliography}
